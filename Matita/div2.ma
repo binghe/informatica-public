@@ -52,29 +52,24 @@ normalize // qed.
 lemma div2_and_twice_deduction: ∀n. div2 (twice (S n)) = S (div2 (twice n)).
 #n >twice_deduction in match (twice (S n)); // qed.
 
-lemma div2_ok_for_even_n: ∀n. ∀m. n = twice m → n = twice (div2 n).
+lemma div2_ok_for_even_n: ∀n,m. n = twice m → n = twice (div2 n).
 #n #m #H >H elim m
 [ normalize //
-| #x #M >M >div2_and_twice_deduction //
+| #x #M >div2_and_twice_deduction //
 ] qed.
 
-lemma div2_ok_for_odd_n: ∀n. ∀m. n = S (twice m) → n = S (twice (div2 n)).
+lemma div2_ok_for_odd_n: ∀n,m. n = S (twice m) → n = S (twice (div2 n)).
 #n #m #H >H elim m
 [ normalize //
-| #x >twice_deduction #M >M >div2_deduction //
+| #x >twice_deduction #M >div2_deduction //
 ] qed.
 
-(*
-lemma div2_almost_ok: ∀n.n = twice (div2 n) ∨ n = S (twice (div2 n)).
-
-proof: according to "ex_half" ∃m. n = twice m ∨ n = S (twice m).
-
-cases:
-1) if n = twice m, use "div2_ok_for_even_n", n = twice (div2 n).
-2) if n = S (twice m), use "div2_ok_for_odd_n", n = S (twice (div2 n)).
-therefore: n = twice (div2 n) ∨ n = S (twice (div2 n)). QED.
-
-But how to use the existential lemma "ex_half" here?!
+lemma div2_ok_for_all_n: ∀n. n = twice (div2 n) ∨ n = S (twice (div2 n)).
+#n lapply (ex_half n) #exm elim exm #m #H elim H
+  [ #H1 %1 @(div2_ok_for_even_n n m H1)
+  | #H1 %2 @(div2_ok_for_odd_n n m H1)
+  ]
+qed.
 
 theorem div2_ok: ∀n,q. div2 n = q → n = (twice q) ∨ n = S (twice q).
-*)
+#n #q #H elim H @div2_ok_for_all_n qed.
