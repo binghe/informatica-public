@@ -25,7 +25,7 @@
 ;;;; Differential Cryptanalysis of DES Reduced to Four Rounds
 
 (defun generate-random-message (&optional (n-bits 64))
-  (integer-to-octets (nr300:random (expt 2 64)) :n-bits n-bits))
+  (integer-to-octets (random (expt 2 64)) :n-bits n-bits))
 
 (defun make-other-message (message difference &optional (n-bits 64))
   (let* ((m (octets-to-integer message))

@@ -6,7 +6,7 @@
 ;;; of the S-box and the inner four bits are used to pick a column of the S-box. The entry identified
 ;;; in this way gives the four bits of output from the S-box.
 
-(defconstant +des-s1+
+(defparameter +des-s1+
   (make-array '(4 16) :element-type '(unsigned-byte 4)
 	      :initial-contents
 	      '((#xe 4 #xd 1 2 #xf #xb 8 3 #xa 6 #xc 5 9 0 7)    ; p0
@@ -14,7 +14,7 @@
 		(4 1 #xe 8 #xd 6 2 #xb #xf #xc 9 7 3 #xa 5 0)    ; p2
 		(#xf #xc 8 2 4 9 1 7 5 #xb 3 #xe #xa 0 6 #xd)))) ; p3
 
-(defconstant +des-s2+
+(defparameter +des-s2+
   (make-array '(4 16) :element-type '(unsigned-byte 4)
 	      :initial-contents
 	      '((#xf 1 8 #xe 6 #xb 3 4 9 7 2 #xd #xc 0 5 #xa)
@@ -22,7 +22,7 @@
 		(0 #xe 7 #xb #xa 4 #xd 1 5 8 #xc 6 9 3 2 #xf)
 		(#xd 8 #xa 1 3 #xf 4 2 #xb 6 7 #xc 0 5 #xe 9))))
 
-(defconstant +des-s3+
+(defparameter +des-s3+
   (make-array '(4 16) :element-type '(unsigned-byte 4)
 	      :initial-contents
 	      '((#xa 0 9 #xe 6 3 #xf 5 1 #xd #xc 7 #xb 4 2 8)
@@ -30,7 +30,7 @@
 		(#xd 6 4 9 8 #xf 3 0 #xb 1 2 #xc 5 #xa #xe 7)
 		(1 #xa #xd 0 6 9 8 7 4 #xf #xe 3 #xb 5 2 #xc))))
 
-(defconstant +des-s4+
+(defparameter +des-s4+
   (make-array '(4 16) :element-type '(unsigned-byte 4)
 	      :initial-contents
 	      '((7 #xd #xe 3 0 6 9 #xa 1 2 8 5 #xb #xc 4 #xf)
@@ -38,7 +38,7 @@
 		(#xa 6 9 0 #xc #xb 7 #xd #xf 1 3 #xe 5 2 8 4)
 		(3 #xf 0 6 #xa 1 #xd 8 9 4 5 #xb #xc 7 2 #xe))))
 
-(defconstant +des-s5+
+(defparameter +des-s5+
   (make-array '(4 16) :element-type '(unsigned-byte 4)
 	      :initial-contents
 	      '((2 #xc 4 1 7 #xa #xb 6 8 5 3 #xf #xd 0 #xe 9)
@@ -46,7 +46,7 @@
 		(4 2 1 #xb #xa #xd 7 8 #xf 9 #xc 5 6 3 0 #xe)
 		(#xb 8 #xc 7 1 #xe 2 #xd 6 #xf 0 9 #xa 4 5 3))))
 
-(defconstant +des-s6+
+(defparameter +des-s6+
   (make-array '(4 16) :element-type '(unsigned-byte 4)
 	      :initial-contents
 	      '((#xc 1 #xa #xf 9 2 6 8 0 #xd 3 4 #xe 7 5 #xb)
@@ -54,7 +54,7 @@
 		(9 #xe #xf 5 2 8 #xc 3 7 0 4 #xa 1 #xd #xb 6)
 		(4 3 2 #xc 9 5 #xf #xa #xb #xe 1 7 6 0 8 #xd))))
 
-(defconstant +des-s7+
+(defparameter +des-s7+
   (make-array '(4 16) :element-type '(unsigned-byte 4)
 	      :initial-contents
 	      '((4 #xb 2 #xe #xf 0 8 #xd 3 #xc 9 7 5 #xa 6 1)
@@ -62,7 +62,7 @@
 		(1 4 #xb #xd #xc 3 7 #xe #xa #xf 6 8 0 5 9 2)
 		(6 #xb #xd 8 1 4 #xa 7 9 5 0 #xf #xe 2 3 #xc))))
 
-(defconstant +des-s8+
+(defparameter +des-s8+
   (make-array '(4 16) :element-type '(unsigned-byte 4)
 	      :initial-contents
 	      '((#xd 2 8 4 6 #xf #xb 1 #xa 9 3 #xe 5 0 #xc 7)
@@ -92,7 +92,7 @@
 ;;; Today we would not label the bits {1 ... 64} but would most likely use {63 ... 0} to reflect modern
 ;;; software techniques. so, to convert, use this formula: <new> = 64 - <old>
 
-(defconstant +des-round-e+
+(defparameter +des-round-e+
   (make-array 48
     :initial-contents '(32  1  2  3  4  5
 			 4  5  6  7  8  9
@@ -128,7 +128,7 @@
 ;;; The bitwise permutation P in DES. The tables should be intepreted as those
 ;;; for IP and IP^{-1} in that the first bit of the output of P is taken from the 16th bit of the input.
 
-(defconstant +des-round-p+
+(defparameter +des-round-p+
   (make-array 32
     :initial-contents '(16  7 20 21 29 12 28 17
 			 1 15 23 26  5 18 31 10
@@ -217,34 +217,13 @@
   (declare (type (simple-array (unsigned-byte 8) (*)) input output))
   (declare (type (integer 0 #.(- array-dimension-limit 8))
                  input-start output-start))
-  (declare (type des-round-keys keys))
+  (declare (type des4-round-keys keys))
   ;; 64-bit block broken into two 32-bit parts: left right
   (with-words ((left right) input input-start)
     (des4-round left right keys 0) ; round 1
     (des4-round right left keys 1) ; round 2
     (des4-round left right keys 2) ; round 3
-    ;;(des4-round right left keys 3) ; round 4
-    (LET* ((SUBKEY (AREF KEYS 3))
-	   (EXPANSION (DES-ROUND-EXPANSION LEFT))
-	   (SBOX-INPUT (LOGXOR SUBKEY EXPANSION))
-	   (SBOX-OUTPUT (DES-SBOXES SBOX-INPUT))
-	   (PBOX-OUTPUT (DES-ROUND-P SBOX-OUTPUT))
-	   (NEW-LEFT (LOGXOR RIGHT PBOX-OUTPUT)))
-      (WHEN (BOUNDP '*ENCRYPTION-PROCESS*) (SETF (AREF *ENCRYPTION-PROCESS* 3) (CONS PBOX-OUTPUT LEFT)))
-      (WHEN *VERBOSE*
-	(FORMAT T " +-<--- ~8,'0X                 ~8,'0X ---->---+~%" RIGHT LEFT)
-	(FORMAT T " |                                                |~%")
-	(FORMAT T
-		"(+)<--- ~8,'0X (~A) <--- F <--- ~8,'0X (~A) <---+ (round ~d)~%"
-		PBOX-OUTPUT
-		(CODE-CHAR (+ (CHAR-CODE #\A) 3))
-		LEFT
-		(CODE-CHAR (+ (CHAR-CODE #\a) 3))
-		(1+ 3))
-	(FORMAT T " |                                                |~%")
-	(FORMAT T " +----> ~8,'0X                 ~8,'0X ----<---+~%" NEW-LEFT LEFT)
-	(TERPRI))
-      (SETQ RIGHT NEW-LEFT))
+    (des4-round right left keys 3) ; round 4
     (store-words output output-start right left)))
 
 ;;; ECB mode encryption and decryption
@@ -269,28 +248,28 @@
 ;;; The bit composition of the DES round keys k1,...,k16 in terms of their bit
 ;;; position in the user-supplied key k = l1 | l2 ... | l63 | l64
 
-(defconstant +des-k1+
+(defparameter +des-k1+
   (make-array 48 :initial-contents
     '(10 51 34 60 49 17 33 57  2  9 19 42
        3 35 26 25 44 58 59  1 36 27 18 41
       22 28 39 54 37  4 47 30  5 53 23 29 
       61 21 38 63 15 20 45 14 13 62 55 31)))
 
-(defconstant +des-k2+
+(defparameter +des-k2+
   (make-array 48 :initial-contents
     '( 2 43 26 52 41  9 25 49 59  1 11 34
       60 27 18 17 36 50 51 58 57 19 10 33
       14 20 31 46 29 63 39 22 28 45 15 21
       53 13 30 55  7 12 37  6  5 54 47 23)))
 
-(defconstant +des-k3+
+(defparameter +des-k3+
   (make-array 48 :initial-contents
     '(51 27 10 36 25 58  9 33 43 50 60 18
       44 11  2  1 49 34 35 42 41  3 59 17
       61  4 15 30 13 47 23  6 12 29 62  5 
       37 28 14 39 54 63 21 53 20 38 31  7)))
 
-(defconstant +des-k4+
+(defparameter +des-k4+
   (make-array 48 :initial-contents
     '(35 11 59 49  9 42 58 17 27 34 44  2
       57 60 51 50 33 18 19 26 25 52 43  1

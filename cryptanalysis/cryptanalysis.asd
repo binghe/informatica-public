@@ -29,7 +29,7 @@
   :licence "MIT"
   :description "A cryptanalysis framework for Common Lisp"
   :default-component-class ironclad-source-file
-  :depends-on (:ironclad :nr300)
+  :depends-on (:ironclad)
   :components ((:file "package")
                (:file "cryptanalysis" :depends-on ("package"))
 	       (:file "reduced-des" :depends-on ("package"))
