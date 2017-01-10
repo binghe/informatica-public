@@ -19,20 +19,21 @@ sig
     val Term_case_def : thm
     val Term_size_def : thm
     val add_extension_def : thm
-    val arrow_L_def : thm
     val arrow_def : thm
     val deltaTranslation_def : thm
     val extends_def : thm
     val gentzenSequent_def : thm
     val implements_def : thm
     val natDed_def : thm
-    val p_arrow_def : thm
     val replaceCommaDot1_def : thm
     val replaceCommaDot_def : thm
     val replace_def : thm
 
   (*  Theorems  *)
-    val Arrow_NLP : thm
+    val Arrow_cases : thm
+    val Arrow_ind : thm
+    val Arrow_rules : thm
+    val Arrow_strongind : thm
     val Backslash_antimono_left : thm
     val Backslash_mono_right : thm
     val CutRuleSimpl : thm
@@ -104,36 +105,38 @@ sig
     val NL_X : thm
     val NL_implements_NL_Sequent : thm
     val NatAxiomGen : thm
+    val RightBackslashDot : thm
     val RightSlashDot : thm
     val SeqAxiomGen : thm
     val Slash_antimono_right : thm
     val Slash_mono_left : thm
     val TermToForm : thm
+    val TermToFormDed : thm
     val Term_11 : thm
     val Term_Axiom : thm
     val Term_case_cong : thm
     val Term_distinct : thm
     val Term_induction : thm
     val Term_nchotomy : thm
-    val X_arrow : thm
     val add_extend_l : thm
     val add_extend_r : thm
     val antitonicity : thm
     val antitonicity' : thm
     val application : thm
     val application' : thm
-    val arrow_Arrow : thm
-    val arrow_plus : thm
-    val beta : thm
-    val beta' : thm
     val coApplication : thm
     val coApplication' : thm
-    val comp : thm
+    val composition : thm
+    val composition' : thm
+    val currying : thm
+    val currying' : thm
     val datatype_Form : thm
     val datatype_Term : thm
+    val decurrying : thm
+    val decurrying' : thm
+    val exchange : thm
+    val exchange' : thm
     val extends_trans : thm
-    val gamma : thm
-    val gamma' : thm
     val gentzenSequent_cases : thm
     val gentzenSequent_ind : thm
     val gentzenSequent_rules : thm
@@ -144,6 +147,9 @@ sig
     val lifting' : thm
     val mainGeach : thm
     val mainGeach' : thm
+    val mixedComposition : thm
+    val mixedComposition' : thm
+    val mono_E : thm
     val mono_X : thm
     val monotonicity : thm
     val natDed_cases : thm
@@ -152,19 +158,19 @@ sig
     val natDed_strongind : thm
     val noReplace : thm
     val no_extend : thm
-    val one : thm
-    val p_arrow_cases : thm
-    val p_arrow_ind : thm
-    val p_arrow_rules : thm
-    val p_arrow_strongind : thm
+    val permutation : thm
+    val postposing : thm
+    val preposing : thm
     val replaceCommaDot1_cases : thm
     val replaceCommaDot1_ind : thm
     val replaceCommaDot1_rules : thm
     val replaceCommaDot1_strongind : thm
     val replaceCommaDot_ind : thm
+    val replaceCommaDot_rule : thm
     val replaceMono : thm
     val replaceMonoLeft : thm
     val replaceMonoRight : thm
+    val replaceNatDed : thm
     val replaceOneComma : thm
     val replaceOneComma' : thm
     val replaceTransitive : thm
@@ -174,6 +180,8 @@ sig
     val replace_ind : thm
     val replace_rules : thm
     val replace_strongind : thm
+    val restructuring : thm
+    val restructuring' : thm
     val secondaryGeach : thm
     val secondaryGeach' : thm
 
@@ -185,7 +193,17 @@ sig
 
    [Arrow_def]  Definition
 
-      |- ∀X. Arrow X = add_extension arrow X
+      |- Arrow =
+         (λa0 a1 a2.
+            ∀Arrow'.
+              (∀a0 a1 a2.
+                 (a2 = a1) ∨ (∃B C. (a2 = C / B) ∧ Arrow' a0 (a1 . B) C) ∨
+                 (∃A B. (a1 = A . B) ∧ Arrow' a0 A (a2 / B)) ∨
+                 (∃A C. (a2 = A \ C) ∧ Arrow' a0 (A . a1) C) ∨
+                 (∃A B. (a1 = A . B) ∧ Arrow' a0 B (A \ a2)) ∨
+                 (∃B. Arrow' a0 a1 B ∧ Arrow' a0 B a2) ∨ a0 a1 a2 ⇒
+                 Arrow' a0 a1 a2) ⇒
+              Arrow' a0 a1 a2)
 
    [Form_TY_DEF]  Definition
 
@@ -326,13 +344,9 @@ sig
 
       |- ∀E1 E2. add_extension E1 E2 = E1 ∪ᵣ E2
 
-   [arrow_L_def]  Definition
-
-      |- arrow_L = Arrow L
-
    [arrow_def]  Definition
 
-      |- arrow = p_arrow^*
+      |- arrow = Arrow L
 
    [deltaTranslation_def]  Definition
 
@@ -375,8 +389,8 @@ sig
                     replace Gamma a1 (OneForm A) Delta ∧
                     gentzenSequent' a0 Delta A ∧
                     gentzenSequent' a0 Gamma a2) ∨
-                 (∃N Gamma T1 T2.
-                    N T1 T2 ∧ replace Gamma a1 T1 T2 ∧
+                 (∃Gamma Delta Delta'.
+                    replace Gamma a1 Delta Delta' ∧ a0 Delta Delta' ∧
                     gentzenSequent' a0 Gamma a2) ⇒
                  gentzenSequent' a0 a1 a2) ⇒
               gentzenSequent' a0 a1 a2)
@@ -408,25 +422,11 @@ sig
                  (∃Gamma Delta A B.
                     replace Gamma a1 (OneForm A, OneForm B) Delta ∧
                     natDed' a0 Delta (A . B) ∧ natDed' a0 Gamma a2) ∨
-                 (∃N Gamma T1 T2.
-                    N T1 T2 ∧ replace Gamma a1 T1 T2 ∧
+                 (∃Gamma Delta Delta'.
+                    replace Gamma a1 Delta Delta' ∧ a0 Delta Delta' ∧
                     natDed' a0 Gamma a2) ⇒
                  natDed' a0 a1 a2) ⇒
               natDed' a0 a1 a2)
-
-   [p_arrow_def]  Definition
-
-      |- p_arrow =
-         (λa0 a1.
-            ∀p_arrow'.
-              (∀a0 a1.
-                 (∃B C. (a1 = C / B) ∧ p_arrow' (a0 . B) C) ∨
-                 (∃A B. (a0 = A . B) ∧ p_arrow' A (a1 / B)) ∨
-                 (∃A C. (a1 = A \ C) ∧ p_arrow' (A . a0) C) ∨
-                 (∃A B. (a0 = A . B) ∧ p_arrow' B (A \ a1)) ∨
-                 (∃X. X a0 a1) ⇒
-                 p_arrow' a0 a1) ⇒
-              p_arrow' a0 a1)
 
    [replaceCommaDot1_def]  Definition
 
@@ -460,17 +460,66 @@ sig
                  replace' a0 a1 a2 a3) ⇒
               replace' a0 a1 a2 a3)
 
-   [Arrow_NLP]  Theorem
+   [Arrow_cases]  Theorem
 
-      |- ∀A B. Arrow NLP (A . B) (B . A)
+      |- ∀a0 a1 a2.
+           Arrow a0 a1 a2 ⇔
+           (a2 = a1) ∨ (∃B C. (a2 = C / B) ∧ Arrow a0 (a1 . B) C) ∨
+           (∃A B. (a1 = A . B) ∧ Arrow a0 A (a2 / B)) ∨
+           (∃A C. (a2 = A \ C) ∧ Arrow a0 (A . a1) C) ∨
+           (∃A B. (a1 = A . B) ∧ Arrow a0 B (A \ a2)) ∨
+           (∃B. Arrow a0 a1 B ∧ Arrow a0 B a2) ∨ a0 a1 a2
+
+   [Arrow_ind]  Theorem
+
+      |- ∀Arrow'.
+           (∀X A. Arrow' X A A) ∧
+           (∀X A B C. Arrow' X (A . B) C ⇒ Arrow' X A (C / B)) ∧
+           (∀X A B C. Arrow' X A (C / B) ⇒ Arrow' X (A . B) C) ∧
+           (∀X A B C. Arrow' X (A . B) C ⇒ Arrow' X B (A \ C)) ∧
+           (∀X A B C. Arrow' X B (A \ C) ⇒ Arrow' X (A . B) C) ∧
+           (∀X A B C. Arrow' X A B ∧ Arrow' X B C ⇒ Arrow' X A C) ∧
+           (∀X A B. X A B ⇒ Arrow' X A B) ⇒
+           ∀a0 a1 a2. Arrow a0 a1 a2 ⇒ Arrow' a0 a1 a2
+
+   [Arrow_rules]  Theorem
+
+      |- (∀X A. Arrow X A A) ∧
+         (∀X A B C. Arrow X (A . B) C ⇒ Arrow X A (C / B)) ∧
+         (∀X A B C. Arrow X A (C / B) ⇒ Arrow X (A . B) C) ∧
+         (∀X A B C. Arrow X (A . B) C ⇒ Arrow X B (A \ C)) ∧
+         (∀X A B C. Arrow X B (A \ C) ⇒ Arrow X (A . B) C) ∧
+         (∀X A B C. Arrow X A B ∧ Arrow X B C ⇒ Arrow X A C) ∧
+         ∀X A B. X A B ⇒ Arrow X A B
+
+   [Arrow_strongind]  Theorem
+
+      |- ∀Arrow'.
+           (∀X A. Arrow' X A A) ∧
+           (∀X A B C.
+              Arrow X (A . B) C ∧ Arrow' X (A . B) C ⇒
+              Arrow' X A (C / B)) ∧
+           (∀X A B C.
+              Arrow X A (C / B) ∧ Arrow' X A (C / B) ⇒
+              Arrow' X (A . B) C) ∧
+           (∀X A B C.
+              Arrow X (A . B) C ∧ Arrow' X (A . B) C ⇒
+              Arrow' X B (A \ C)) ∧
+           (∀X A B C.
+              Arrow X B (A \ C) ∧ Arrow' X B (A \ C) ⇒
+              Arrow' X (A . B) C) ∧
+           (∀X A B C.
+              Arrow X A B ∧ Arrow' X A B ∧ Arrow X B C ∧ Arrow' X B C ⇒
+              Arrow' X A C) ∧ (∀X A B. X A B ⇒ Arrow' X A B) ⇒
+           ∀a0 a1 a2. Arrow a0 a1 a2 ⇒ Arrow' a0 a1 a2
 
    [Backslash_antimono_left]  Theorem
 
-      |- ∀A C A'. A → A' ⇒ A' \ C → A \ C
+      |- ∀X A C A'. Arrow X A A' ⇒ Arrow X (A' \ C) (A \ C)
 
    [Backslash_mono_right]  Theorem
 
-      |- ∀A C C'. C' → C ⇒ A \ C' → A \ C
+      |- ∀X A C C'. Arrow X C' C ⇒ Arrow X (A \ C') (A \ C)
 
    [CutRuleSimpl]  Theorem
 
@@ -480,7 +529,10 @@ sig
 
    [DotElimGeneralized]  Theorem
 
-      |- ∀E T1 T2 C. replaceCommaDot T1 T2 ∧ natDed E T1 C ⇒ natDed E T2 C
+      |- ∀E C Gamma Gamma'.
+           replaceCommaDot Gamma Gamma' ⇒
+           natDed E Gamma C ⇒
+           natDed E Gamma' C
 
    [DotRightBackslash']  Theorem
 
@@ -496,15 +548,15 @@ sig
 
    [Dot_mono]  Theorem
 
-      |- ∀A B C D. A → C ∧ B → D ⇒ (A . B) → (C . D)
+      |- ∀X A B C D. Arrow X A C ∧ Arrow X B D ⇒ Arrow X (A . B) (C . D)
 
    [Dot_mono_left]  Theorem
 
-      |- ∀A B A'. A' → A ⇒ (A' . B) → (A . B)
+      |- ∀X A B A'. Arrow X A' A ⇒ Arrow X (A' . B) (A . B)
 
    [Dot_mono_right]  Theorem
 
-      |- ∀A B B'. B' → B ⇒ (A . B') → (A . B)
+      |- ∀X A B B'. Arrow X B' B ⇒ Arrow X (A . B') (A . B)
 
    [Form_11]  Theorem
 
@@ -581,31 +633,31 @@ sig
 
    [L_a]  Theorem
 
-      |- ∀x. x →ˡ x
+      |- ∀x. x → x
 
    [L_b]  Theorem
 
-      |- ∀x y z. ((x . y) . z) →ˡ (x . (y . z))
+      |- ∀x y z. ((x . y) . z) → (x . (y . z))
 
    [L_b']  Theorem
 
-      |- ∀x y z. (x . (y . z)) →ˡ ((x . y) . z)
+      |- ∀x y z. (x . (y . z)) → ((x . y) . z)
 
    [L_backslash_antimono_l]  Theorem
 
-      |- ∀A C A'. A →ˡ A' ⇒ A' \ C →ˡ A \ C
+      |- ∀A C A'. A → A' ⇒ A' \ C → A \ C
 
    [L_backslash_mono_r]  Theorem
 
-      |- ∀A C C'. C →ˡ C' ⇒ A \ C →ˡ A \ C'
+      |- ∀A C C'. C → C' ⇒ A \ C → A \ C'
 
    [L_c]  Theorem
 
-      |- ∀x y z. (x . y) →ˡ z ⇒ x →ˡ z / y
+      |- ∀x y z. (x . y) → z ⇒ x → z / y
 
    [L_c']  Theorem
 
-      |- ∀x y z. (x . y) →ˡ z ⇒ y →ˡ x \ z
+      |- ∀x y z. (x . y) → z ⇒ y → x \ z
 
    [L_cases]  Theorem
 
@@ -616,39 +668,39 @@ sig
 
    [L_d]  Theorem
 
-      |- ∀x y z. x →ˡ z / y ⇒ (x . y) →ˡ z
+      |- ∀x y z. x → z / y ⇒ (x . y) → z
 
    [L_d']  Theorem
 
-      |- ∀x y z. y →ˡ x \ z ⇒ (x . y) →ˡ z
+      |- ∀x y z. y → x \ z ⇒ (x . y) → z
 
    [L_dot_mono_l]  Theorem
 
-      |- ∀A B A'. A →ˡ A' ⇒ (A . B) →ˡ (A' . B)
+      |- ∀A B A'. A → A' ⇒ (A . B) → (A' . B)
 
    [L_dot_mono_r]  Theorem
 
-      |- ∀A B B'. B →ˡ B' ⇒ (A . B) →ˡ (A . B')
+      |- ∀A B B'. B → B' ⇒ (A . B) → (A . B')
 
    [L_e]  Theorem
 
-      |- ∀x y z. x →ˡ y ∧ y →ˡ z ⇒ x →ˡ z
+      |- ∀x y z. x → y ∧ y → z ⇒ x → z
 
    [L_f]  Theorem
 
-      |- ∀x y. x →ˡ (x . y) / y
+      |- ∀x y. x → (x . y) / y
 
    [L_g]  Theorem
 
-      |- ∀y z. (z / y . y) →ˡ z
+      |- ∀y z. (z / y . y) → z
 
    [L_h]  Theorem
 
-      |- ∀y z. y →ˡ (z / y) \ z
+      |- ∀y z. y → (z / y) \ z
 
    [L_i]  Theorem
 
-      |- ∀x y z. (z / y . y / x) →ˡ z / x
+      |- ∀x y z. (z / y . y / x) → z / x
 
    [L_implements_L_Sequent]  Theorem
 
@@ -663,31 +715,31 @@ sig
 
    [L_j]  Theorem
 
-      |- ∀x y z. z / y →ˡ z / x / (y / x)
+      |- ∀x y z. z / y → z / x / (y / x)
 
    [L_k]  Theorem
 
-      |- ∀x y z. x \ y / z →ˡ x \ (y / z)
+      |- ∀x y z. x \ y / z → x \ (y / z)
 
    [L_k']  Theorem
 
-      |- ∀x y z. x \ (y / z) →ˡ x \ y / z
+      |- ∀x y z. x \ (y / z) → x \ y / z
 
    [L_l]  Theorem
 
-      |- ∀x y z. x / y / z →ˡ x / (z . y)
+      |- ∀x y z. x / y / z → x / (z . y)
 
    [L_l']  Theorem
 
-      |- ∀x y z. x / (z . y) →ˡ x / y / z
+      |- ∀x y z. x / (z . y) → x / y / z
 
    [L_m]  Theorem
 
-      |- ∀x x' y y'. x →ˡ x' ∧ y →ˡ y' ⇒ (x . y) →ˡ (x' . y')
+      |- ∀x x' y y'. x → x' ∧ y → y' ⇒ (x . y) → (x' . y')
 
    [L_n]  Theorem
 
-      |- ∀x x' y y'. x →ˡ x' ∧ y →ˡ y' ⇒ x / y' →ˡ x' / y
+      |- ∀x x' y y'. x → x' ∧ y → y' ⇒ x / y' → x' / y
 
    [L_rules]  Theorem
 
@@ -696,11 +748,11 @@ sig
 
    [L_slash_antimono_r]  Theorem
 
-      |- ∀C B B'. B →ˡ B' ⇒ C / B' →ˡ C / B
+      |- ∀C B B'. B → B' ⇒ C / B' → C / B
 
    [L_slash_mono_l]  Theorem
 
-      |- ∀C B C'. C →ˡ C' ⇒ C / B →ˡ C' / B
+      |- ∀C B C'. C → C' ⇒ C / B → C' / B
 
    [L_strongind]  Theorem
 
@@ -717,13 +769,14 @@ sig
 
    [LeftDotGeneralized]  Theorem
 
-      |- ∀T1 T2 C E.
-           replaceCommaDot T1 T2 ∧ gentzenSequent E T1 C ⇒
+      |- ∀E C T1 T2.
+           replaceCommaDot T1 T2 ⇒
+           gentzenSequent E T1 C ⇒
            gentzenSequent E T2 C
 
    [LeftDotSimpl]  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            gentzenSequent E (OneForm A, OneForm B) C ⇒
            gentzenSequent E (OneForm (A . B)) C
 
@@ -735,26 +788,26 @@ sig
 
    [LextensionSimpl]  Theorem
 
-      |- ∀T1 T2 T3 C E.
+      |- ∀E T1 T2 T3 C.
            extends L_Sequent E ∧ gentzenSequent E (T1, (T2, T3)) C ⇒
            gentzenSequent E ((T1, T2), T3) C
 
    [LextensionSimpl']  Theorem
 
-      |- ∀T1 T2 T3 C E.
+      |- ∀E T1 T2 T3 C.
            extends L_Sequent E ∧ gentzenSequent E ((T1, T2), T3) C ⇒
            gentzenSequent E (T1, (T2, T3)) C
 
    [LextensionSimplDot]  Theorem
 
-      |- ∀A B C D E.
+      |- ∀E A B C D.
            extends L_Sequent E ∧
            gentzenSequent E (OneForm (A . (B . C))) D ⇒
            gentzenSequent E (OneForm ((A . B) . C)) D
 
    [LextensionSimplDot']  Theorem
 
-      |- ∀A B C D E.
+      |- ∀E A B C D.
            extends L_Sequent E ∧
            gentzenSequent E (OneForm ((A . B) . C)) D ⇒
            gentzenSequent E (OneForm (A . (B . C))) D
@@ -791,13 +844,13 @@ sig
 
    [NLPextensionSimpl]  Theorem
 
-      |- ∀T1 T2 C E.
+      |- ∀E T1 T2 C.
            extends NLP_Sequent E ∧ gentzenSequent E (T1, T2) C ⇒
            gentzenSequent E (T2, T1) C
 
    [NLPextensionSimplDot]  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            extends NLP_Sequent E ∧ gentzenSequent E (OneForm (A . B)) C ⇒
            gentzenSequent E (OneForm (B . A)) C
 
@@ -811,31 +864,42 @@ sig
 
    [NatAxiomGen]  Theorem
 
-      |- ∀Gamma E. natDed E Gamma (deltaTranslation Gamma)
+      |- ∀E Gamma. natDed E Gamma (deltaTranslation Gamma)
+
+   [RightBackslashDot]  Theorem
+
+      |- ∀E A B C.
+           gentzenSequent E (OneForm (B . A)) C ⇒
+           gentzenSequent E (OneForm A) (B \ C)
 
    [RightSlashDot]  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            gentzenSequent E (OneForm (A . C)) B ⇒
            gentzenSequent E (OneForm A) (B / C)
 
    [SeqAxiomGen]  Theorem
 
-      |- ∀Gamma E. gentzenSequent E Gamma (deltaTranslation Gamma)
+      |- ∀E Gamma. gentzenSequent E Gamma (deltaTranslation Gamma)
 
    [Slash_antimono_right]  Theorem
 
-      |- ∀C B B'. B' → B ⇒ C / B → C / B'
+      |- ∀X C B B'. Arrow X B' B ⇒ Arrow X (C / B) (C / B')
 
    [Slash_mono_left]  Theorem
 
-      |- ∀C B C'. C' → C ⇒ C' / B → C / B
+      |- ∀X C B C'. Arrow X C' C ⇒ Arrow X (C' / B) (C / B)
 
    [TermToForm]  Theorem
 
       |- ∀Gamma C E.
            gentzenSequent E Gamma C ⇒
            gentzenSequent E (OneForm (deltaTranslation Gamma)) C
+
+   [TermToFormDed]  Theorem
+
+      |- ∀E Gamma C.
+           natDed E Gamma C ⇒ natDed E (OneForm (deltaTranslation Gamma)) C
 
    [Term_11]  Theorem
 
@@ -870,10 +934,6 @@ sig
 
       |- ∀T'T'. (∃F'. T'T' = OneForm F') ∨ ∃T' T0. T'T' = (T', T0)
 
-   [X_arrow]  Theorem
-
-      |- ∀X A B. X A B ⇒ Arrow X A B
-
    [add_extend_l]  Theorem
 
       |- ∀X X'. extends X (add_extension X X')
@@ -884,51 +944,55 @@ sig
 
    [antitonicity]  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            gentzenSequent E (OneForm A) B ⇒
            gentzenSequent E (OneForm (C / B)) (C / A)
 
    [antitonicity']  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            gentzenSequent E (OneForm A) B ⇒
            gentzenSequent E (OneForm (B \ C)) (A \ C)
 
    [application]  Theorem
 
-      |- ∀A B E. gentzenSequent E (OneForm (A / B . B)) A
+      |- ∀E A B. gentzenSequent E (OneForm (A / B . B)) A
 
    [application']  Theorem
 
-      |- ∀A B E. gentzenSequent E (OneForm (B . B \ A)) A
-
-   [arrow_Arrow]  Theorem
-
-      |- ∀X A B. A → B ⇒ Arrow X A B
-
-   [arrow_plus]  Theorem
-
-      |- ∀X A B. X A B ⇒ A → B
-
-   [beta]  Theorem
-
-      |- ∀A B C. (A . B) → C ⇒ A → C / B
-
-   [beta']  Theorem
-
-      |- ∀A B C. A → C / B ⇒ (A . B) → C
+      |- ∀E A B. gentzenSequent E (OneForm (B . B \ A)) A
 
    [coApplication]  Theorem
 
-      |- ∀A B E. gentzenSequent E (OneForm A) ((A . B) / B)
+      |- ∀E A B. gentzenSequent E (OneForm A) ((A . B) / B)
 
    [coApplication']  Theorem
 
-      |- ∀A B E. gentzenSequent E (OneForm A) (B \ (B . A))
+      |- ∀E A B. gentzenSequent E (OneForm A) (B \ (B . A))
 
-   [comp]  Theorem
+   [composition]  Theorem
 
-      |- ∀A B C. A → B ∧ B → C ⇒ A → C
+      |- ∀E A B C.
+           extends L_Sequent E ⇒
+           gentzenSequent E (OneForm (A / B . B / C)) (A / C)
+
+   [composition']  Theorem
+
+      |- ∀E A B C.
+           extends L_Sequent E ⇒
+           gentzenSequent E (OneForm (C \ B . B \ A)) (C \ A)
+
+   [currying]  Theorem
+
+      |- ∀E A B C.
+           extends L_Sequent E ⇒
+           gentzenSequent E (OneForm (A / (B . C))) (A / C / B)
+
+   [currying']  Theorem
+
+      |- ∀E A B C.
+           extends L_Sequent E ⇒
+           gentzenSequent E (OneForm (A / C / B)) (A / (B . C))
 
    [datatype_Form]  Theorem
 
@@ -938,17 +1002,33 @@ sig
 
       |- DATATYPE (Term OneForm Comma)
 
+   [decurrying]  Theorem
+
+      |- ∀E A B C.
+           extends L_Sequent E ⇒
+           gentzenSequent E (OneForm ((A . B) \ C)) (B \ A \ C)
+
+   [decurrying']  Theorem
+
+      |- ∀E A B C.
+           extends L_Sequent E ⇒
+           gentzenSequent E (OneForm (B \ A \ C)) ((A . B) \ C)
+
+   [exchange]  Theorem
+
+      |- ∀E A B.
+           extends NLP_Sequent E ⇒
+           gentzenSequent E (OneForm (A / B)) (B \ A)
+
+   [exchange']  Theorem
+
+      |- ∀E A B.
+           extends NLP_Sequent E ⇒
+           gentzenSequent E (OneForm (B \ A)) (A / B)
+
    [extends_trans]  Theorem
 
       |- transitive extends
-
-   [gamma]  Theorem
-
-      |- ∀A B C. (A . B) → C ⇒ B → A \ C
-
-   [gamma']  Theorem
-
-      |- ∀A B C. B → A \ C ⇒ (A . B) → C
 
    [gentzenSequent_cases]  Theorem
 
@@ -972,158 +1052,178 @@ sig
            (∃Delta Gamma A.
               replace Gamma a1 (OneForm A) Delta ∧
               gentzenSequent a0 Delta A ∧ gentzenSequent a0 Gamma a2) ∨
-           ∃N Gamma T1 T2.
-             N T1 T2 ∧ replace Gamma a1 T1 T2 ∧ gentzenSequent a0 Gamma a2
+           ∃Gamma Delta Delta'.
+             replace Gamma a1 Delta Delta' ∧ a0 Delta Delta' ∧
+             gentzenSequent a0 Gamma a2
 
    [gentzenSequent_ind]  Theorem
 
       |- ∀gentzenSequent'.
-           (∀A E. gentzenSequent' E (OneForm A) A) ∧
-           (∀Gamma A B E.
+           (∀E A. gentzenSequent' E (OneForm A) A) ∧
+           (∀E Gamma A B.
               gentzenSequent' E (Gamma, OneForm B) A ⇒
               gentzenSequent' E Gamma (A / B)) ∧
-           (∀Gamma A B E.
+           (∀E Gamma A B.
               gentzenSequent' E (OneForm B, Gamma) A ⇒
               gentzenSequent' E Gamma (B \ A)) ∧
-           (∀Gamma Delta A B E.
+           (∀E Gamma Delta A B.
               gentzenSequent' E Gamma A ∧ gentzenSequent' E Delta B ⇒
               gentzenSequent' E (Gamma, Delta) (A . B)) ∧
-           (∀Gamma Gamma' Delta A B C E.
+           (∀E Gamma Gamma' Delta A B C.
               replace Gamma Gamma' (OneForm A) (OneForm (A / B), Delta) ∧
               gentzenSequent' E Delta B ∧ gentzenSequent' E Gamma C ⇒
               gentzenSequent' E Gamma' C) ∧
-           (∀Gamma Gamma' Delta A B C E.
+           (∀E Gamma Gamma' Delta A B C.
               replace Gamma Gamma' (OneForm A) (Delta, OneForm (B \ A)) ∧
               gentzenSequent' E Delta B ∧ gentzenSequent' E Gamma C ⇒
               gentzenSequent' E Gamma' C) ∧
-           (∀Gamma Gamma' A B C E.
+           (∀E Gamma Gamma' A B C.
               replace Gamma Gamma' (OneForm A, OneForm B)
                 (OneForm (A . B)) ∧ gentzenSequent' E Gamma C ⇒
               gentzenSequent' E Gamma' C) ∧
-           (∀Delta Gamma Gamma' A C E.
+           (∀E Delta Gamma Gamma' A C.
               replace Gamma Gamma' (OneForm A) Delta ∧
               gentzenSequent' E Delta A ∧ gentzenSequent' E Gamma C ⇒
               gentzenSequent' E Gamma' C) ∧
-           (∀N Gamma Gamma' T1 T2 C E.
-              N T1 T2 ∧ replace Gamma Gamma' T1 T2 ∧
+           (∀E Gamma Gamma' Delta Delta' C.
+              replace Gamma Gamma' Delta Delta' ∧ E Delta Delta' ∧
               gentzenSequent' E Gamma C ⇒
               gentzenSequent' E Gamma' C) ⇒
            ∀a0 a1 a2. gentzenSequent a0 a1 a2 ⇒ gentzenSequent' a0 a1 a2
 
    [gentzenSequent_rules]  Theorem
 
-      |- (∀A E. gentzenSequent E (OneForm A) A) ∧
-         (∀Gamma A B E.
+      |- (∀E A. gentzenSequent E (OneForm A) A) ∧
+         (∀E Gamma A B.
             gentzenSequent E (Gamma, OneForm B) A ⇒
             gentzenSequent E Gamma (A / B)) ∧
-         (∀Gamma A B E.
+         (∀E Gamma A B.
             gentzenSequent E (OneForm B, Gamma) A ⇒
             gentzenSequent E Gamma (B \ A)) ∧
-         (∀Gamma Delta A B E.
+         (∀E Gamma Delta A B.
             gentzenSequent E Gamma A ∧ gentzenSequent E Delta B ⇒
             gentzenSequent E (Gamma, Delta) (A . B)) ∧
-         (∀Gamma Gamma' Delta A B C E.
+         (∀E Gamma Gamma' Delta A B C.
             replace Gamma Gamma' (OneForm A) (OneForm (A / B), Delta) ∧
             gentzenSequent E Delta B ∧ gentzenSequent E Gamma C ⇒
             gentzenSequent E Gamma' C) ∧
-         (∀Gamma Gamma' Delta A B C E.
+         (∀E Gamma Gamma' Delta A B C.
             replace Gamma Gamma' (OneForm A) (Delta, OneForm (B \ A)) ∧
             gentzenSequent E Delta B ∧ gentzenSequent E Gamma C ⇒
             gentzenSequent E Gamma' C) ∧
-         (∀Gamma Gamma' A B C E.
+         (∀E Gamma Gamma' A B C.
             replace Gamma Gamma' (OneForm A, OneForm B) (OneForm (A . B)) ∧
             gentzenSequent E Gamma C ⇒
             gentzenSequent E Gamma' C) ∧
-         (∀Delta Gamma Gamma' A C E.
+         (∀E Delta Gamma Gamma' A C.
             replace Gamma Gamma' (OneForm A) Delta ∧
             gentzenSequent E Delta A ∧ gentzenSequent E Gamma C ⇒
             gentzenSequent E Gamma' C) ∧
-         ∀N Gamma Gamma' T1 T2 C E.
-           N T1 T2 ∧ replace Gamma Gamma' T1 T2 ∧
+         ∀E Gamma Gamma' Delta Delta' C.
+           replace Gamma Gamma' Delta Delta' ∧ E Delta Delta' ∧
            gentzenSequent E Gamma C ⇒
            gentzenSequent E Gamma' C
 
    [gentzenSequent_strongind]  Theorem
 
       |- ∀gentzenSequent'.
-           (∀A E. gentzenSequent' E (OneForm A) A) ∧
-           (∀Gamma A B E.
+           (∀E A. gentzenSequent' E (OneForm A) A) ∧
+           (∀E Gamma A B.
               gentzenSequent E (Gamma, OneForm B) A ∧
               gentzenSequent' E (Gamma, OneForm B) A ⇒
               gentzenSequent' E Gamma (A / B)) ∧
-           (∀Gamma A B E.
+           (∀E Gamma A B.
               gentzenSequent E (OneForm B, Gamma) A ∧
               gentzenSequent' E (OneForm B, Gamma) A ⇒
               gentzenSequent' E Gamma (B \ A)) ∧
-           (∀Gamma Delta A B E.
+           (∀E Gamma Delta A B.
               gentzenSequent E Gamma A ∧ gentzenSequent' E Gamma A ∧
               gentzenSequent E Delta B ∧ gentzenSequent' E Delta B ⇒
               gentzenSequent' E (Gamma, Delta) (A . B)) ∧
-           (∀Gamma Gamma' Delta A B C E.
+           (∀E Gamma Gamma' Delta A B C.
               replace Gamma Gamma' (OneForm A) (OneForm (A / B), Delta) ∧
               gentzenSequent E Delta B ∧ gentzenSequent' E Delta B ∧
               gentzenSequent E Gamma C ∧ gentzenSequent' E Gamma C ⇒
               gentzenSequent' E Gamma' C) ∧
-           (∀Gamma Gamma' Delta A B C E.
+           (∀E Gamma Gamma' Delta A B C.
               replace Gamma Gamma' (OneForm A) (Delta, OneForm (B \ A)) ∧
               gentzenSequent E Delta B ∧ gentzenSequent' E Delta B ∧
               gentzenSequent E Gamma C ∧ gentzenSequent' E Gamma C ⇒
               gentzenSequent' E Gamma' C) ∧
-           (∀Gamma Gamma' A B C E.
+           (∀E Gamma Gamma' A B C.
               replace Gamma Gamma' (OneForm A, OneForm B)
                 (OneForm (A . B)) ∧ gentzenSequent E Gamma C ∧
               gentzenSequent' E Gamma C ⇒
               gentzenSequent' E Gamma' C) ∧
-           (∀Delta Gamma Gamma' A C E.
+           (∀E Delta Gamma Gamma' A C.
               replace Gamma Gamma' (OneForm A) Delta ∧
               gentzenSequent E Delta A ∧ gentzenSequent' E Delta A ∧
               gentzenSequent E Gamma C ∧ gentzenSequent' E Gamma C ⇒
               gentzenSequent' E Gamma' C) ∧
-           (∀N Gamma Gamma' T1 T2 C E.
-              N T1 T2 ∧ replace Gamma Gamma' T1 T2 ∧
+           (∀E Gamma Gamma' Delta Delta' C.
+              replace Gamma Gamma' Delta Delta' ∧ E Delta Delta' ∧
               gentzenSequent E Gamma C ∧ gentzenSequent' E Gamma C ⇒
               gentzenSequent' E Gamma' C) ⇒
            ∀a0 a1 a2. gentzenSequent a0 a1 a2 ⇒ gentzenSequent' a0 a1 a2
 
    [isotonicity]  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            gentzenSequent E (OneForm A) B ⇒
            gentzenSequent E (OneForm (A / C)) (B / C)
 
    [isotonicity']  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            gentzenSequent E (OneForm A) B ⇒
            gentzenSequent E (OneForm (C \ A)) (C \ B)
 
    [lifting]  Theorem
 
-      |- ∀A B C E. gentzenSequent E (OneForm A) (B / A \ B)
+      |- ∀E A B C. gentzenSequent E (OneForm A) (B / A \ B)
 
    [lifting']  Theorem
 
-      |- ∀A B C E. gentzenSequent E (OneForm A) ((B / A) \ B)
+      |- ∀E A B C. gentzenSequent E (OneForm A) ((B / A) \ B)
 
    [mainGeach]  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            extends L_Sequent E ⇒
            gentzenSequent E (OneForm (A / B)) (A / C / (B / C))
 
    [mainGeach']  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            extends L_Sequent E ⇒
            gentzenSequent E (OneForm (B \ A)) ((C \ B) \ C \ A)
 
+   [mixedComposition]  Theorem
+
+      |- ∀E A B C.
+           extends LP_Sequent E ⇒
+           gentzenSequent E (OneForm (A / B . C \ B)) (C \ A)
+
+   [mixedComposition']  Theorem
+
+      |- ∀E A B C.
+           extends LP_Sequent E ⇒
+           gentzenSequent E (OneForm (B / C . B \ A)) (A / C)
+
+   [mono_E]  Theorem
+
+      |- ∀E' E Gamma A.
+           gentzenSequent E Gamma A ⇒
+           extends E E' ⇒
+           gentzenSequent E' Gamma A
+
    [mono_X]  Theorem
 
-      |- ∀X X'. extends X X' ⇒ ∀A B. Arrow X A B ⇒ Arrow X' A B
+      |- ∀X' X A B. Arrow X A B ⇒ extends X X' ⇒ Arrow X' A B
 
    [monotonicity]  Theorem
 
-      |- ∀A B C D E.
+      |- ∀E A B C D.
            gentzenSequent E (OneForm A) B ∧
            gentzenSequent E (OneForm C) D ⇒
            gentzenSequent E (OneForm (A . C)) (B . D)
@@ -1147,91 +1247,94 @@ sig
            (∃Gamma Delta A B.
               replace Gamma a1 (OneForm A, OneForm B) Delta ∧
               natDed a0 Delta (A . B) ∧ natDed a0 Gamma a2) ∨
-           ∃N Gamma T1 T2.
-             N T1 T2 ∧ replace Gamma a1 T1 T2 ∧ natDed a0 Gamma a2
+           ∃Gamma Delta Delta'.
+             replace Gamma a1 Delta Delta' ∧ a0 Delta Delta' ∧
+             natDed a0 Gamma a2
 
    [natDed_ind]  Theorem
 
       |- ∀natDed'.
-           (∀A E. natDed' E (OneForm A) A) ∧
-           (∀Gamma A B E.
+           (∀E A. natDed' E (OneForm A) A) ∧
+           (∀E Gamma A B.
               natDed' E (Gamma, OneForm B) A ⇒ natDed' E Gamma (A / B)) ∧
-           (∀Gamma A B E.
+           (∀E Gamma A B.
               natDed' E (OneForm B, Gamma) A ⇒ natDed' E Gamma (B \ A)) ∧
-           (∀Gamma Delta A B E.
+           (∀E Gamma Delta A B.
               natDed' E Gamma A ∧ natDed' E Delta B ⇒
               natDed' E (Gamma, Delta) (A . B)) ∧
-           (∀Gamma Delta A B E.
+           (∀E Gamma Delta A B.
               natDed' E Gamma (A / B) ∧ natDed' E Delta B ⇒
               natDed' E (Gamma, Delta) A) ∧
-           (∀Gamma Delta A B E.
+           (∀E Gamma Delta A B.
               natDed' E Gamma B ∧ natDed' E Delta (B \ A) ⇒
               natDed' E (Gamma, Delta) A) ∧
-           (∀Gamma Gamma' Delta A B C E.
+           (∀E Gamma Gamma' Delta A B C.
               replace Gamma Gamma' (OneForm A, OneForm B) Delta ∧
               natDed' E Delta (A . B) ∧ natDed' E Gamma C ⇒
               natDed' E Gamma' C) ∧
-           (∀N Gamma Gamma' T1 T2 C E.
-              N T1 T2 ∧ replace Gamma Gamma' T1 T2 ∧ natDed' E Gamma C ⇒
+           (∀E C Gamma Gamma' Delta Delta'.
+              replace Gamma Gamma' Delta Delta' ∧ E Delta Delta' ∧
+              natDed' E Gamma C ⇒
               natDed' E Gamma' C) ⇒
            ∀a0 a1 a2. natDed a0 a1 a2 ⇒ natDed' a0 a1 a2
 
    [natDed_rules]  Theorem
 
-      |- (∀A E. natDed E (OneForm A) A) ∧
-         (∀Gamma A B E.
+      |- (∀E A. natDed E (OneForm A) A) ∧
+         (∀E Gamma A B.
             natDed E (Gamma, OneForm B) A ⇒ natDed E Gamma (A / B)) ∧
-         (∀Gamma A B E.
+         (∀E Gamma A B.
             natDed E (OneForm B, Gamma) A ⇒ natDed E Gamma (B \ A)) ∧
-         (∀Gamma Delta A B E.
+         (∀E Gamma Delta A B.
             natDed E Gamma A ∧ natDed E Delta B ⇒
             natDed E (Gamma, Delta) (A . B)) ∧
-         (∀Gamma Delta A B E.
+         (∀E Gamma Delta A B.
             natDed E Gamma (A / B) ∧ natDed E Delta B ⇒
             natDed E (Gamma, Delta) A) ∧
-         (∀Gamma Delta A B E.
+         (∀E Gamma Delta A B.
             natDed E Gamma B ∧ natDed E Delta (B \ A) ⇒
             natDed E (Gamma, Delta) A) ∧
-         (∀Gamma Gamma' Delta A B C E.
+         (∀E Gamma Gamma' Delta A B C.
             replace Gamma Gamma' (OneForm A, OneForm B) Delta ∧
             natDed E Delta (A . B) ∧ natDed E Gamma C ⇒
             natDed E Gamma' C) ∧
-         ∀N Gamma Gamma' T1 T2 C E.
-           N T1 T2 ∧ replace Gamma Gamma' T1 T2 ∧ natDed E Gamma C ⇒
+         ∀E C Gamma Gamma' Delta Delta'.
+           replace Gamma Gamma' Delta Delta' ∧ E Delta Delta' ∧
+           natDed E Gamma C ⇒
            natDed E Gamma' C
 
    [natDed_strongind]  Theorem
 
       |- ∀natDed'.
-           (∀A E. natDed' E (OneForm A) A) ∧
-           (∀Gamma A B E.
+           (∀E A. natDed' E (OneForm A) A) ∧
+           (∀E Gamma A B.
               natDed E (Gamma, OneForm B) A ∧
               natDed' E (Gamma, OneForm B) A ⇒
               natDed' E Gamma (A / B)) ∧
-           (∀Gamma A B E.
+           (∀E Gamma A B.
               natDed E (OneForm B, Gamma) A ∧
               natDed' E (OneForm B, Gamma) A ⇒
               natDed' E Gamma (B \ A)) ∧
-           (∀Gamma Delta A B E.
+           (∀E Gamma Delta A B.
               natDed E Gamma A ∧ natDed' E Gamma A ∧ natDed E Delta B ∧
               natDed' E Delta B ⇒
               natDed' E (Gamma, Delta) (A . B)) ∧
-           (∀Gamma Delta A B E.
+           (∀E Gamma Delta A B.
               natDed E Gamma (A / B) ∧ natDed' E Gamma (A / B) ∧
               natDed E Delta B ∧ natDed' E Delta B ⇒
               natDed' E (Gamma, Delta) A) ∧
-           (∀Gamma Delta A B E.
+           (∀E Gamma Delta A B.
               natDed E Gamma B ∧ natDed' E Gamma B ∧
               natDed E Delta (B \ A) ∧ natDed' E Delta (B \ A) ⇒
               natDed' E (Gamma, Delta) A) ∧
-           (∀Gamma Gamma' Delta A B C E.
+           (∀E Gamma Gamma' Delta A B C.
               replace Gamma Gamma' (OneForm A, OneForm B) Delta ∧
               natDed E Delta (A . B) ∧ natDed' E Delta (A . B) ∧
               natDed E Gamma C ∧ natDed' E Gamma C ⇒
               natDed' E Gamma' C) ∧
-           (∀N Gamma Gamma' T1 T2 C E.
-              N T1 T2 ∧ replace Gamma Gamma' T1 T2 ∧ natDed E Gamma C ∧
-              natDed' E Gamma C ⇒
+           (∀E C Gamma Gamma' Delta Delta'.
+              replace Gamma Gamma' Delta Delta' ∧ E Delta Delta' ∧
+              natDed E Gamma C ∧ natDed' E Gamma C ⇒
               natDed' E Gamma' C) ⇒
            ∀a0 a1 a2. natDed a0 a1 a2 ⇒ natDed' a0 a1 a2
 
@@ -1243,53 +1346,24 @@ sig
 
       |- ∀X. extends X X
 
-   [one]  Theorem
+   [permutation]  Theorem
 
-      |- ∀A. A → A
+      |- ∀E A B C.
+           extends NLP_Sequent E ⇒
+           gentzenSequent E (OneForm A) (B \ C) ⇒
+           gentzenSequent E (OneForm B) (A \ C)
 
-   [p_arrow_cases]  Theorem
+   [postposing]  Theorem
 
-      |- ∀a0 a1.
-           p_arrow a0 a1 ⇔
-           (∃B C. (a1 = C / B) ∧ p_arrow (a0 . B) C) ∨
-           (∃A B. (a0 = A . B) ∧ p_arrow A (a1 / B)) ∨
-           (∃A C. (a1 = A \ C) ∧ p_arrow (A . a0) C) ∨
-           (∃A B. (a0 = A . B) ∧ p_arrow B (A \ a1)) ∨ ∃X. X a0 a1
+      |- ∀E A B.
+           extends NLP_Sequent E ⇒
+           gentzenSequent E (OneForm A) ((A \ B) \ B)
 
-   [p_arrow_ind]  Theorem
+   [preposing]  Theorem
 
-      |- ∀p_arrow'.
-           (∀A B C. p_arrow' (A . B) C ⇒ p_arrow' A (C / B)) ∧
-           (∀A B C. p_arrow' A (C / B) ⇒ p_arrow' (A . B) C) ∧
-           (∀A B C. p_arrow' (A . B) C ⇒ p_arrow' B (A \ C)) ∧
-           (∀A B C. p_arrow' B (A \ C) ⇒ p_arrow' (A . B) C) ∧
-           (∀X A B. X A B ⇒ p_arrow' A B) ⇒
-           ∀a0 a1. p_arrow a0 a1 ⇒ p_arrow' a0 a1
-
-   [p_arrow_rules]  Theorem
-
-      |- (∀A B C. p_arrow (A . B) C ⇒ p_arrow A (C / B)) ∧
-         (∀A B C. p_arrow A (C / B) ⇒ p_arrow (A . B) C) ∧
-         (∀A B C. p_arrow (A . B) C ⇒ p_arrow B (A \ C)) ∧
-         (∀A B C. p_arrow B (A \ C) ⇒ p_arrow (A . B) C) ∧
-         ∀X A B. X A B ⇒ p_arrow A B
-
-   [p_arrow_strongind]  Theorem
-
-      |- ∀p_arrow'.
-           (∀A B C.
-              p_arrow (A . B) C ∧ p_arrow' (A . B) C ⇒
-              p_arrow' A (C / B)) ∧
-           (∀A B C.
-              p_arrow A (C / B) ∧ p_arrow' A (C / B) ⇒
-              p_arrow' (A . B) C) ∧
-           (∀A B C.
-              p_arrow (A . B) C ∧ p_arrow' (A . B) C ⇒
-              p_arrow' B (A \ C)) ∧
-           (∀A B C.
-              p_arrow B (A \ C) ∧ p_arrow' B (A \ C) ⇒
-              p_arrow' (A . B) C) ∧ (∀X A B. X A B ⇒ p_arrow' A B) ⇒
-           ∀a0 a1. p_arrow a0 a1 ⇒ p_arrow' a0 a1
+      |- ∀E A B.
+           extends NLP_Sequent E ⇒
+           gentzenSequent E (OneForm A) (B / (B / A))
 
    [replaceCommaDot1_cases]  Theorem
 
@@ -1329,6 +1403,12 @@ sig
               P x z) ⇒
            ∀x y. replaceCommaDot x y ⇒ P x y
 
+   [replaceCommaDot_rule]  Theorem
+
+      |- ∀T1 T2 A B.
+           replace T1 T2 (OneForm A, OneForm B) (OneForm (A . B)) ⇒
+           replaceCommaDot T1 T2
+
    [replaceMono]  Theorem
 
       |- ∀T1 T2 T3 T4.
@@ -1344,6 +1424,13 @@ sig
 
       |- ∀T3 T1 T2.
            replaceCommaDot T1 T2 ⇒ replaceCommaDot (T1, T3) (T2, T3)
+
+   [replaceNatDed]  Theorem
+
+      |- ∀E Gamma Gamma' Delta Delta'.
+           replace Gamma Gamma' Delta Delta' ⇒
+           natDed E Delta' (deltaTranslation Delta) ⇒
+           natDed E Gamma' (deltaTranslation Gamma)
 
    [replaceOneComma]  Theorem
 
@@ -1419,15 +1506,27 @@ sig
               replace' (Delta, Gamma1) (Delta, Gamma2) F1 F2) ⇒
            ∀a0 a1 a2 a3. replace a0 a1 a2 a3 ⇒ replace' a0 a1 a2 a3
 
+   [restructuring]  Theorem
+
+      |- ∀E A B C.
+           extends L_Sequent E ⇒
+           gentzenSequent E (OneForm (A \ B / C)) (A \ (B / C))
+
+   [restructuring']  Theorem
+
+      |- ∀E A B C.
+           extends L_Sequent E ⇒
+           gentzenSequent E (OneForm (A \ (B / C))) (A \ B / C)
+
    [secondaryGeach]  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            extends L_Sequent E ⇒
            gentzenSequent E (OneForm (B / C)) ((A / B) \ (A / C))
 
    [secondaryGeach']  Theorem
 
-      |- ∀A B C E.
+      |- ∀E A B C.
            extends L_Sequent E ⇒
            gentzenSequent E (OneForm (C \ B)) (C \ A / B \ A)
 
