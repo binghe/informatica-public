@@ -48,6 +48,7 @@ val Label_cases = TypeBase.nchotomy_of ``:Label``;
        ∀a a'. (coname a = coname a') ⇔ (a = a')
  *)
 val Label_distinct = TypeBase.distinct_of ``:Label``;
+val Label_distinct' = GSYM Label_distinct;
 val Label_one_one = TypeBase.one_one_of ``:Label``;
 
 (* Define the set of actions as the union of the internal action tau and the labels. *)
@@ -68,6 +69,7 @@ val Action_cases = TypeBase.nchotomy_of ``:Action``;
    |- ∀a a'. (label a = label a') ⇔ (a = a')
  *)
 val Action_distinct = TypeBase.distinct_of ``:Action``;
+val Action_distinct_label = GSYM Action_distinct;
 val Action_one_one = TypeBase.one_one_of ``:Action``;
 
 val Action_not_tau_is_Label = store_thm ("Action_not_tau_is_Label",
@@ -153,8 +155,104 @@ val REP_Relabelling_THM = store_thm ("REP_Relabelling_THM",
 val relabel_def = Define `(relabel (rf: Relabelling) tau = tau) /\
 			  (relabel rf (label l) = label (REP_Relabelling rf l))`;
 
+(* If the renaming of an action is a label, that action is a label. *)
+val Relab_label = prove (``!rf u l. (relabel rf u = label l) ==> ?l'. u = label l'``,
+    Induct_on `u`
+ >| [ REWRITE_TAC [relabel_def, Action_distinct],
+      REWRITE_TAC [relabel_def]
+   >> REPEAT STRIP_TAC
+   >> Q.EXISTS_TAC `L`
+   >> REWRITE_TAC [] ]);
 
+(* If the renaming of an action is tau, that action is tau. *)
+val Relab_tau = prove (``!rf u. (relabel rf u = tau) ==> (u = tau)``,
+    Induct_on `u`
+ >> REWRITE_TAC [relabel_def, Action_distinct_label]);
+
+(* Apply_Relab: ((Label # Label) list) -> Label -> Label
+   (SND of any pair is a name, FST can be either name or coname)
+ *)
+val Apply_Relab_def = Define `
+   (Apply_Relab ([]: (Label # Label) list) l = l) /\
+   (Apply_Relab (CONS (newold: Label # Label) ls) l =
+	  if (SND newold = l)         then (FST newold)
+     else if (COMPL (SND newold) = l) then (COMPL (FST newold))
+     else (Apply_Relab ls l))`;
+
+val Apply_Relab_COMPL_THM = store_thm ("Apply_Relab_COMPL_THM",
+  ``!labl s. Apply_Relab labl (coname s) = COMPL (Apply_Relab labl (name s))``,
+    Induct THEN1 REWRITE_TAC [Apply_Relab_def, COMPL_def]
+ >> REPEAT GEN_TAC
+ >> REWRITE_TAC [Apply_Relab_def]
+ >> COND_CASES_TAC THEN1 ASM_REWRITE_TAC [Label_distinct', COMPL_def, COMPL_COMPL]
+ >> ASM_CASES_TAC ``SND (h:Label # Label) = name s`` THEN1 ASM_REWRITE_TAC [COMPL_def]
+ >> IMP_RES_TAC COMPL_THM
+ >> ASM_REWRITE_TAC []);
+
+val IS_RELABELLING = prove (``!labl. Is_Relabelling (Apply_Relab labl)``,
+    Induct THEN1 REWRITE_TAC [Is_Relabelling_def, Apply_Relab_def, COMPL_def]
+ >> GEN_TAC
+ >> REWRITE_TAC [Is_Relabelling_def, Apply_Relab_def]
+ >> GEN_TAC
+ >> COND_CASES_TAC THEN1 ASM_REWRITE_TAC [Label_distinct', COMPL_def, COMPL_COMPL]
+ >> ASM_CASES_TAC ``SND (h:Label # Label) = name s`` THEN1 ASM_REWRITE_TAC [COMPL_def]
+ >> IMP_RES_TAC COMPL_THM
+ >> ASM_REWRITE_TAC [Apply_Relab_COMPL_THM]);
+
+(* Defining a relabelling function through substitution-like notation.
+   RELAB: (Label # Label)list -> Relabelling
+ *)
+val RELAB_def = Define `RELAB labl = ABS_Relabelling (Apply_Relab labl)`;
+
+(* Define the type of (pure) CCS agent expressions. *)
+val _ = Datatype `CCS = nil
+		      | var string
+		      | prefix Action CCS
+		      | sum CCS CCS
+		      | par CCS CCS
+		      | restr CCS (Label set)
+		      | relab CCS Relabelling
+		      | rec string CCS`;
+
+(* Define structural induction on CCS agent expressions. *)
+val CCS_induct = TypeBase.induction_of ``:CCS``;
+
+(* The structural cases theorem for the type CCS. *)
+val CCS_cases = TypeBase.nchotomy_of ``:CCS``;
+
+(* Prove that the constructors of the type CCS are distinct. *)
+val CCS_distinct1 = TypeBase.distinct_of ``:CCS``;
+
+val CCS_distinct_LIST = let
+    val thm = CONJUNCTS CCS_distinct1
+    in append thm (map GSYM thm) end;
+
+val CCS_distinct = LIST_CONJ CCS_distinct_LIST;
+
+(* Prove that the constructors of the type CCS are one-to-one. *)
+val CCS_one_one = TypeBase.one_one_of ``:CCS``;
+
+val CCS_Subst_def = Define `
+   (CCS_Subst nil E' X = nil) /\
+   (CCS_Subst (prefix u E) E' X = prefix u (CCS_Subst E E' X)) /\
+   (CCS_Subst (sum E1 E2) E' X = sum (CCS_Subst E1 E' X)
+				     (CCS_Subst E2 E' X)) /\
+   (CCS_Subst (restr E L) E' X = restr (CCS_Subst E E' X) L) /\
+   (CCS_Subst (relab E f) E' X = relab (CCS_Subst E E' X) f) /\
+   (CCS_Subst (par E1 E2) E' X = par (CCS_Subst E1 E' X)
+				     (CCS_Subst E2 E' X)) /\
+   (CCS_Subst (var Y) E' X = if (Y = X) then E' else (var Y)) /\ 
+   (CCS_Subst (rec Y E) E' X =
+	if (Y = X) then (rec Y E)
+	else rec Y (CCS_Subst E E' X))`;
+
+(* Note that in the rec clause, if Y = X then all occurrences of Y in E are X 
+   and bound, so there exist no free variables X in E to be replaced with E'.
+   Hence, the term rec Y E is returned. *)
+
+(* Define an arbitrary CCS agent. *)
+val ARB' = Define `ARB' = @x:CCS. T`;
 
 val _ = export_theory ();
 
-(* last updated: January 21, 2017 *)
+(* last updated: January 22, 2017 *)
