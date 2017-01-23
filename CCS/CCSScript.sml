@@ -1,7 +1,7 @@
 (*
- * A formalization of the process algebra CCS in high order logic
+ * A formalization of the process algebra CCS in HOL4
  *
- * (ported from the code of Monica Nesi written in 1992)
+ * (based on the HOL proof code written by Prof. Monica Nesi in 1992)
  *
  * Copyright 1992  University of Cambridge, England (Author: Monica Nesi)
  * Copyright 2017  University of Bologna, Italy (Author: Chun Tian)
@@ -22,11 +22,15 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open stringTheory pred_setTheory;
+open stringTheory pred_setTheory IndDefRules CCSLib;
 
 val _ = new_theory "CCS";
 
-(*** syntax.ml ***)
+(******************************************************************************)
+(*                                                                            *)
+(*              Syntax of pure CCS (string based formalization                *)
+(*                                                                            *)
+(******************************************************************************)
 
 (* Define the set of labels as the union of names (`in`) (strings) and
    co-names (`out`) (complement of names) *)
@@ -35,12 +39,12 @@ val _ = Datatype `Label = name string | coname string`;
 (* Define structural induction on labels   
    |- ∀P. (∀s. P (name s)) ∧ (∀s. P (coname s)) ⇒ ∀L. P L
  *)
-val Label_induct = TypeBase.induction_of ``:Label``;
+val Label_induction = TypeBase.induction_of ``:Label``;
 
 (* The structural cases theorem for the type Label
    |- ∀LL. (∃s. LL = name s) ∨ ∃s. LL = coname s
  *)
-val Label_cases = TypeBase.nchotomy_of ``:Label``;
+val Label_nchotomy = TypeBase.nchotomy_of ``:Label``;
 
 (* The distinction and injectivity theorems for the type Label
    |- ∀a' a. name a ≠ coname a'
@@ -48,8 +52,8 @@ val Label_cases = TypeBase.nchotomy_of ``:Label``;
        ∀a a'. (coname a = coname a') ⇔ (a = a')
  *)
 val Label_distinct = TypeBase.distinct_of ``:Label``;
-val Label_distinct' = GSYM Label_distinct;
-val Label_one_one = TypeBase.one_one_of ``:Label``;
+val Label_distinct' = save_thm ("Label_distinct'", GSYM Label_distinct);
+val Label_11 = TypeBase.one_one_of ``:Label``;
 
 (* Define the set of actions as the union of the internal action tau and the labels. *)
 val _ = Datatype `Action = tau | label Label`;
@@ -57,23 +61,23 @@ val _ = Datatype `Action = tau | label Label`;
 (* Define structural induction on actions
    |- ∀P. P tau ∧ (∀L. P (label L)) ⇒ ∀A. P A 
  *)
-val Action_induct = TypeBase.induction_of ``:Action``;
+val Action_induction = TypeBase.induction_of ``:Action``;
 
 (* The structural cases theorem for the type Action
    |- ∀AA. (AA = tau) ∨ ∃L. AA = label L
  *)
-val Action_cases = TypeBase.nchotomy_of ``:Action``;
+val Action_nchotomy = TypeBase.nchotomy_of ``:Action``;
 
 (* The distinction and injectivity theorems for the type Action
    |- ∀a. tau ≠ label a
    |- ∀a a'. (label a = label a') ⇔ (a = a')
  *)
 val Action_distinct = TypeBase.distinct_of ``:Action``;
-val Action_distinct_label = GSYM Action_distinct;
-val Action_one_one = TypeBase.one_one_of ``:Action``;
+val Action_distinct_label = save_thm ("Action_distinct_label", GSYM Action_distinct);
+val Action_11 = TypeBase.one_one_of ``:Action``;
 
 val Action_not_tau_is_Label = store_thm ("Action_not_tau_is_Label",
-  ``!A. ~(A = tau) ==> (?L. A = label L)``, PROVE_TAC [Action_cases]);
+  ``!A. ~(A = tau) ==> (?L. A = label L)``, PROVE_TAC [Action_nchotomy]);
 
 (* Extract the label from a visible action, LABEL: Action -> Label. *)
 val    LABEL_def = Define `    LABEL (label l) = l`;
@@ -94,7 +98,8 @@ val COMPL_ACT_def = Define `COMPL_ACT (label l) = label (COMPL l)`;
 val COMPL_THM = store_thm ("COMPL_THM",
   ``!l s. (~(l = name s) ==> ~(COMPL l = coname s)) /\
 	  (~(l = coname s) ==> ~(COMPL l = name s))``,
-    Induct >> PROVE_TAC [Label_one_one, Label_distinct, COMPL_def]);
+    Induct
+ >> PROVE_TAC [Label_11, Label_distinct, COMPL_def]);
 
 val Is_Relabelling_def = Define `
     Is_Relabelling (f: Label -> Label) = (!s. f (coname s) = COMPL (f (name s)))`;
@@ -158,11 +163,11 @@ val relabel_def = Define `(relabel (rf: Relabelling) tau = tau) /\
 (* If the renaming of an action is a label, that action is a label. *)
 val Relab_label = prove (``!rf u l. (relabel rf u = label l) ==> ?l'. u = label l'``,
     Induct_on `u`
- >| [ REWRITE_TAC [relabel_def, Action_distinct],
-      REWRITE_TAC [relabel_def]
-   >> REPEAT STRIP_TAC
-   >> Q.EXISTS_TAC `L`
-   >> REWRITE_TAC [] ]);
+    THEN1 REWRITE_TAC [relabel_def, Action_distinct]
+ >> REWRITE_TAC [relabel_def]
+ >> REPEAT STRIP_TAC
+ >> Q.EXISTS_TAC `L`
+ >> REWRITE_TAC []);
 
 (* If the renaming of an action is tau, that action is tau. *)
 val Relab_tau = prove (``!rf u. (relabel rf u = tau) ==> (u = tau)``,
@@ -232,6 +237,10 @@ val CCS_distinct = LIST_CONJ CCS_distinct_LIST;
 (* Prove that the constructors of the type CCS are one-to-one. *)
 val CCS_one_one = TypeBase.one_one_of ``:CCS``;
 
+(* Given any agent expression, define the substitution of an agent expression
+   E' for an agent variable X.
+   This works under the hypothesis that the Barendregt convention holds. *)
+
 val CCS_Subst_def = Define `
    (CCS_Subst nil E' X = nil) /\
    (CCS_Subst (prefix u E) E' X = prefix u (CCS_Subst E E' X)) /\
@@ -250,8 +259,80 @@ val CCS_Subst_def = Define `
    and bound, so there exist no free variables X in E to be replaced with E'.
    Hence, the term rec Y E is returned. *)
 
-(* Define an arbitrary CCS agent. *)
-val ARB' = Define `ARB' = @x:CCS. T`;
+(* Define an arbitrary CCS agent. This finished porting of syntax.ml *)
+val ARB'_def = Define `ARB' = @x:CCS. T`;
+
+
+
+
+(******************************************************************************)
+(*                                                                            *)
+(*            Definition of the transition relation for pure CCS              *)
+(*                                                                            *)
+(******************************************************************************)
+
+(* Inductive definition of the transition relation TRANS for CCS.
+   TRANS: Action -> CCS -> CCS -> bool
+ *)
+val (trans_rules, trans_ind, trans_cases) = Hol_reln `
+    (!u E. TRANS u (prefix u E) E) /\
+    (!u E E' E1. TRANS u E E1 ==> TRANS u (sum E E') E1) /\
+    (!u E E' E1. TRANS u E E1 ==> TRANS u (sum E' E) E1) /\
+    (!u E E' E1. TRANS u E E1 ==> TRANS u (par E E') (par E1 E')) /\
+    (!u E E' E1. TRANS u E E1 ==> TRANS u (par E' E) (par E' E1)) /\
+    (!l E E' E1 E2. TRANS (label l) E E1 /\ TRANS (label (COMPL l)) E' E2
+		==> TRANS tau (par E E') (par E1 E2)) /\
+    (!u l E E' L.   TRANS u E E' /\
+		    ((u = tau) \/ ((u = label l) /\ (~(l IN L)) /\ (~((COMPL l) IN L))))
+		==> TRANS u (restr E L) (restr E' L)) /\
+    (!u E E' rf. TRANS u E E' ==> TRANS (relabel rf u) (relab E rf) (relab E' rf)) /\
+    (!u E E1 X.  TRANS u (CCS_Subst E (rec X E) X) E1 ==> TRANS u (rec X E) E1)`;
+
+(* The rules for the transition relation TRANS as individual theorems. *)
+val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELLING, REC] =
+    (CONJ_LIST 9 trans_rules);
+
+(* Tactics for proofs about the transition relation TRANS. *)
+val [PREFIX_TAC, SUM1_TAC, SUM2_TAC,
+     PAR1_TAC, PAR2_TAC, PAR3_TAC,
+     RESTR_TAC, RELAB_TAC, REC_TAC] = map RULE_TAC (CONJ_LIST 9 trans_rules);
+
+(* The process nil has no transitions.
+   |- ∀u E. ¬TRANS u nil E
+ *)
+val NIL_NO_TRANS = save_thm ("NIL_NO_TRANS",
+    REWRITE_RULE [CCS_distinct]
+		 (Q.GEN `u` (Q.GEN `E` (Q.SPECL [`u`, `nil`, `E`] trans_cases))));
+
+(* Prove that if a process can do an action, then the process is not nil.
+   |- ∀u E E'. TRANS u E E' ⇒ E ≠ nil:
+ *)
+val TRANS_IMP_NO_NIL = store_thm ("TRANS_IMP_NO_NIL",
+  ``!u E E'. TRANS u E E' ==> ~(E = nil)``,
+    HO_MATCH_MP_TAC trans_ind
+ >> REWRITE_TAC [CCS_distinct]);
+
+(* An agent variable has no transitions.
+   |- ∀u X E. ¬TRANS u (var X) E
+ *)
+val VAR_NO_TRANS = save_thm ("VAR_NO_TRANS",
+    GEN_ALL
+      (REWRITE_RULE [CCS_distinct, CCS_one_one]
+	(Q.SPECL [`u`, `(var X)`, `E`] trans_cases)));
+
+(* |- ∀u' u E' E. TRANS u' (prefix u E) E' ⇔ (u' = u) ∧ (E' = E) *)
+val TRANS_PREFIX_EQ = save_thm ("TRANS_PREFIX_EQ",
+    GEN_ALL
+      (ONCE_REWRITE_RHS_RULE [EQ_SYM_EQ]
+	(SPEC_ALL
+	  (REWRITE_RULE [CCS_distinct, CCS_one_one]
+			(Q.SPECL [`u'`, `prefix u E`, `E'`] trans_cases)))));
+
+
+(* |- ∀u' u E' E. TRANS u' (prefix u E) E' ⇒ (u' = u) ∧ (E' = E) *)
+val TRANS_PREFIX = save_thm ("TRANS_PREFIX", EQ_IMP_LR TRANS_PREFIX_EQ);
+
+
 
 val _ = export_theory ();
 
