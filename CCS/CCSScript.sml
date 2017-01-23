@@ -272,7 +272,6 @@ val ARB'_def = Define `ARB' = @x:CCS. T`;
 
 
 
-
 (******************************************************************************)
 (*                                                                            *)
 (*            Definition of the transition relation for pure CCS              *)
@@ -282,7 +281,7 @@ val ARB'_def = Define `ARB' = @x:CCS. T`;
 (* Inductive definition of the transition relation TRANS for CCS.
    TRANS: Action -> CCS -> CCS -> bool
  *)
-val (trans_rules, trans_ind, trans_cases) = Hol_reln `
+val (TRANS_rules, TRANS_ind, TRANS_cases) = Hol_reln `
     (!E u. TRANS (prefix u E) u E) /\
     (!E u E1 E'. TRANS E u E1 ==> TRANS (sum E E') u E1) /\
     (!E u E1 E'. TRANS E u E1 ==> TRANS (sum E' E) u E1) /\
@@ -298,12 +297,12 @@ val (trans_rules, trans_ind, trans_cases) = Hol_reln `
 
 (* The rules for the transition relation TRANS as individual theorems. *)
 val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELLING, REC] =
-    (CONJ_LIST 9 trans_rules);
+    (CONJ_LIST 9 TRANS_rules);
 
 (* Tactics for proofs about the transition relation TRANS. *)
 val [PREFIX_TAC, SUM1_TAC, SUM2_TAC,
      PAR1_TAC, PAR2_TAC, PAR3_TAC,
-     RESTR_TAC, RELAB_TAC, REC_TAC] = map RULE_TAC (CONJ_LIST 9 trans_rules);
+     RESTR_TAC, RELAB_TAC, REC_TAC] = map RULE_TAC (CONJ_LIST 9 TRANS_rules);
 
 (* The process nil has no transitions.
    |- ∀u E. ¬TRANS nil u E
@@ -311,14 +310,14 @@ val [PREFIX_TAC, SUM1_TAC, SUM2_TAC,
 val NIL_NO_TRANS = save_thm ("NIL_NO_TRANS",
     GEN_ALL
       (REWRITE_RULE [CCS_distinct]
-		    (Q.SPECL [`nil`, `u`, `E`] trans_cases)));
+		    (Q.SPECL [`nil`, `u`, `E`] TRANS_cases)));
 
 (* Prove that if a process can do an action, then the process is not nil.
    |- ∀E u E'. TRANS E u E' ⇒ E ≠ nil:
  *)
 val TRANS_IMP_NO_NIL = store_thm ("TRANS_IMP_NO_NIL",
   ``!E u E'. TRANS E u E' ==> ~(E = nil)``,
-    HO_MATCH_MP_TAC trans_ind
+    HO_MATCH_MP_TAC TRANS_ind
  >> REWRITE_TAC [CCS_distinct]);
 
 (* An agent variable has no transitions.
@@ -327,17 +326,17 @@ val TRANS_IMP_NO_NIL = store_thm ("TRANS_IMP_NO_NIL",
 val VAR_NO_TRANS = save_thm ("VAR_NO_TRANS",
     GEN_ALL
       (REWRITE_RULE [CCS_distinct, CCS_11]
-		    (Q.SPECL [`(var X)`, `u`, `E`] trans_cases)));
+		    (Q.SPECL [`(var X)`, `u`, `E`] TRANS_cases)));
 
-(* |- ∀u E u' E'. TRANS (prefix u E) u' E' ⇔ (u' = u) ∧ (E' = E) *)
+(* |- ∀u' u E' E. TRANS (prefix u E) u' E' ⇔ (u' = u) ∧ (E' = E) *)
 val TRANS_PREFIX_EQ = save_thm ("TRANS_PREFIX_EQ",
     GEN_ALL
       (ONCE_REWRITE_RHS_RULE [EQ_SYM_EQ]
 	(SPEC_ALL
 	  (REWRITE_RULE [CCS_distinct, CCS_11]
-			(Q.SPECL [`prefix u E`, `u`, `E'`] trans_cases)))));
+			(Q.SPECL [`prefix u E`, `u'`, `E'`] TRANS_cases)))));
 
-(* |- ∀u E u' E' E. TRANS (prefix u E) u' E' ⇒ (u' = u) ∧ (E' = E) *)
+(* |- ∀u' u E' E. TRANS (prefix u E) u' E' ⇒ (u' = u) ∧ (E' = E) *)
 val TRANS_PREFIX = save_thm ("TRANS_PREFIX", EQ_IMP_LR TRANS_PREFIX_EQ);
 
 (** The transitions of a binary summation. **)
@@ -345,7 +344,7 @@ val TRANS_PREFIX = save_thm ("TRANS_PREFIX", EQ_IMP_LR TRANS_PREFIX_EQ);
 val SUM_cases_EQ = save_thm ("SUM_cases_EQ",
     GEN_ALL
       (REWRITE_RULE [CCS_distinct, CCS_11]
-		    (Q.SPECL [`sum D D'`, `u`, `D''`] trans_cases)));
+		    (Q.SPECL [`sum D D'`, `u`, `D''`] TRANS_cases)));
 
 val SUM_cases = save_thm ("SUM_cases", EQ_IMP_LR SUM_cases_EQ);
 
@@ -382,7 +381,230 @@ val TRANS_ASSOC_EQ = store_thm ("TRANS_ASSOC_EQ",
 
 val TRANS_ASSOC_RL = save_thm ("TRANS_ASSOC_RL", EQ_IMP_RL TRANS_ASSOC_EQ);
 
+val TRANS_SUM_NIL_EQ = store_thm ("TRANS_SUM_NIL_EQ",
+  ``!E u E'. TRANS (sum E nil) u E' = TRANS E u E'``,
+    REPEAT GEN_TAC >> EQ_TAC
+ >| [ DISCH_TAC >> IMP_RES_TAC TRANS_SUM >> IMP_RES_TAC NIL_NO_TRANS,
+      DISCH_TAC >> SUM1_TAC >> ASM_REWRITE_TAC [] ]);   
 
+val TRANS_SUM_NIL = save_thm ("TRANS_SUM_NIL", EQ_IMP_LR TRANS_SUM_NIL_EQ);
+
+val TRANS_P_SUM_P_EQ = store_thm ("TRANS_P_SUM_P_EQ",
+  ``!E u E'. TRANS (sum E E) u E' = TRANS E u E'``,
+    REPEAT GEN_TAC >> EQ_TAC
+ >| [ DISCH_TAC >> IMP_RES_TAC TRANS_SUM,
+      DISCH_TAC >> SUM1_TAC >> ASM_REWRITE_TAC [] ]);
+
+val TRANS_P_SUM_P = save_thm ("TRANS_P_SUM_P", EQ_IMP_LR TRANS_P_SUM_P_EQ);
+
+val PAR_cases_EQ = save_thm ("PAR_cases_EQ",
+    GEN_ALL (REWRITE_RULE [CCS_distinct, CCS_11] (SPEC ``par E E'`` TRANS_cases)));
+
+val PAR_cases = save_thm ("PAR_cases", EQ_IMP_LR PAR_cases_EQ);
+
+(* NOTE: the shape of this theorem can be easily got from above definition by replacing
+         REWRITE_RULE to SIMP_RULE, however the inner existential variable (E1) has a
+         different name. *)
+val TRANS_PAR_EQ = store_thm ("TRANS_PAR_EQ",
+  ``!E E' u E''. TRANS (par E E') u E'' =
+		 (?E1. (E'' = par E1 E') /\ TRANS E u E1) \/
+		 (?E1. (E'' = par E E1) /\ TRANS E' u E1) \/
+		 (?E1 E2 l. (u = tau) /\ (E'' = par E1 E2) /\
+			    TRANS E (label l) E1 /\ TRANS E' (label (COMPL l)) E2)``,
+    REPEAT GEN_TAC
+ >> EQ_TAC (* two goals here *)
+ >| [ (* case 1 (LR) *)
+      STRIP_TAC >> IMP_RES_TAC PAR_cases (* 3 sub-goals here *)
+   >| [ DISJ1_TAC >> Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [], (* goal 1.1 *)
+	DISJ2_TAC >> DISJ1_TAC >> Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [], (* goal 1.2 *)
+	DISJ2_TAC >> DISJ2_TAC >> Q.EXISTS_TAC `E1` >> Q.EXISTS_TAC `E2` >>
+	Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [] ], (* goal 1.3 *)
+      (* case 2 (RL) *)
+      STRIP_TAC (* 3 sub-goals here, but they share the first and last steps *)
+   >> ASM_REWRITE_TAC []
+   >| [ PAR1_TAC, PAR2_TAC, PAR3_TAC ]
+   >> ASM_REWRITE_TAC [] ]);
+
+val TRANS_PAR = save_thm ("TRANS_PAR", EQ_IMP_LR TRANS_PAR_EQ);
+
+val TRANS_PAR_P_NIL = store_thm ("TRANS_PAR_P_NIL",
+  ``!E u E'. TRANS (par E nil) u E' ==> (?E''. TRANS E u E'' /\ (E' = par E'' nil))``,
+    REPEAT STRIP_TAC
+ >> IMP_RES_TAC TRANS_PAR
+ >| [ Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [],
+      IMP_RES_TAC NIL_NO_TRANS,
+      IMP_RES_TAC NIL_NO_TRANS ]);
+
+val TRANS_PAR_NO_SYNCR = store_thm ("TRANS_PAR_NO_SYNCR",
+  ``!l l'. ~(l = COMPL l') ==>
+	   (!E E' E''. ~(TRANS (par (prefix (label l) E) (prefix (label l') E')) tau E''))``,
+    REPEAT STRIP_TAC
+ >> IMP_RES_TAC TRANS_PAR
+ >| [ IMP_RES_TAC TRANS_PREFIX >> IMP_RES_TAC Action_distinct,
+      IMP_RES_TAC TRANS_PREFIX >> IMP_RES_TAC Action_distinct,
+      IMP_RES_TAC TRANS_PREFIX >> IMP_RES_TAC Action_11
+   >> CHECK_ASSUME_TAC
+        (REWRITE_RULE [SYM (Q.ASSUME `l'' = l`),
+		       SYM (Q.ASSUME `COMPL l'' = l'`), COMPL_COMPL]
+		      (ASSUME ``~(l = COMPL l')``))
+   >> RW_TAC bool_ss [] ]);
+
+val RESTR_cases_EQ = save_thm ("RESTR_cases_EQ",
+    GEN_ALL (REWRITE_RULE [CCS_distinct, CCS_11] (SPEC ``restr E L`` TRANS_cases)));
+
+val RESTR_cases = save_thm ("RESTR_cases", EQ_IMP_LR RESTR_cases_EQ);
+
+val TRANS_RESTR_EQ = store_thm ("TRANS_RESTR_EQ",
+  ``!E L u E'. TRANS (restr E L) u E' = 
+	       (?E'' l. (E' = restr E'' L) /\ TRANS E u E'' /\
+	       ((u = tau) \/ (u = label l) /\ ~(l IN L) /\ ~((COMPL l) IN L)))``,
+  let val a1 = ASSUME ``u = tau``
+      and a2 = ASSUME ``u = label l``
+      and a3 = ASSUME ``TRANS E'' u E'''``
+      and a4 = ASSUME ``TRANS E u E''``
+  in
+    REPEAT GEN_TAC >> EQ_TAC	(* two goals here *)
+ >| [ (* case 1 (LR) *)
+      STRIP_TAC
+   >> IMP_RES_TAC RESTR_cases	(* two sub-goals here, first two steps are shared *)
+   >> Q.EXISTS_TAC `E'''`
+   >> Q.EXISTS_TAC `l`
+   >| [ ASM_REWRITE_TAC [REWRITE_RULE [a1] (a3)],
+	ASM_REWRITE_TAC [REWRITE_RULE [a2] (a3)] ],
+      (* case 2 (RL) *)
+      STRIP_TAC			(* two sub-goals here *)
+   >| [ (* sub-goal 2.1 *)
+	ASM_REWRITE_TAC [] >> RESTR_TAC
+     >> ASM_REWRITE_TAC [REWRITE_RULE [a1] (a4)],
+	(* sub-goal 2.2 *)
+	ASM_REWRITE_TAC [] >> RESTR_TAC
+     >> ASM_REWRITE_TAC [REWRITE_RULE [a2] (a4)] ] ]
+  end);
+
+val TRANS_RESTR = save_thm ("TRANS_RESTR", EQ_IMP_LR TRANS_RESTR_EQ);
+
+val TRANS_P_RESTR = store_thm ("TRANS_P_RESTR",
+  ``!E u E' L. TRANS (restr E L) u (restr E' L) ==> TRANS E u E'``,
+  let
+      val thm = REWRITE_RULE [CCS_11] (ASSUME ``restr E' L = restr E'' L``)
+  in
+    REPEAT STRIP_TAC
+ >> IMP_RES_TAC TRANS_RESTR
+ >| [ FILTER_ASM_REWRITE_TAC (fn t => not (t = ``u = tau``)) [thm],
+      FILTER_ASM_REWRITE_TAC (fn t => not (t = ``u = label l``)) [thm] ]
+  end);
+
+val RESTR_NIL_NO_TRANS = store_thm ("RESTR_NIL_NO_TRANS",
+  ``!L u E. ~(TRANS (restr nil L) u E)``,
+    REPEAT STRIP_TAC
+ >> IMP_RES_TAC TRANS_RESTR (* two sub-goals here, but same proofs *)
+ >> IMP_RES_TAC NIL_NO_TRANS);
+
+val TRANS_IMP_NO_RESTR_NIL = store_thm ("TRANS_IMP_NO_RESTR_NIL",
+  ``!E u E'. TRANS E u E' ==> !L. ~(E = restr nil L)``,
+    REPEAT STRIP_TAC
+ >> ASSUME_TAC (REWRITE_RULE [ASSUME ``E = restr nil L``]
+			     (ASSUME ``TRANS E u E'``))
+ >> IMP_RES_TAC RESTR_NIL_NO_TRANS);
+
+val TRANS_RESTR_NO_NIL = store_thm ("TRANS_RESTR_NO_NIL",
+  ``!E L u E'. TRANS (restr E L) u (restr E' L) ==> ~(E = nil)``,
+    REPEAT STRIP_TAC
+ >> IMP_RES_TAC TRANS_RESTR
+ >> ASSUME_TAC (REWRITE_RULE [ASSUME ``E = nil``]
+			     (ASSUME ``TRANS E u E''``))
+ >> IMP_RES_TAC NIL_NO_TRANS);
+
+val RESTR_LABEL_NO_TRANS = store_thm ("RESTR_LABEL_NO_TRANS",
+  ``!l L. (l IN L) \/ ((COMPL l) IN L) ==>
+	  (!E u E'. ~(TRANS (restr (prefix (label l) E) L) u E'))``,
+    REPEAT STRIP_TAC		(* two goals here *)
+ >| [ (* goal 1 *)
+      IMP_RES_TAC TRANS_RESTR	(* two sub-goals here *)
+   >| [ (* goal 1.1 *)
+	IMP_RES_TAC TRANS_PREFIX
+     >> CHECK_ASSUME_TAC
+	  (REWRITE_RULE [ASSUME ``u = tau``, Action_distinct]
+			(ASSUME ``u = label l``)),
+	(* goal 1.2 *)
+	IMP_RES_TAC TRANS_PREFIX
+     >> CHECK_ASSUME_TAC
+	  (MP (REWRITE_RULE
+		[REWRITE_RULE [ASSUME ``u = label l'``, Action_11]
+			      (ASSUME ``u = label l``)]
+		(ASSUME ``~((l':Label) IN L)``))
+	      (ASSUME ``(l:Label) IN L``)) ],
+      (* goal 2 *)
+      IMP_RES_TAC TRANS_RESTR	(* two sub-goals here *)
+   >| [ (* goal 2.1 *)
+	IMP_RES_TAC TRANS_PREFIX
+     >> CHECK_ASSUME_TAC
+	  (REWRITE_RULE [ASSUME ``u = tau``, Action_distinct]
+			(ASSUME ``u = label l``)),
+	(* goal 2.2 *)        
+	IMP_RES_TAC TRANS_PREFIX
+     >> CHECK_ASSUME_TAC
+	  (MP (REWRITE_RULE
+		[REWRITE_RULE [ASSUME ``u = label l'``, Action_11]
+			      (ASSUME ``u = label l``)]
+		(ASSUME ``~((COMPL (l':Label)) IN L)``))
+	      (ASSUME ``(COMPL (l:Label)) IN L``)) ] ]);
+
+val RELAB_cases_EQ = save_thm ("RELAB_cases_EQ",
+    GEN_ALL (REWRITE_RULE [CCS_distinct, CCS_11] (SPEC ``relab E rf`` TRANS_cases)));
+
+val RELAB_cases = save_thm ("RELAB_cases", EQ_IMP_LR RELAB_cases_EQ);
+
+val TRANS_RELAB_EQ = store_thm ("TRANS_RELAB_EQ",
+  ``!E rf u E'. TRANS (relab E rf) u E' =
+		(?u' E''. (u = relabel rf u') /\ 
+			  (E' = relab E'' rf) /\ TRANS E u' E'')``,
+    REPEAT GEN_TAC >> EQ_TAC	(* two goals here *)
+ >| [ DISCH_TAC			(* goal 1 *)
+   >> IMP_RES_TAC RELAB_cases
+   >> Q.EXISTS_TAC `u'`
+   >> Q.EXISTS_TAC `E'''`
+   >> ASM_REWRITE_TAC [],
+      STRIP_TAC			(* goal 2 *)
+   >> PURE_ONCE_ASM_REWRITE_TAC []
+   >> RELAB_TAC
+   >> PURE_ONCE_ASM_REWRITE_TAC [] ]);
+
+val TRANS_RELAB = save_thm ("TRANS_RELAB", EQ_IMP_LR TRANS_RELAB_EQ);
+
+val TRANS_RELAB_labl = save_thm ("TRANS_RELAB_labl",
+    GEN_ALL (Q.SPECL [`E`, `RELAB labl`] TRANS_RELAB));
+
+val RELAB_NIL_NO_TRANS = store_thm ("RELAB_NIL_NO_TRANS",
+  ``!rf u E. ~(TRANS (relab nil rf) u E)``,
+    REPEAT STRIP_TAC
+ >> IMP_RES_TAC TRANS_RELAB
+ >> IMP_RES_TAC NIL_NO_TRANS);
+
+(* |- ∀labl' labl.
+     (RELAB labl' = RELAB labl) ⇔ (Apply_Relab labl' = Apply_Relab labl)
+ *)
+val APPLY_RELAB_THM = save_thm ("APPLY_RELAB_THM",
+    GEN_ALL
+      (REWRITE_RULE [GSYM RELAB_def]
+	(MATCH_MP (MATCH_MP ABS_Relabelling_one_one
+			    (Q.SPEC `labl` IS_RELABELLING))
+		  (Q.SPEC `labl` IS_RELABELLING))));
+
+val REC_cases_EQ = save_thm ("REC_cases_EQ",
+    GEN_ALL (REWRITE_RULE [CCS_distinct, CCS_11] (SPEC ``rec X E`` TRANS_cases)));
+
+val REC_cases = save_thm ("REC_cases", EQ_IMP_LR REC_cases_EQ);
+
+val TRANS_REC_EQ = store_thm ("TRANS_REC_EQ",
+  ``!X E u E'. TRANS (rec X E) u E' = TRANS (CCS_Subst E (rec X E) X) u E'``,
+    REPEAT GEN_TAC >> EQ_TAC
+ >| [ PURE_ONCE_REWRITE_TAC [REC_cases_EQ]
+   >> REPEAT STRIP_TAC
+   >> PURE_ASM_REWRITE_TAC [],   
+      PURE_ONCE_REWRITE_TAC [REC] ]);
+
+val TRANS_REC = save_thm ("TRANS_REC", EQ_IMP_LR TRANS_REC_EQ);
 
 val _ = export_theory ();
 
