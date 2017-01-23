@@ -85,8 +85,8 @@ fun ONCE_ASM_REWRITE_LHS_TAC thl =
 
 (* Conversion to swap two universally quantified variables. *)
 fun SWAP_FORALL_CONV tm = let
-    val (v1, body') = dest_forall tm;
-    val (v2, body) = dest_forall body';
+    val (v1, body) = dest_forall tm;
+    val v2 = fst (dest_forall body);
     val tl1 = [v1, v2] and tl2 = [v2, v1];
     val th1 = GENL tl2 (SPECL tl1 (ASSUME tm));
     val th2 = GENL tl1 (SPECL tl2 (ASSUME (concl th1)))

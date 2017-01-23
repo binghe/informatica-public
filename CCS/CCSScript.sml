@@ -28,7 +28,7 @@ val _ = new_theory "CCS";
 
 (******************************************************************************)
 (*                                                                            *)
-(*              Syntax of pure CCS (string based formalization                *)
+(*              Syntax of pure CCS (string based formalization)               *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -76,8 +76,9 @@ val Action_distinct = TypeBase.distinct_of ``:Action``;
 val Action_distinct_label = save_thm ("Action_distinct_label", GSYM Action_distinct);
 val Action_11 = TypeBase.one_one_of ``:Action``;
 
-val Action_not_tau_is_Label = store_thm ("Action_not_tau_is_Label",
-  ``!A. ~(A = tau) ==> (?L. A = label L)``, PROVE_TAC [Action_nchotomy]);
+(* |- ∀A. A ≠ tau ⇒ ∃L. A = label L *)
+val Action_not_tau_is_Label = save_thm ("Action_not_tau_is_Label",
+    GEN_ALL (DISJ_IMP (Q.SPEC `A` Action_nchotomy)));
 
 (* Extract the label from a visible action, LABEL: Action -> Label. *)
 val    LABEL_def = Define `    LABEL (label l) = l`;
@@ -98,8 +99,15 @@ val COMPL_ACT_def = Define `COMPL_ACT (label l) = label (COMPL l)`;
 val COMPL_THM = store_thm ("COMPL_THM",
   ``!l s. (~(l = name s) ==> ~(COMPL l = coname s)) /\
 	  (~(l = coname s) ==> ~(COMPL l = name s))``,
-    Induct
- >> PROVE_TAC [Label_11, Label_distinct, COMPL_def]);
+    Induct_on `l`
+ >| [ (* case 1 *)
+      REPEAT GEN_TAC >> CONJ_TAC >|
+      [ REWRITE_TAC [Label_11, COMPL_def],
+        REWRITE_TAC [Label_distinct, COMPL_def, Label_distinct'] ] ,
+      (* case 2 *)
+      REPEAT GEN_TAC >> CONJ_TAC >|
+      [ REWRITE_TAC [Label_distinct, COMPL_def, Label_distinct'],
+        REWRITE_TAC [Label_11, COMPL_def] ] ]);
 
 val Is_Relabelling_def = Define `
     Is_Relabelling (f: Label -> Label) = (!s. f (coname s) = COMPL (f (name s)))`;
@@ -235,7 +243,7 @@ val CCS_distinct_LIST = let
 val CCS_distinct = LIST_CONJ CCS_distinct_LIST;
 
 (* Prove that the constructors of the type CCS are one-to-one. *)
-val CCS_one_one = TypeBase.one_one_of ``:CCS``;
+val CCS_11 = TypeBase.one_one_of ``:CCS``;
 
 (* Given any agent expression, define the substitution of an agent expression
    E' for an agent variable X.
@@ -275,18 +283,18 @@ val ARB'_def = Define `ARB' = @x:CCS. T`;
    TRANS: Action -> CCS -> CCS -> bool
  *)
 val (trans_rules, trans_ind, trans_cases) = Hol_reln `
-    (!u E. TRANS u (prefix u E) E) /\
-    (!u E E' E1. TRANS u E E1 ==> TRANS u (sum E E') E1) /\
-    (!u E E' E1. TRANS u E E1 ==> TRANS u (sum E' E) E1) /\
-    (!u E E' E1. TRANS u E E1 ==> TRANS u (par E E') (par E1 E')) /\
-    (!u E E' E1. TRANS u E E1 ==> TRANS u (par E' E) (par E' E1)) /\
-    (!l E E' E1 E2. TRANS (label l) E E1 /\ TRANS (label (COMPL l)) E' E2
-		==> TRANS tau (par E E') (par E1 E2)) /\
-    (!u l E E' L.   TRANS u E E' /\
+    (!E u. TRANS (prefix u E) u E) /\
+    (!E u E1 E'. TRANS E u E1 ==> TRANS (sum E E') u E1) /\
+    (!E u E1 E'. TRANS E u E1 ==> TRANS (sum E' E) u E1) /\
+    (!E u E1 E'. TRANS E u E1 ==> TRANS (par E E') u (par E1 E')) /\
+    (!E u E1 E'. TRANS E u E1 ==> TRANS (par E' E) u (par E' E1)) /\
+    (!E l E1 E' E2. TRANS E (label l) E1 /\ TRANS E' (label (COMPL l)) E2
+		==> TRANS (par E E') tau (par E1 E2)) /\
+    (!E u E' l L.   TRANS E u E' /\
 		    ((u = tau) \/ ((u = label l) /\ (~(l IN L)) /\ (~((COMPL l) IN L))))
-		==> TRANS u (restr E L) (restr E' L)) /\
-    (!u E E' rf. TRANS u E E' ==> TRANS (relabel rf u) (relab E rf) (relab E' rf)) /\
-    (!u E E1 X.  TRANS u (CCS_Subst E (rec X E) X) E1 ==> TRANS u (rec X E) E1)`;
+		==> TRANS (restr E L) u (restr E' L)) /\
+    (!E u E' rf. TRANS E u E' ==> TRANS (relab E rf) (relabel rf u) (relab E' rf)) /\
+    (!E u X E1.  TRANS (CCS_Subst E (rec X E) X) u E1 ==> TRANS (rec X E) u E1)`;
 
 (* The rules for the transition relation TRANS as individual theorems. *)
 val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELLING, REC] =
@@ -298,42 +306,84 @@ val [PREFIX_TAC, SUM1_TAC, SUM2_TAC,
      RESTR_TAC, RELAB_TAC, REC_TAC] = map RULE_TAC (CONJ_LIST 9 trans_rules);
 
 (* The process nil has no transitions.
-   |- ∀u E. ¬TRANS u nil E
+   |- ∀u E. ¬TRANS nil u E
  *)
 val NIL_NO_TRANS = save_thm ("NIL_NO_TRANS",
-    REWRITE_RULE [CCS_distinct]
-		 (Q.GEN `u` (Q.GEN `E` (Q.SPECL [`u`, `nil`, `E`] trans_cases))));
+    GEN_ALL
+      (REWRITE_RULE [CCS_distinct]
+		    (Q.SPECL [`nil`, `u`, `E`] trans_cases)));
 
 (* Prove that if a process can do an action, then the process is not nil.
-   |- ∀u E E'. TRANS u E E' ⇒ E ≠ nil:
+   |- ∀E u E'. TRANS E u E' ⇒ E ≠ nil:
  *)
 val TRANS_IMP_NO_NIL = store_thm ("TRANS_IMP_NO_NIL",
-  ``!u E E'. TRANS u E E' ==> ~(E = nil)``,
+  ``!E u E'. TRANS E u E' ==> ~(E = nil)``,
     HO_MATCH_MP_TAC trans_ind
  >> REWRITE_TAC [CCS_distinct]);
 
 (* An agent variable has no transitions.
-   |- ∀u X E. ¬TRANS u (var X) E
+   |- ∀X u E. ¬TRANS (var X) u E
  *)
 val VAR_NO_TRANS = save_thm ("VAR_NO_TRANS",
     GEN_ALL
-      (REWRITE_RULE [CCS_distinct, CCS_one_one]
-	(Q.SPECL [`u`, `(var X)`, `E`] trans_cases)));
+      (REWRITE_RULE [CCS_distinct, CCS_11]
+		    (Q.SPECL [`(var X)`, `u`, `E`] trans_cases)));
 
-(* |- ∀u' u E' E. TRANS u' (prefix u E) E' ⇔ (u' = u) ∧ (E' = E) *)
+(* |- ∀u E u' E'. TRANS (prefix u E) u' E' ⇔ (u' = u) ∧ (E' = E) *)
 val TRANS_PREFIX_EQ = save_thm ("TRANS_PREFIX_EQ",
     GEN_ALL
       (ONCE_REWRITE_RHS_RULE [EQ_SYM_EQ]
 	(SPEC_ALL
-	  (REWRITE_RULE [CCS_distinct, CCS_one_one]
-			(Q.SPECL [`u'`, `prefix u E`, `E'`] trans_cases)))));
+	  (REWRITE_RULE [CCS_distinct, CCS_11]
+			(Q.SPECL [`prefix u E`, `u`, `E'`] trans_cases)))));
 
-
-(* |- ∀u' u E' E. TRANS u' (prefix u E) E' ⇒ (u' = u) ∧ (E' = E) *)
+(* |- ∀u E u' E' E. TRANS (prefix u E) u' E' ⇒ (u' = u) ∧ (E' = E) *)
 val TRANS_PREFIX = save_thm ("TRANS_PREFIX", EQ_IMP_LR TRANS_PREFIX_EQ);
+
+(** The transitions of a binary summation. **)
+
+val SUM_cases_EQ = save_thm ("SUM_cases_EQ",
+    GEN_ALL
+      (REWRITE_RULE [CCS_distinct, CCS_11]
+		    (Q.SPECL [`sum D D'`, `u`, `D''`] trans_cases)));
+
+val SUM_cases = save_thm ("SUM_cases", EQ_IMP_LR SUM_cases_EQ);
+
+val TRANS_SUM_EQ = store_thm ("TRANS_SUM_EQ",
+  ``!E E' u E''. TRANS (sum E E') u E'' = TRANS E u E'' \/ TRANS E' u E''``, 
+    REPEAT GEN_TAC
+ >> EQ_TAC
+ >| [ DISCH_TAC >> IMP_RES_TAC SUM_cases >> ASM_REWRITE_TAC [] , 
+      STRIP_TAC >| [SUM1_TAC, SUM2_TAC] >> ASM_REWRITE_TAC [] ]); 
+
+val TRANS_SUM = save_thm ("TRANS_SUM", EQ_IMP_LR TRANS_SUM_EQ);
+
+val TRANS_COMM_EQ = store_thm ("TRANS_COMM_EQ",
+  ``!E E' E'' u. TRANS (sum E E') u E'' = TRANS (sum E' E) u E''``,
+    REPEAT GEN_TAC >> EQ_TAC
+ >| [ DISCH_TAC >> IMP_RES_TAC TRANS_SUM >| [SUM2_TAC, SUM1_TAC] >> ASM_REWRITE_TAC [],
+      DISCH_TAC >> IMP_RES_TAC TRANS_SUM >| [SUM2_TAC, SUM1_TAC] >> ASM_REWRITE_TAC [] ]);
+
+val TRANS_ASSOC_EQ = store_thm ("TRANS_ASSOC_EQ",
+  ``!E E' E'' E1 u. TRANS (sum (sum E E') E'') u E1 = TRANS (sum E (sum E' E'')) u E1``,
+    REPEAT GEN_TAC >> EQ_TAC
+ >| [ (* case 1 *)
+      DISCH_TAC >> IMP_RES_TAC TRANS_SUM >|
+      [ IMP_RES_TAC TRANS_SUM >|
+        [ SUM1_TAC, SUM1_TAC, SUM2_TAC >> SUM1_TAC, SUM2_TAC >> SUM1_TAC ]
+     >> ASM_REWRITE_TAC [] ,
+        SUM2_TAC >> SUM2_TAC >> ASM_REWRITE_TAC [] ],
+      (* case 2 *)
+      DISCH_TAC >> IMP_RES_TAC TRANS_SUM >|
+      [ SUM1_TAC >> SUM1_TAC >> ASM_REWRITE_TAC [],
+        IMP_RES_TAC TRANS_SUM >|
+        [ SUM1_TAC >> SUM1_TAC, SUM1_TAC >> SUM2_TAC, SUM2_TAC, SUM2_TAC ]
+     >> ASM_REWRITE_TAC [] ] ]); 
+
+val TRANS_ASSOC_RL = save_thm ("TRANS_ASSOC_RL", EQ_IMP_RL TRANS_ASSOC_EQ);
 
 
 
 val _ = export_theory ();
 
-(* last updated: January 22, 2017 *)
+(* last updated: January 23, 2017 *)
