@@ -71,17 +71,10 @@ val (arrow_rules, arrow_ind, arrow_cases) = Hol_reln `
     (!X A B C. arrow X A B /\ arrow X B C ==> arrow X A C) /\		(* comp *)
     (!(X :'a arrow_extension) A B. X A B ==> arrow X A B) `;		(* arrow_plus *)
 
-local
-    val list = CONJUNCTS arrow_rules
-in
-    val one         = save_thm ("one",         List.nth (list, 0))
-    and beta        = save_thm ("beta",        List.nth (list, 1))
-    and beta'       = save_thm ("beta'",       List.nth (list, 2))
-    and gamma       = save_thm ("gamma",       List.nth (list, 3))
-    and gamma'      = save_thm ("gamma'",      List.nth (list, 4))
-    and comp        = save_thm ("comp",        List.nth (list, 5))
-    and arrow_plus  = save_thm ("arrow_plus",  List.nth (list, 6))
-end;
+val [one, beta, beta', gamma, gamma', comp, arrow_plus] =
+    map (fn (s, thm) => save_thm (s, thm))
+        (combine (["one", "beta", "beta'", "gamma", "gamma'", "comp", "arrow_plus"],
+		  CONJUNCTS arrow_rules));
 
 val beta_EQ = store_thm ("beta_EQ",
   ``!X A B C. arrow X A (Slash C B) = arrow X (Dot A B) C``,
@@ -137,12 +130,9 @@ val (L_rules, L_ind, L_cases) = Hol_reln `
     (!A B C. L (Dot A (Dot B C)) (Dot (Dot A B) C)) /\
     (!A B C. L (Dot (Dot A B) C) (Dot A (Dot B C)))`;
 
-local
-    val list = CONJUNCTS L_rules
-in
-    val L_rule_rl = save_thm ("L_rule_rl", List.nth (list, 0))
-    and L_rule_lr = save_thm ("L_rule_lr", List.nth (list, 1))
-end;
+val [L_rule_rl, L_rule_lr] =
+    map (fn (s, thm) => save_thm (s, thm))
+        (combine (["L_rule_rl", "L_rule_lr"], CONJUNCTS L_rules));
 
 (* NLP is defined by only one rule, it's reflexitive too. *)
 val (NLP_rules, NLP_ind, NLP_cases) = Hol_reln `
@@ -421,12 +411,9 @@ val (L_Sequent_rules, L_Sequent_ind, L_Sequent_cases) = Hol_reln `
     (!A B C. L_Sequent (Comma A (Comma B C)) (Comma (Comma A B) C)) /\
     (!A B C. L_Sequent (Comma (Comma A B) C) (Comma A (Comma B C)))`;
 
-local
-    val list = CONJUNCTS L_Sequent_rules
-in
-    val L_Intro_lr = save_thm ("L_Intro_lr", List.nth (list, 0))
-    and L_Intro_rl = save_thm ("L_Intro_rl", List.nth (list, 1))
-end;
+val [L_Intro_lr, L_Intro_rl] =
+    map (fn (s, thm) => save_thm (s, thm))
+        (combine (["L_Intro_lr", "L_Intro_rl"], CONJUNCTS L_Sequent_rules));
 
 val LP_Sequent_def = Define `
     LP_Sequent = add_extension NLP_Sequent L_Sequent`;
@@ -1774,17 +1761,6 @@ val replaceNatDed = store_thm ("replaceNatDed",
  >> MATCH_MP_TAC DotIntro
  >> RW_TAC bool_ss [NatAxiomGeneralized]);
 
-(* easier for MATCH_MP_TAC *)
-val replaceNatDed' = store_thm (
-   "replaceNatDed'",
-  ``!E Gamma Gamma' Delta Delta'.
-     replace Gamma Gamma' Delta Delta' /\
-     natDed E Delta' (deltaTranslation Delta) ==>
-     natDed E Gamma' (deltaTranslation Gamma)``,
-    REPEAT STRIP_TAC
- >> NTAC 2 (POP_ASSUM MP_TAC)
- >> REWRITE_TAC [replaceNatDed]);
-
 (* E T1[A] T2[A] ==> ?T1[Delta]. X T1[Delta] T2[Delta] *)
 val condCutExt_def = Define `
     condCutExt (E :'a gentzen_extension) =
@@ -2090,15 +2066,18 @@ val gentzenToNatDed = store_thm (
       CONJ_TAC >- ASM_REWRITE_TAC []					\\
       CONJ_TAC >| (* 2 sub-goals here *)
       [ (* goal 5.1 (of 2) *)
-        MATCH_MP_TAC replaceNatDed'					\\
+        irule replaceNatDed						\\
         EXISTS_TAC ``(OneForm A)``					\\
         (* NOTE: expk needs `...(Slash A C')...` here! *)
         EXISTS_TAC ``(Comma (OneForm (Slash A C)) Gamma'')``		\\
-        CONJ_TAC >- ASM_REWRITE_TAC []					\\
-        REWRITE_TAC [deltaTranslation_def]				\\
-        MATCH_MP_TAC SlashElim						\\
-        Q.EXISTS_TAC `C` (* NOTE: expk needs `C'` here! *)		\\
-        CONJ_TAC >- REWRITE_TAC [NatAxiom] >> RES_TAC,
+        CONJ_TAC >| (* 2 sub-goals here *)
+        [ (* goal 5.1.1 (of 2) *)
+          REWRITE_TAC [deltaTranslation_def]				\\
+          MATCH_MP_TAC SlashElim					\\
+          Q.EXISTS_TAC `C` (* NOTE: expk needs `C'` here! *)		\\
+          CONJ_TAC >- REWRITE_TAC [NatAxiom] >> RES_TAC,
+          (* goal 5.1.2 (of 2) *)
+          ASM_REWRITE_TAC [] ],
         (* goal 5.2 (of 2) *)
         MATCH_MP_TAC NatTermToForm >> RES_TAC ],
       (* goal 6 (of 9) *)
@@ -2107,16 +2086,19 @@ val gentzenToNatDed = store_thm (
       CONJ_TAC >- ASM_REWRITE_TAC []					\\
       CONJ_TAC >| (* 2 sub-goals here *)
       [ (* goal 6.1 (of 2) *)
-        MATCH_MP_TAC replaceNatDed'					\\
+        irule replaceNatDed						\\
         EXISTS_TAC ``(OneForm A)``					\\
         (* NOTE: expk needs `...(Backslash C' A)...` here! *)
         EXISTS_TAC ``(Comma Gamma'' (OneForm (Backslash C A)))``	\\
-        CONJ_TAC >- ASM_REWRITE_TAC []					\\
-        REWRITE_TAC [deltaTranslation_def]				\\
-        MATCH_MP_TAC BackslashElim					\\
-        Q.EXISTS_TAC `C` (* NOTE: expk needs `C'` here! *)		\\
-        CONJ_TAC >- RES_TAC						\\
-        REWRITE_TAC [NatAxiom],
+        CONJ_TAC >| (* 2 sub-goals here *)
+        [ (* goal 6.1.1 (of 2) *)
+          REWRITE_TAC [deltaTranslation_def]				\\
+          MATCH_MP_TAC BackslashElim					\\
+          Q.EXISTS_TAC `C` (* NOTE: expk needs `C'` here! *)		\\
+          CONJ_TAC >- RES_TAC						\\
+          REWRITE_TAC [NatAxiom],
+          (* goal 6.1.2 (of 2) *)
+          ASM_REWRITE_TAC [] ],
         (* goal 6.2 (of 2) *)
         MATCH_MP_TAC NatTermToForm >> RES_TAC ],
       (* goal 7 (of 9) *)
@@ -2125,12 +2107,15 @@ val gentzenToNatDed = store_thm (
       CONJ_TAC >- ASM_REWRITE_TAC []					\\
       CONJ_TAC >| (* 2 sub-goals here *)
       [ (* goal 7.1 (of 2) *)
-        MATCH_MP_TAC replaceNatDed'					\\
+        irule replaceNatDed						\\
         EXISTS_TAC ``(Comma (OneForm A) (OneForm B))``			\\
         EXISTS_TAC ``(OneForm (Dot A B))``				\\
-        CONJ_TAC >- ASM_REWRITE_TAC []					\\
-        REWRITE_TAC [deltaTranslation_def]				\\
-        REWRITE_TAC [NatAxiom],
+        CONJ_TAC >| (* 2 sub-goals here *)
+        [ (* goal 7.1.1 (of 2) *)
+          REWRITE_TAC [deltaTranslation_def]				\\
+          REWRITE_TAC [NatAxiom],
+          (* goal 7.1.2 (of 2) *)
+          ASM_REWRITE_TAC [] ],
         (* goal 7.2 (of 2) *)
         MATCH_MP_TAC NatTermToForm >> RES_TAC ],
       (* goal 8 (of 9) *)
@@ -2139,11 +2124,14 @@ val gentzenToNatDed = store_thm (
       CONJ_TAC >- ASM_REWRITE_TAC []					\\
       CONJ_TAC >| (* 2 sub-goals here *)
       [ (* goal 8.1 (of 2) *)
-        MATCH_MP_TAC replaceNatDed'					\\
+        irule replaceNatDed						\\
         EXISTS_TAC ``(OneForm C)`` (* NOTE: expk needs `C'` here! *)	\\
         Q.EXISTS_TAC `Gamma`						\\
-        CONJ_TAC >- ASM_REWRITE_TAC []					\\
-        REWRITE_TAC [deltaTranslation_def] >> RES_TAC,
+        CONJ_TAC >| (* 2 sub-goals here *)
+        [ (* goal 8.1.1 (of 2) *)
+          REWRITE_TAC [deltaTranslation_def] >> RES_TAC,
+          (* goal 8.1.2 (of 2) *)
+          ASM_REWRITE_TAC [] ],
         (* goal 8.2 (of 2) *)
         MATCH_MP_TAC NatTermToForm >> RES_TAC ],
       (* goal 9 (of 9) *)
