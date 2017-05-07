@@ -8,14 +8,6 @@ open HolKernel Parse boolLib bossLib;
 open stringTheory pred_setTheory prim_recTheory arithmeticTheory relationTheory;
 open CCSLib CCSTheory StrongEQTheory StrongEQLib;
 
-(* Set PAT_X_ASSUM to PAT_ASSUM if it's not defined yet *)
-local
-    val PAT_X_ASSUM = PAT_ASSUM
-    open Tactical
-in
-    val PAT_X_ASSUM = PAT_X_ASSUM
-end;
-
 val _ = new_theory "StrongLaws";
 
 (******************************************************************************)

@@ -7,20 +7,7 @@ open HolKernel Parse boolLib bossLib;
 open stringTheory pred_setTheory relationTheory;
 open CCSLib CCSTheory StrongEQTheory StrongEQLib;
 
-(* Set PAT_X_ASSUM to PAT_ASSUM if it's not defined yet *)
-local
-    val PAT_X_ASSUM = PAT_ASSUM
-    open Tactical
-in
-    val PAT_X_ASSUM = PAT_X_ASSUM
-end;
-
 val _ = new_theory "WeakEQ";
-
-fun fix  ts = MAP_EVERY Q.X_GEN_TAC ts;	 (* from HOL Light *)
-fun set  ts = MAP_EVERY Q.ABBREV_TAC ts; (* from mizar mode *)
-fun take ts = MAP_EVERY Q.EXISTS_TAC ts; (* from mizar mode *)
-val op// = op REPEAT;			 (* from Matita *)
 
 (* Define the weak bisimulation relation on CCS processes. *)
 val WEAK_BISIM = new_definition ("WEAK_BISIM",

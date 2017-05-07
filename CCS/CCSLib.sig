@@ -7,6 +7,12 @@ signature CCSLib =
 sig
   include Abbrev
 
+  val PAT_X_ASSUM		: term -> thm_tactic -> tactic
+  val fix			: Q.tmquote list -> tactic
+  val set			: Q.tmquote list -> tactic
+  val take			: Q.tmquote list -> tactic
+  val //			: tactic -> tactic
+
   val add_rules_for_ccs_terms	: unit -> unit
   val remove_rules_for_ccs_terms: unit -> unit
 

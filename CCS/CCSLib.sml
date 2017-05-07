@@ -10,6 +10,26 @@ open HolKernel Parse boolLib bossLib;
 
 (******************************************************************************)
 (*                                                                            *)
+(*            Backward compatibility and utility tactic/tacticals             *)
+(*                                                                            *)
+(******************************************************************************)
+
+local
+    val PAT_X_ASSUM = PAT_ASSUM
+    open Tactical
+in
+    (* Backward compatibility with Kananaskis 11 *)
+    val PAT_X_ASSUM = PAT_X_ASSUM;
+
+    (* Tacticals for better expressivity *)
+    fun fix  ts = MAP_EVERY Q.X_GEN_TAC ts;	(* from HOL Light *)
+    fun set  ts = MAP_EVERY Q.ABBREV_TAC ts;	(* from HOL mizar mode *)
+    fun take ts = MAP_EVERY Q.EXISTS_TAC ts;	(* from HOL mizar mode *)
+    val op // = op REPEAT			(* from Matita *)
+end;
+
+(******************************************************************************)
+(*                                                                            *)
 (*                      Minimal grammar support for CCS                       *)
 (*                                                                            *)
 (******************************************************************************)
