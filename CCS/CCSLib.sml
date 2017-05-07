@@ -1,23 +1,6 @@
 (*
- * A formalization of the process algebra CCS in HOL4
- *
- * (based on the HOL proof code written by Prof. Monica Nesi in 1992)
- *
- * Copyright 1992  University of Cambridge, England (Author: Monica Nesi)
- * Copyright 2017  University of Bologna, Italy (Author: Chun Tian)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
- * WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
- * MERCHANTABLITY OR NON-INFRINGEMENT.
- * See the Apache 2 License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 1991-1995  University of Cambridge (Author: Monica Nesi)
+ * Copyright 2016-2017  University of Bologna   (Author: Chun Tian)
  *)
 
 structure CCSLib :> CCSLib =
@@ -27,7 +10,46 @@ open HolKernel Parse boolLib bossLib;
 
 (******************************************************************************)
 (*                                                                            *)
-(*          Basic rules and tactics for particular forms of rewriting         *)
+(*                      Minimal grammar support for CCS                       *)
+(*                                                                            *)
+(******************************************************************************)
+
+fun add_rules_for_ccs_terms () = let
+in
+    add_rule { term_name = "TRANS", fixity = Infix (NONASSOC, 450),
+	pp_elements = [ BreakSpace(1,0), TOK "--", HardSpace 0, TM, HardSpace 0, TOK "->",
+			BreakSpace(1,0) ],
+	paren_style = OnlyIfNecessary,
+	block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)) };
+
+    add_rule { term_name = "WEAK_TRANS", fixity = Infix (NONASSOC, 450),
+	pp_elements = [ BreakSpace(1,0), TOK "==", HardSpace 0, TM, HardSpace 0, TOK "=>>",
+			BreakSpace(1,0) ],
+	paren_style = OnlyIfNecessary,
+	block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)) };
+
+    overload_on ("+", ``sum``); (* priority: 500 *)
+
+    set_mapped_fixity { fixity = Infix(LEFT, 600), tok = "||", term_name = "par" };
+
+    add_rule { term_name = "prefix", fixity = Infix(RIGHT, 700),
+	pp_elements = [ BreakSpace(0,0), TOK "..", BreakSpace(0,0) ],
+	paren_style = OnlyIfNecessary,
+	block_style = (AroundSamePrec, (PP.CONSISTENT, 0)) }
+end;
+
+fun remove_rules_for_ccs_terms () = let
+in
+    remove_rules_for_term	"prefix";
+    remove_rules_for_term	"par";
+    clear_overloads_on		"sum";
+    remove_rules_for_term	"TRANS";
+    remove_rules_for_term	"WEAK_TRANS"
+end;
+
+(******************************************************************************)
+(*                                                                            *)
+(*         Basic rules and tactics for particular forms of rewriting          *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -76,12 +98,12 @@ val REWRITE_LHS_TAC =
 (* Rule for rewriting only the left-hand side of an equation once with the
    assumptions. *)
 fun ONCE_ASM_REWRITE_LHS_RULE thl th =
-    ONCE_REWRITE_LHS_RULE (append (map ASSUME (hyp th)) thl) th;
+    ONCE_REWRITE_LHS_RULE ((map ASSUME (hyp th)) @ thl) th;
 
 (* Tactic for rewriting only the left-hand side of an equation once with the
    assumptions. *)
 fun ONCE_ASM_REWRITE_LHS_TAC thl =
-    ASSUM_LIST (fn asl => ONCE_REWRITE_LHS_TAC (append asl thl));
+    ASSUM_LIST (fn asl => ONCE_REWRITE_LHS_TAC (asl @ thl));
 
 (* Conversion to swap two universally quantified variables. *)
 fun SWAP_FORALL_CONV tm = let
@@ -95,16 +117,51 @@ in
 end;
 
 (* The rule EQ_IMP_LR returns the implication from left to right of a given
-   equational theorem. *)
-fun EQ_IMP_LR thm = GEN_ALL (fst (EQ_IMP_RULE (SPEC_ALL thm)));
+   equational theorem.
+   NOTE: GEN_ALL doesn't guarantee the order of universal quantified variables,
+   sometimes it's a must to call several GENs in certain sequences. *)
+fun EQ_IMP_LR' thm = (fst o EQ_IMP_RULE o SPEC_ALL) thm;
+fun EQ_IMP_LR thm = (GEN_ALL o fst o EQ_IMP_RULE o SPEC_ALL) thm;
 
 (* The rule EQ_IMP_RL returns the implication from right to left of a given
    equational theorem. *)
-fun EQ_IMP_RL thm = GEN_ALL (snd (EQ_IMP_RULE (SPEC_ALL thm)));
+fun EQ_IMP_RL' thm = (snd o EQ_IMP_RULE o SPEC_ALL) thm;
+fun EQ_IMP_RL thm = (GEN_ALL o snd o EQ_IMP_RULE o SPEC_ALL) thm;
 
 (* Functions to get the left and right hand side of the equational conclusion
    of a theorem. *)
 val lconcl = fst o dest_eq o concl o SPEC_ALL;
 val rconcl = snd o dest_eq o concl o SPEC_ALL;
+
+(* Define args_thm as a function that, given a theorem |- f t1 t2, returns (t1, t2). *)
+fun args_thm thm = let
+    val (f, [t1, t2]) = strip_comb (concl thm)
+in
+    (t1, t2)
+end;
+
+fun lhs_tm thm = (fst o args_thm) thm;
+fun rhs_tm thm = (snd o args_thm) thm;
+
+(* Define args_equiv as a function that, given a tm "p t1 t2", returns (p, t1, t2) *)
+fun args_equiv tm = let
+    val (p, [t1, t2]) = strip_comb tm
+in
+    (p, t1, t2)
+end;
+
+(* Auxiliary functions (on lists and terms) to find repeated occurrences of a
+   summand to be then deleted by applying the idempotence law for summation. *)
+local
+    fun helper (h:term, nil) = nil
+      | helper (h, t::l) = if h = t then l else t :: (helper (h, l))
+in
+    fun elim h l = helper (h, l)
+end;
+
+(* Function for applying a list of tactics to a list of subgoals. *)
+fun list_apply_tac _ [] = []
+  | list_apply_tac (f: 'a -> tactic) (actl : 'a list) : tactic list =
+    (f (hd actl)) :: (list_apply_tac f (tl actl));
 
 end (* struct *)

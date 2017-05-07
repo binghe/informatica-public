@@ -1,28 +1,14 @@
 (*
- * A formalization of the process algebra CCS in HOL4
- *
- * (based on the HOL proof code written by Prof. Monica Nesi in 1992)
- *
- * Copyright 1992  University of Cambridge, England (Author: Monica Nesi)
- * Copyright 2017  University of Bologna, Italy (Author: Chun Tian)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
- * WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
- * MERCHANTABLITY OR NON-INFRINGEMENT.
- * See the Apache 2 License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 1991-1995  University of Cambridge (Author: Monica Nesi)
+ * Copyright 2016-2017  University of Bologna   (Author: Chun Tian)
  *)
 
 signature CCSLib =
 sig
   include Abbrev
+
+  val add_rules_for_ccs_terms	: unit -> unit
+  val remove_rules_for_ccs_terms: unit -> unit
 
   val ONCE_REWRITE_RHS_RULE	: thm list -> thm -> thm
   val PURE_REWRITE_RHS_RULE	: thm list -> thm -> thm
@@ -37,8 +23,18 @@ sig
   val ONCE_ASM_REWRITE_LHS_RULE	: thm list -> thm -> thm
   val ONCE_ASM_REWRITE_LHS_TAC	: thm list -> tactic
   val SWAP_FORALL_CONV		: term -> thm
+  val EQ_IMP_LR'		: thm -> thm
   val EQ_IMP_LR			: thm -> thm
+  val EQ_IMP_RL'		: thm -> thm
   val EQ_IMP_RL			: thm -> thm
   val lconcl			: thm -> term
   val rconcl			: thm -> term
+
+  val args_thm			: thm -> term * term
+  val lhs_tm			: thm -> term
+  val rhs_tm			: thm -> term
+  val args_equiv		: term -> term * term * term
+  val elim			: term -> term list -> term list
+  val list_apply_tac		: ('a -> tactic) -> 'a list -> tactic list
+
 end
