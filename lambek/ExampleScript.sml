@@ -26,14 +26,20 @@ open HolKernel Parse boolLib bossLib;
 open pred_setTheory relationTheory pairTheory listTheory prim_recTheory arithmeticTheory
 open stringTheory integerTheory LambekTheory CutFreeTheory;
 
-(* Set PAT_X_ASSUM to PAT_ASSUM if it's not defined yet *)
 local
     val PAT_X_ASSUM = PAT_ASSUM;
     val qpat_x_assum = Q.PAT_ASSUM;
     open Tactical
 in
+    (* Backward compatibility with Kananaskis 11 *)
     val PAT_X_ASSUM = PAT_X_ASSUM;
-    val qpat_x_assum = qpat_x_assum
+    val qpat_x_assum = qpat_x_assum;
+
+    (* Tacticals for better expressivity *)
+    fun fix  ts = MAP_EVERY Q.X_GEN_TAC ts;	(* from HOL Light *)
+    fun set  ts = MAP_EVERY Q.ABBREV_TAC ts;	(* from HOL mizar mode *)
+    fun take ts = MAP_EVERY Q.EXISTS_TAC ts;	(* from HOL mizar mode *)
+    val op // = op REPEAT			(* from Matita *)
 end;
 
 val _ = new_theory "Example";
@@ -501,9 +507,17 @@ val _ = export_theory ();
 val _ = DB.html_theory "Example";
 
 (* Emit theory books in TeX *)
-(*
-val _ = EmitTeX.print_theories_as_tex_doc
-	    ["Lambek", "CutFree", "Example"] "../papers/references";
- *)
+if (OS.FileSys.isDir "../papers" handle e => false) then
+    let in
+	OS.FileSys.remove "../papers/references.tex" handle e => {};
+	OS.FileSys.remove "../papers/HOLLambek.tex" handle e => {};
+	OS.FileSys.remove "../papers/HOLCutFree.tex" handle e => {};
+	OS.FileSys.remove "../papers/HOLExample.tex" handle e => {};
+
+	EmitTeX.print_theories_as_tex_doc
+	    ["Lambek", "CutFree", "Example"] "../papers/references"
+    end
+else
+    {};
 
 (* last updated: April 9, 2017 *)

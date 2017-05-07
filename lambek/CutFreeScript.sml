@@ -27,17 +27,25 @@ open HolKernel Parse boolLib bossLib;
 open relationTheory prim_recTheory arithmeticTheory listTheory;
 open LambekTheory;
 
-(* Set PAT_X_ASSUM to PAT_ASSUM if it's not defined yet *)
 local
     val PAT_X_ASSUM = PAT_ASSUM;
     val qpat_x_assum = Q.PAT_ASSUM;
     open Tactical
 in
+    (* Backward compatibility with Kananaskis 11 *)
     val PAT_X_ASSUM = PAT_X_ASSUM;
-    val qpat_x_assum = qpat_x_assum
+    val qpat_x_assum = qpat_x_assum;
+
+    (* Tacticals for better expressivity *)
+    fun fix  ts = MAP_EVERY Q.X_GEN_TAC ts;	(* from HOL Light *)
+    fun set  ts = MAP_EVERY Q.ABBREV_TAC ts;	(* from HOL mizar mode *)
+    fun take ts = MAP_EVERY Q.EXISTS_TAC ts;	(* from HOL mizar mode *)
+    val op // = op REPEAT			(* from Matita *)
 end;
 
 val _ = new_theory "CutFree";
+
+hide "S";
 
 (*** Module: CutSequent ***)
 
@@ -57,17 +65,13 @@ val degreeFormula_def = Define `
    (degreeFormula (At C) = 1) /\
    (degreeFormula (Slash F1 F2) = SUC (MAX (degreeFormula F1) (degreeFormula F2))) /\
    (degreeFormula (Backslash F1 F2) = SUC (MAX (degreeFormula F1) (degreeFormula F2))) /\
-   (degreeFormula (Dot F1 F2) = SUC (MAX (degreeFormula F1) (degreeFormula F2))) `;
+   (degreeFormula (Dot F1 F2) = SUC (MAX (degreeFormula F1) (degreeFormula F2)))`;
 
 val degreeForm_0 = store_thm ("degreeForm_0", ``!F0. 1 <= (degreeFormula F0)``,
     Induct >> rw [degreeFormula_def]);
 
 (* Deep Embeddings for Lambek's Sequent Calculus *)
 val _ = Datatype `Sequent = Sequent ('a gentzen_extension) ('a Term) ('a Form)`;
-
-(* not used *)
-val Structform_def = Define `
-    Structform E Gamma A = (Sequent E Gamma A)`;
 
 val _ = Datatype `Rule = SeqAxiom
 		       | RightSlash | RightBackslash | RightDot
@@ -112,27 +116,41 @@ val concl_def = Define `
    (concl (Unf (Sequent E Delta A))     = A) /\
    (concl (Der (Sequent E Delta A) _ _) = A)`;
 
-val antes_def = Define `
-   (antes (Unf (Sequent E Delta A))     = Delta) /\
-   (antes (Der (Sequent E Delta A) _ _) = Delta)`;
+val prems_def = Define `
+   (prems (Unf (Sequent E Delta A))     = Delta) /\
+   (prems (Der (Sequent E Delta A) _ _) = Delta)`;
 
 val exten_def = Define `
    (exten (Unf (Sequent E Delta A))     = E) /\
    (exten (Der (Sequent E Delta A) _ _) = E)`;
 
+val degreeRule_def = Define `
+   (degreeRule (Der S SeqAxiom [])		= 0) /\
+   (degreeRule (Der S RightSlash [H])		= 0) /\
+   (degreeRule (Der S RightBackslash [H])	= 0) /\
+   (degreeRule (Der S RightDot [H1; H2])	= 0) /\
+   (degreeRule (Der S LeftSlash [H1; H2])	= 0) /\
+   (degreeRule (Der S LeftBackslash [H1; H2])	= 0) /\
+   (degreeRule (Der S LeftDot [H])		= 0) /\
+   (degreeRule (Der S SeqExt [H])		= 0) /\
+   (* The degree of a cut is the degree of the cut formula which disappears after
+      application of the rule. *)
+   (degreeRule (Der S CutRule [H1; H2])		= degreeFormula (concl H1))`;
+
 (* degreeProof, one way to check if CutRule gets used *)
 val degreeProof_def = Define `
-   (degreeProof (Der _ SeqAxiom [])		= 0) /\
-   (degreeProof (Der _ RightSlash [H])		= degreeProof H) /\
-   (degreeProof (Der _ RightBackslash [H])	= degreeProof H) /\
-   (degreeProof (Der _ RightDot [H1; H2])	= MAX (degreeProof H1) (degreeProof H2)) /\
-   (degreeProof (Der _ LeftSlash [H1; H2])	= MAX (degreeProof H1) (degreeProof H2)) /\
-   (degreeProof (Der _ LeftBackslash [H1; H2])	= MAX (degreeProof H1) (degreeProof H2)) /\
-   (degreeProof (Der _ LeftDot [H])		= degreeProof H) /\
-   (degreeProof (Der _ SeqExt [H])		= degreeProof H) /\
+   (degreeProof (Der S SeqAxiom [])		= 0) /\
+   (degreeProof (Der S RightSlash [H])		= degreeProof H) /\
+   (degreeProof (Der S RightBackslash [H])	= degreeProof H) /\
+   (degreeProof (Der S RightDot [H1; H2])	= MAX (degreeProof H1) (degreeProof H2)) /\
+   (degreeProof (Der S LeftSlash [H1; H2])	= MAX (degreeProof H1) (degreeProof H2)) /\
+   (degreeProof (Der S LeftBackslash [H1; H2])	= MAX (degreeProof H1) (degreeProof H2)) /\
+   (degreeProof (Der S LeftDot [H])		= degreeProof H) /\
+   (degreeProof (Der S SeqExt [H])		= degreeProof H) /\
    (* CutRule is special *)
-   (degreeProof (Der _ CutRule [H1; H2]) =
-	MAX (MAX (degreeFormula (concl H1)) (degreeProof H1)) (degreeProof H2))`;
+   (degreeProof (Der S CutRule [H1; H2])	=
+	MAX (degreeFormula (concl H1))
+	    (MAX (degreeProof H1) (degreeProof H2)))`;
 
 (* subFormula and their theorems *)
 val (subFormula_rules, subFormula_ind, subFormula_cases) = Hol_reln `
@@ -144,17 +162,10 @@ val (subFormula_rules, subFormula_ind, subFormula_cases) = Hol_reln `
     (!A B C. subFormula A B ==> subFormula A (Dot B C)) /\		(* dotL *)
     (!A B C. subFormula A B ==> subFormula A (Dot C B))`;		(* dotR *)
 
-local
-    val list = CONJUNCTS subFormula_rules
-in
-    val equalForm  = save_thm ("equalForm",  List.nth (list, 0))
-    and slashL     = save_thm ("slashL",     List.nth (list, 1))
-    and slashR     = save_thm ("slashR",     List.nth (list, 2))
-    and backslashL = save_thm ("backslashL", List.nth (list, 3))
-    and backslashR = save_thm ("backslashR", List.nth (list, 4))
-    and dotL       = save_thm ("dotL",       List.nth (list, 5))
-    and dotR       = save_thm ("dotR",       List.nth (list, 6))
-end;
+val [equalForm, slashL, slashR, backslashL, backslashR, dotL, dotR] =
+    map save_thm
+        (combine (["equalForm", "slashL", "slashR", "backslashL", "backslashR", "dotL", "dotR"],
+		  CONJUNCTS subFormula_rules));
 
 (* The simp set related to Form *)
 val Form_ss = DatatypeSimps.type_rewrites_ss [``:'a Form``];
@@ -182,21 +193,25 @@ val subDot = store_thm ("subDot",
  >> SIMP_TAC (bool_ss ++ Form_ss) [EQ_SYM_EQ]);
 
 (* all previous theorems and rules were used in this proof ... *)
-val subFormulaTrans = store_thm ("subFormulaTrans",
+val subFormulaTrans = store_thm (
+   "subFormulaTrans",
   ``!A B C. subFormula A B ==> subFormula B C ==> subFormula A C``,
     Induct_on `C`
  >| [ (* case 1 *)
       PROVE_TAC [subAt],
       (* case 2, can be proved by PROVE_TAC [subSlash, slashL, slashR] *)
-      REPEAT STRIP_TAC
-   >> POP_ASSUM (STRIP_ASSUME_TAC o MATCH_MP subSlash)
-   >| [ PROVE_TAC [], PROVE_TAC [slashL], PROVE_TAC [slashR] ],
+      REPEAT STRIP_TAC \\
+      POP_ASSUM (STRIP_ASSUME_TAC o MATCH_MP subSlash) >|
+      [ PROVE_TAC [],
+        PROVE_TAC [slashL],
+        PROVE_TAC [slashR] ],
       (* case 3 *)
       PROVE_TAC [subBackslash, backslashL, backslashR],
       (* case 4 *)
       PROVE_TAC [subDot, dotL, dotR] ]);
 
-val subFormulaTrans' = store_thm ("subFormulaTrans", ``transitive subFormula``,
+val subFormulaTrans' = store_thm (
+   "subFormulaTrans'", ``transitive subFormula``,
     PROVE_TAC [subFormulaTrans, transitive_def]);
 
 (* subFormTerm *)
@@ -205,13 +220,8 @@ val (subFormTerm_rules, subFormTerm_ind, subFormTerm_cases) = Hol_reln `
     (!A T1 T2. subFormTerm A T1 ==> subFormTerm A (Comma T1 T2)) /\	(* comL *)
     (!A T1 T2. subFormTerm A T1 ==> subFormTerm A (Comma T2 T1))`;	(* comR *)
 
-local
-    val list = CONJUNCTS subFormTerm_rules
-in
-    val eqFT = save_thm ("eqFT", List.nth (list, 0))
-    and comL = save_thm ("comL", List.nth (list, 1))
-    and comR = save_thm ("comR", List.nth (list, 2))
-end;
+val [eqFT, comL, comR] =
+    map save_thm (combine (["eqFT", "comL", "comR"], CONJUNCTS subFormTerm_rules));
 
 val Term_11 = TypeBase.one_one_of ``:'a Term``;
 val Term_distinct = TypeBase.distinct_of ``:'a Term``;
@@ -264,13 +274,13 @@ val subReplace3 = store_thm ("subReplace3",
  >> REPEAT STRIP_TAC
  >- ASM_REWRITE_TAC []
  >| [ (* case 2 *)
-      `subFormTerm X T1 \/ subFormTerm X Delta` by PROVE_TAC [comSub]
-   >| [ `subFormTerm X T2 \/ subFormTerm X T3` by PROVE_TAC [] \\
+      `subFormTerm X T1 \/ subFormTerm X Delta` by PROVE_TAC [comSub] >|
+      [ `subFormTerm X T2 \/ subFormTerm X T3` by PROVE_TAC [] \\
 	PROVE_TAC [comL],
 	PROVE_TAC [comR] ],
       (* case 3 *)
-      `subFormTerm X Delta \/ subFormTerm X T1` by PROVE_TAC [comSub]
-   >| [ PROVE_TAC [comL], 
+      `subFormTerm X Delta \/ subFormTerm X T1` by PROVE_TAC [comSub] >|
+      [ PROVE_TAC [comL], 
 	`subFormTerm X T2 \/ subFormTerm X T3` by PROVE_TAC [] \\
 	PROVE_TAC [comR] ] ]);
 
@@ -369,22 +379,11 @@ val (subProofOne_rules, subProofOne_ind, subProofOne_cases) = Hol_reln `
 		replace Gamma Gamma' T1 T2
 	    ==> subProofOne p  (Der p0 SeqExt [p])) `;			   (* se *)
 
-local
-    val list = CONJUNCTS subProofOne_rules
-in
-    val rs   = save_thm ("rs",   List.nth (list,  0))
-    and rbs  = save_thm ("rbs",  List.nth (list,  1))
-    and rd1  = save_thm ("rd1",  List.nth (list,  2))
-    and rd2  = save_thm ("rd2",  List.nth (list,  3))
-    and ls1  = save_thm ("ls1",  List.nth (list,  4))
-    and ls2  = save_thm ("ls2",  List.nth (list,  5))
-    and lbs1 = save_thm ("lbs1", List.nth (list,  6))
-    and lbs2 = save_thm ("lbs2", List.nth (list,  7))
-    and ld   = save_thm ("ld",   List.nth (list,  8))
-    and cr1  = save_thm ("cr1",  List.nth (list,  9))
-    and cr2  = save_thm ("cr2",  List.nth (list, 10))
-    and se   = save_thm ("se",   List.nth (list, 11))
-end;
+val [rs, rbs, rd1, rd2, ls1, ls2, lbs1, lbs2, ld, cr1, cr2, se] =
+    map save_thm
+        (combine (["rs", "rbs", "rd1", "rd2", "ls1", "ls2", "lbs1", "lbs2",
+		   "ld", "cr1", "cr2", "se"],
+		  CONJUNCTS subProofOne_rules));
 
 (* (subProof :'a Dertree -> 'a Dertree -> bool) *)
 val subProof_def = Define `subProof = RTC subProofOne`;
@@ -517,21 +516,13 @@ val (derivOne_rules, derivOne_ind, derivOne_cases) = Hol_reln `
 	(Der (Sequent E Gamma' C) SeqExt
 	     [ Unf (Sequent E Gamma C) ]))`;
 
-local
-    val list = CONJUNCTS derivOne_rules
-in
-    val derivSeqAxiom       = save_thm ("derivSeqAxiom",       List.nth (list, 0))
-    and derivRightSlash     = save_thm ("derivRightSlash",     List.nth (list, 1))
-    and derivRightBackslash = save_thm ("derivRightBackslash", List.nth (list, 2))
-    and derivRightDot       = save_thm ("derivRightDot",       List.nth (list, 3))
-    and derivLeftSlash      = save_thm ("derivLeftSlash",      List.nth (list, 4))
-    and derivLeftBackslash  = save_thm ("derivLeftBackslash",  List.nth (list, 5))
-    and derivLeftDot        = save_thm ("derivLeftDot",        List.nth (list, 6))
-    and derivCutRule        = save_thm ("derivCutRule",        List.nth (list, 7))
-    and derivSeqExt         = save_thm ("derivSeqExt",         List.nth (list, 8))
-end;
-
-hide "S";
+val [derivSeqAxiom, derivRightSlash, derivRightBackslash, derivRightDot,
+     derivLeftSlash, derivLeftBackslash, derivLeftDot, derivCutRule, derivSeqExt] =
+    map save_thm
+        (combine (["derivSeqAxiom", "derivRightSlash", "derivRightBackslash",
+		   "derivRightDot", "derivLeftSlash", "derivLeftBackslash",
+		   "derivLeftDot", "derivCutRule", "derivSeqExt"],
+		  CONJUNCTS derivOne_rules));
 
 (* structure rules *)
 val (deriv_rules, deriv_ind, deriv_cases) = Hol_reln `
@@ -542,15 +533,10 @@ val (deriv_rules, deriv_ind, deriv_cases) = Hol_reln `
     (!S R D1 D1' D2 D2'. deriv D1 D1' /\ deriv D2 D2'
 		     ==> deriv (Der S R [D1; D2]) (Der S R [D1'; D2']))`;
 
-local
-    val list = CONJUNCTS deriv_rules
-in
-    val derivDerivOne = save_thm ("derivDerivOne", List.nth (list, 0))
-    and derivOne      = save_thm ("derivOne",      List.nth (list, 1))
-    and derivLeft     = save_thm ("derivLeft",     List.nth (list, 2))
-    and derivRight    = save_thm ("derivRight",    List.nth (list, 3))
-    and derivBoth     = save_thm ("derivBoth",     List.nth (list, 4))
-end;
+val [derivDerivOne, derivOne, derivLeft, derivRight, derivBoth] =
+    map save_thm
+        (combine (["derivDerivOne", "derivOne", "derivLeft", "derivRight", "derivBoth"],
+		  CONJUNCTS deriv_rules));
 
 (* closure rules, in this way we can finish a proof *)
 val Deriv_def = Define `Deriv = RTC deriv`;
@@ -677,7 +663,8 @@ val DerivOne = store_thm ("DerivOne",
  >> REPEAT STRIP_TAC (* 2 sub-goals here, first one is easy *)
  >- REWRITE_TAC [RTC_REFL]
  >> PAT_X_ASSUM ``deriv D1 D1'`` (ASSUME_TAC o (MATCH_MP derivOne))
- >> POP_ASSUM (ASSUME_TAC o (MATCH_MP (Q.ISPEC `deriv` RTC_SINGLE)) o (Q.SPECL [`S`, `R`]))
+ >> POP_ASSUM (ASSUME_TAC o (MATCH_MP (Q.ISPEC `deriv` RTC_SINGLE))
+			  o (SPECL [``S :'a Sequent``, ``R :Rule``]))
  >> IMP_RES_TAC (Q.ISPEC `deriv` (REWRITE_RULE [transitive_def] RTC_TRANSITIVE)));
 
 val DerivLeft = store_thm ("DerivLeft",
@@ -743,13 +730,9 @@ val (Proof_rules, Proof_ind, Proof_cases) = Hol_reln `
     (!S R D.     Proof D ==> Proof (Der S R [D])) /\
     (!S R D1 D2. Proof D1 /\ Proof D2 ==> Proof (Der S R [D1; D2]))`;
 
-local
-    val list = CONJUNCTS Proof_rules
-in
-    val ProofZero = save_thm ("ProofZero", List.nth (list, 0))
-    and ProofOne  = save_thm ("ProofOne",  List.nth (list, 1))
-    and ProofTwo  = save_thm ("ProofTwo",  List.nth (list, 2))
-end;
+val [ProofZero, ProofOne, ProofTwo] =
+    map save_thm
+	(combine (["ProofZero", "ProofOne", "ProofTwo"], CONJUNCTS Proof_rules));
 
 (* Derivations starting from "Unf" are not finished! *)
 val notProofUnf = store_thm (
@@ -884,8 +867,8 @@ val subFormulaPropertyOne = store_thm (
   ``!q p. subProofOne q p ==>
 	  extensionSub (exten p) ==>
 	  CutFreeProof p ==>
-      !x. (subFormTerm x (antes q) \/ subFormula x (concl q)) ==>
-	  (subFormTerm x (antes p) \/ subFormula x (concl p))``,
+      !x. (subFormTerm x (prems q) \/ subFormula x (concl q)) ==>
+	  (subFormTerm x (prems p) \/ subFormula x (concl p))``,
     REPEAT GEN_TAC
  >> NTAC 3 DISCH_TAC
  >> GEN_TAC
@@ -894,8 +877,8 @@ val subFormulaPropertyOne = store_thm (
  >> ONCE_REWRITE_TAC [subProofOne_cases]
  >> STRIP_TAC (* 12 sub-goals here *)
  >| [ (* goal 1 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 1.1 (of 2) *)
         POP_ASSUM (MP_TAC o (MATCH_MP comSub)) >> rw [] >| (* 2 sub-goals here *)
@@ -911,8 +894,8 @@ val subFormulaPropertyOne = store_thm (
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `B`) o (MATCH_MP slashL)) \\
         ASM_REWRITE_TAC [] ],
       (* goal 2 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 2.1 (of 2) *)
         POP_ASSUM (MP_TAC o (MATCH_MP comSub)) >> rw [] >| (* 2 sub-goals here *)
@@ -928,8 +911,8 @@ val subFormulaPropertyOne = store_thm (
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `B`) o (MATCH_MP backslashR)) \\
         ASM_REWRITE_TAC [] ],
       (* goal 3 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 3.1 (of 2) *)
         DISJ1_TAC \\
@@ -940,8 +923,8 @@ val subFormulaPropertyOne = store_thm (
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `B`) o (MATCH_MP dotL)) \\
         ASM_REWRITE_TAC [] ],
       (* goal 4 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 4.1 (of 2) *)
         DISJ1_TAC \\
@@ -952,8 +935,8 @@ val subFormulaPropertyOne = store_thm (
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `A`) o (MATCH_MP dotR)) \\
         ASM_REWRITE_TAC [] ],
       (* goal 5 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 5.1 (of 2) *)
         DISJ1_TAC \\
@@ -970,8 +953,8 @@ val subFormulaPropertyOne = store_thm (
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `Delta`) o (MATCH_MP comL)) \\
         DISCH_TAC >> RES_TAC ],
       (* goal 6 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 6.1 (of 2) *)
         IMP_RES_TAC subReplace3 >| (* 2 sub-goals here *)
@@ -988,8 +971,8 @@ val subFormulaPropertyOne = store_thm (
         (* goal 6.2 (of 2) *)
         DISJ2_TAC >> ASM_REWRITE_TAC [] ],
       (* goal 7 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 7.1 (of 2) *)
         DISJ1_TAC \\
@@ -1006,8 +989,8 @@ val subFormulaPropertyOne = store_thm (
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `Delta`) o (MATCH_MP comR)) \\
         DISCH_TAC >> RES_TAC ],
       (* goal 8 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 8.1 (of 2) *)
         IMP_RES_TAC subReplace3 >| (* 2 sub-goals here *)
@@ -1024,8 +1007,8 @@ val subFormulaPropertyOne = store_thm (
         (* goal 8.2 (of 2) *)
         DISJ2_TAC >> ASM_REWRITE_TAC [] ],
       (* goal 9 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 9.1 (of 2) *)
         IMP_RES_TAC subReplace3 >| (* 2 sub-goals here *)
@@ -1050,18 +1033,18 @@ val subFormulaPropertyOne = store_thm (
         (* goal 9.2 (of 2) *)
         DISJ2_TAC >> ASM_REWRITE_TAC [] ],
       (* goal 10 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC \\ (* 2 sub-goals here, sharing the same tactical *)
       METIS_TAC [notCutFree],
       (* goal 11 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC \\ (* 2 sub-goals here, sharing the same tactical *)
       METIS_TAC [notCutFree],
       (* goal 12 (of 12) *)
-      PAT_X_ASSUM ``subFormTerm x (antes q) \/ subFormula x (concl q)`` MP_TAC \\
-      ASM_REWRITE_TAC [antes_def, concl_def] \\
+      PAT_X_ASSUM ``subFormTerm x (prems q) \/ subFormula x (concl q)`` MP_TAC \\
+      ASM_REWRITE_TAC [prems_def, concl_def] \\
       STRIP_TAC >| (* 2 sub-goals here, sharing the same tactical *)
       [ (* goal 12.1 (of 2) *)
         IMP_RES_TAC subReplace3 >- ASM_REWRITE_TAC [] \\
@@ -1085,8 +1068,8 @@ val subFormulaPropertyOne' = store_thm (
      (subFormTerm x Gamma1 \/ subFormula x B)``,
     REPEAT GEN_TAC
  >> NTAC 5 STRIP_TAC
- >> `Gamma1 = antes p` by PROVE_TAC [antes_def]
- >> `Gamma2 = antes q` by PROVE_TAC [antes_def]
+ >> `Gamma1 = prems p` by PROVE_TAC [prems_def]
+ >> `Gamma2 = prems q` by PROVE_TAC [prems_def]
  >> `B = concl p` by PROVE_TAC [concl_def]
  >> `C = concl q` by PROVE_TAC [concl_def]
  >> `E = exten p` by PROVE_TAC [exten_def]
@@ -1099,15 +1082,14 @@ val subFormulaProperty = store_thm (
   ``!q p. subProof q p ==>
 	  extensionSub (exten p) ==>
 	  CutFreeProof p ==>
-      !x. (subFormTerm x (antes q) \/ subFormula x (concl q)) ==>
-	  (subFormTerm x (antes p) \/ subFormula x (concl p))``,
+      !x. (subFormTerm x (prems q) \/ subFormula x (concl q)) ==>
+	  (subFormTerm x (prems p) \/ subFormula x (concl p))``,
     HO_MATCH_MP_TAC subProof_strongind
  >> STRIP_TAC >- rw []
- >> Q.X_GEN_TAC `p3` >> Q.X_GEN_TAC `p2` >> Q.X_GEN_TAC `p1`
- >> Q.ABBREV_TAC `T3 = (antes p3)` >> Q.ABBREV_TAC `A3 = (concl p3)`
- >> Q.ABBREV_TAC `T2 = (antes p2)` >> Q.ABBREV_TAC `A2 = (concl p2)`
- >> Q.ABBREV_TAC `T1 = (antes p1)` >> Q.ABBREV_TAC `A1 = (concl p1)`
- >> Q.ABBREV_TAC `E = (exten p1)`
+ >> fix [`p3`, `p2`, `p1`]
+ >> set [`T1 = prems p1`, `T2 = prems p2`, `T3 = prems p3`,
+	 `A1 = concl p1`, `A2 = concl p2`, `A3 = concl p3`,
+	 `E  = exten p1`]
  >> PURE_ONCE_REWRITE_TAC []
  >> NTAC 4 STRIP_TAC >> DISCH_TAC
  >> `subFormTerm x T2 \/ subFormula x A2 ==>
@@ -1131,14 +1113,20 @@ val subFormulaProperty' = store_thm (
      (subFormTerm x Gamma1 \/ subFormula x B)``,
     REPEAT GEN_TAC
  >> NTAC 5 STRIP_TAC
- >> `Gamma1 = antes p` by PROVE_TAC [antes_def]
- >> `Gamma2 = antes q` by PROVE_TAC [antes_def]
+ >> `Gamma1 = prems p` by PROVE_TAC [prems_def]
+ >> `Gamma2 = prems q` by PROVE_TAC [prems_def]
  >> `B = concl p` by PROVE_TAC [concl_def]
  >> `C = concl q` by PROVE_TAC [concl_def]
  >> `E = exten p` by PROVE_TAC [exten_def]
  >> `extensionSub (exten p)` by PROVE_TAC []
  >> ONCE_ASM_REWRITE_TAC []
  >> METIS_TAC [subFormulaProperty]);
+
+(* TODO:
+ - left(A)
+ - right(A)
+ - depth(A)
+ *)
 
 fun enable_grammar () = let
 in
@@ -1149,9 +1137,9 @@ in
 	block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)) }
 end;
 
-(* val _ = enable_grammar (); *)
+val _ = enable_grammar ();
 
 val _ = export_theory ();
 val _ = DB.html_theory "CutFree";
 
-(* last updated: April 10, 2017 *)
+(* last updated: April 25, 2017 *)
