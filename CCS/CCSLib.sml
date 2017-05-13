@@ -15,11 +15,13 @@ open HolKernel Parse boolLib bossLib;
 (******************************************************************************)
 
 local
-    val PAT_X_ASSUM = PAT_ASSUM
+    val PAT_X_ASSUM = PAT_ASSUM;
+    val qpat_x_assum = Q.PAT_ASSUM;
     open Tactical
 in
     (* Backward compatibility with Kananaskis 11 *)
     val PAT_X_ASSUM = PAT_X_ASSUM;
+    val qpat_x_assum = qpat_x_assum;
 
     (* Tacticals for better expressivity *)
     fun fix  ts = MAP_EVERY Q.X_GEN_TAC ts;	(* from HOL Light *)
@@ -136,17 +138,21 @@ in
     IMP_ANTISYM_RULE (DISCH_ALL th1) (DISCH_ALL th2)
 end;
 
+(* provided by Michael Norrish *)
+fun STRIP_FORALL_RULE f th =
+  let
+      val (vs, _) = strip_forall (concl th)
+  in
+      GENL vs (f (SPEC_ALL th))
+  end;
+
 (* The rule EQ_IMP_LR returns the implication from left to right of a given
-   equational theorem.
-   NOTE: GEN_ALL doesn't guarantee the order of universal quantified variables,
-   sometimes it's a must to call several GENs in certain sequences. *)
-fun EQ_IMP_LR' thm = (fst o EQ_IMP_RULE o SPEC_ALL) thm;
-fun EQ_IMP_LR thm = (GEN_ALL o fst o EQ_IMP_RULE o SPEC_ALL) thm;
+   equational theorem. *)
+val EQ_IMP_LR = STRIP_FORALL_RULE (fst o EQ_IMP_RULE);
 
 (* The rule EQ_IMP_RL returns the implication from right to left of a given
    equational theorem. *)
-fun EQ_IMP_RL' thm = (snd o EQ_IMP_RULE o SPEC_ALL) thm;
-fun EQ_IMP_RL thm = (GEN_ALL o snd o EQ_IMP_RULE o SPEC_ALL) thm;
+val EQ_IMP_RL = STRIP_FORALL_RULE (snd o EQ_IMP_RULE);
 
 (* Functions to get the left and right hand side of the equational conclusion
    of a theorem. *)

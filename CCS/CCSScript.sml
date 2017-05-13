@@ -39,12 +39,12 @@ val Label_distinct' = save_thm ("Label_distinct'", GSYM Label_distinct);
 
 val Label_not_eq = save_thm (
    "Label_not_eq",
-    GEN_ALL (EQF_INTRO (SPEC_ALL Label_distinct)));
+    STRIP_FORALL_RULE EQF_INTRO Label_distinct);
 
 val Label_not_eq' = save_thm (
    "Label_not_eq'",
-    GEN_ALL (PURE_REWRITE_RULE [SYM_CONV ``name s = coname s'``]
-			       (SPEC_ALL Label_not_eq)));
+    STRIP_FORALL_RULE (PURE_REWRITE_RULE [SYM_CONV ``name s = coname s'``])
+		      Label_not_eq);
 
 val Label_11 = TypeBase.one_one_of ``:Label``;
 
@@ -52,6 +52,7 @@ val Label_11 = TypeBase.one_one_of ``:Label``;
 val _ = Datatype `Action = tau | label Label`;
 val _ = Unicode.unicode_version { u = UnicodeChars.tau, tmnm = "tau"};
 
+(* also see functions {from,to}_compat(_tm) in CCSSimps *)
 val  In_def = Define  `In act = label (name   act)`;
 val Out_def = Define `Out act = label (coname act)`;
 val _ = export_rewrites ["In_def", "Out_def"];
@@ -85,25 +86,33 @@ val IS_LABEL_def = Define `(IS_LABEL (label l) = T) /\
 val _ = export_rewrites ["LABEL_def", "IS_LABEL_def"];
 
 (* Define the complement of a label, COMPL: Label -> Label. *)
-val Lab_COMPL_def = Define `(Lab_COMPL (name s) = (coname s)) /\
-			    (Lab_COMPL (coname s) = (name s))`;
+val COMPL_LAB_def = Define `(COMPL_LAB (name s) = (coname s)) /\
+			    (COMPL_LAB (coname s) = (name s))`;
 
-val _ = overload_on ("COMPL", ``Lab_COMPL``);
-val _ = export_rewrites ["Lab_COMPL_def"];
+val _ = overload_on ("COMPL", ``COMPL_LAB``);
+val _ = export_rewrites ["COMPL_LAB_def"];
 
 val coname_COMPL = store_thm ("coname_COMPL", 
   ``!s. coname s = COMPL (name s)``,
-    REWRITE_TAC [Lab_COMPL_def]);
+    REWRITE_TAC [COMPL_LAB_def]);
 
-val Lab_COMPL_COMPL = store_thm (
-   "Lab_COMPL_COMPL", ``!(l :Label). COMPL (COMPL l) = l``,
-    Induct >> REWRITE_TAC [Lab_COMPL_def]);
+val COMPL_COMPL_LAB = store_thm (
+   "COMPL_COMPL_LAB", ``!(l :Label). COMPL_LAB (COMPL_LAB l) = l``,
+    Induct >> REWRITE_TAC [COMPL_LAB_def]);
 
 (* Extend the complement to actions, COMPL_ACT: Action -> Action. *)
 val COMPL_ACT_def = Define `
    (COMPL_ACT (label l) = label (COMPL l)) /\
    (COMPL_ACT tau = tau)`;
+
+val _ = overload_on ("COMPL", ``COMPL_ACT``);
 val _ = export_rewrites ["COMPL_ACT_def"];
+
+val COMPL_COMPL_ACT = store_thm (
+   "COMPL_COMPL_ACT", ``!(a :Action). COMPL_ACT (COMPL_ACT a) = a``,
+    Induct
+ >| [ REWRITE_TAC [COMPL_ACT_def],
+      REWRITE_TAC [COMPL_ACT_def, COMPL_COMPL_LAB] ]);
 
 (* Auxiliary theorem about complementary labels. *)
 val COMPL_THM = store_thm ("COMPL_THM",
@@ -112,71 +121,71 @@ val COMPL_THM = store_thm ("COMPL_THM",
     Induct_on `l`
  >| [ (* case 1 *)
       REPEAT GEN_TAC >> CONJ_TAC >|
-      [ REWRITE_TAC [Label_11, Lab_COMPL_def],
-        REWRITE_TAC [Label_distinct, Lab_COMPL_def, Label_distinct'] ] ,
+      [ REWRITE_TAC [Label_11, COMPL_LAB_def],
+        REWRITE_TAC [Label_distinct, COMPL_LAB_def, Label_distinct'] ] ,
       (* case 2 *)
       REPEAT GEN_TAC >> CONJ_TAC >|
-      [ REWRITE_TAC [Label_distinct, Lab_COMPL_def, Label_distinct'],
-        REWRITE_TAC [Label_11, Lab_COMPL_def] ] ]);
+      [ REWRITE_TAC [Label_distinct, COMPL_LAB_def, Label_distinct'],
+        REWRITE_TAC [Label_11, COMPL_LAB_def] ] ]);
 
-val Is_Relabelling_def = Define `
-    Is_Relabelling (f: Label -> Label) = (!s. f (coname s) = COMPL (f (name s)))`;
+val Is_Relabeling_def = Define `
+    Is_Relabeling (f: Label -> Label) = (!s. f (coname s) = COMPL (f (name s)))`;
 
-val EXISTS_Relabelling = store_thm ("EXISTS_Relabelling", ``?f. Is_Relabelling f``,
+val EXISTS_Relabeling = store_thm ("EXISTS_Relabeling", ``?f. Is_Relabeling f``,
     Q.EXISTS_TAC `\a. a`
- >> PURE_ONCE_REWRITE_TAC [Is_Relabelling_def]
+ >> PURE_ONCE_REWRITE_TAC [Is_Relabeling_def]
  >> BETA_TAC
- >> REWRITE_TAC [Lab_COMPL_def]);
+ >> REWRITE_TAC [COMPL_LAB_def]);
 
-(* Relabelling_TY_DEF =
-   |- ∃rep. TYPE_DEFINITION Is_Relabelling rep
+(* Relabeling_TY_DEF =
+   |- ∃rep. TYPE_DEFINITION Is_Relabeling rep
  *)
-val Relabelling_TY_DEF = new_type_definition ("Relabelling", EXISTS_Relabelling);
+val Relabeling_TY_DEF = new_type_definition ("Relabeling", EXISTS_Relabeling);
 
-(* Relabelling_ISO_DEF =
-   |- (∀a. ABS_Relabelling (REP_Relabelling a) = a) ∧
-       ∀r. Is_Relabelling r ⇔ (REP_Relabelling (ABS_Relabelling r) = r)
+(* Relabeling_ISO_DEF =
+   |- (∀a. ABS_Relabeling (REP_Relabeling a) = a) ∧
+       ∀r. Is_Relabeling r ⇔ (REP_Relabeling (ABS_Relabeling r) = r)
  *)
-val Relabelling_ISO_DEF = define_new_type_bijections
-			      { ABS  = "ABS_Relabelling",
-				REP  = "REP_Relabelling",
-				name = "Relabelling_ISO_DEF",
-				tyax =  Relabelling_TY_DEF };
+val Relabeling_ISO_DEF = define_new_type_bijections
+			      { ABS  = "ABS_Relabeling",
+				REP  = "REP_Relabeling",
+				name = "Relabeling_ISO_DEF",
+				tyax =  Relabeling_TY_DEF };
 
-(* ABS_Relabelling_one_one =
+(* ABS_Relabeling_one_one =
    |- ∀r r'.
-      Is_Relabelling r ⇒ Is_Relabelling r' ⇒
-      ((ABS_Relabelling r = ABS_Relabelling r') ⇔ (r = r'))
+      Is_Relabeling r ⇒ Is_Relabeling r' ⇒
+      ((ABS_Relabeling r = ABS_Relabeling r') ⇔ (r = r'))
 
-   ABS_Relabelling_onto =
-   |- ∀a. ∃r. (a = ABS_Relabelling r) ∧ Is_Relabelling r
+   ABS_Relabeling_onto =
+   |- ∀a. ∃r. (a = ABS_Relabeling r) ∧ Is_Relabeling r
 
-   REP_Relabelling_one_one =
-   |- ∀a a'. (REP_Relabelling a = REP_Relabelling a') ⇔ (a = a')
+   REP_Relabeling_one_one =
+   |- ∀a a'. (REP_Relabeling a = REP_Relabeling a') ⇔ (a = a')
 
-   REP_Relabelling_onto =
-   |- ∀r. Is_Relabelling r ⇔ ∃a. r = REP_Relabelling a
+   REP_Relabeling_onto =
+   |- ∀r. Is_Relabeling r ⇔ ∃a. r = REP_Relabeling a
  *)
-val [ABS_Relabelling_one_one,
-     ABS_Relabelling_onto,
-     REP_Relabelling_one_one,
-     REP_Relabelling_onto] =
-    map (fn f => f Relabelling_ISO_DEF)
+val [ABS_Relabeling_one_one,
+     ABS_Relabeling_onto,
+     REP_Relabeling_one_one,
+     REP_Relabeling_onto] =
+    map (fn f => f Relabeling_ISO_DEF)
 	[prove_abs_fn_one_one,
 	 prove_abs_fn_onto,
 	 prove_rep_fn_one_one,
 	 prove_rep_fn_onto];
 
-val REP_Relabelling_THM = store_thm ("REP_Relabelling_THM",
-  ``!rf: Relabelling. Is_Relabelling (REP_Relabelling rf)``,
+val REP_Relabeling_THM = store_thm ("REP_Relabeling_THM",
+  ``!rf: Relabeling. Is_Relabeling (REP_Relabeling rf)``,
     GEN_TAC
- >> REWRITE_TAC [REP_Relabelling_onto]
+ >> REWRITE_TAC [REP_Relabeling_onto]
  >> Q.EXISTS_TAC `rf`
  >> REWRITE_TAC []);
 
-(* Relabelling labels is extended to actions by renaming tau as tau. *)
-val relabel_def = Define `(relabel (rf: Relabelling) tau = tau) /\
-			  (relabel rf (label l) = label (REP_Relabelling rf l))`;
+(* Relabeling labels is extended to actions by renaming tau as tau. *)
+val relabel_def = Define `(relabel (rf: Relabeling) tau = tau) /\
+			  (relabel rf (label l) = label (REP_Relabeling rf l))`;
 
 (* If the renaming of an action is a label, that action is a label. *)
 val Relab_label = prove (``!rf u l. (relabel rf u = label l) ==> ?l'. u = label l'``,
@@ -205,33 +214,34 @@ val Apply_Relab_def = Define `
 val Apply_Relab_COMPL_THM = store_thm ("Apply_Relab_COMPL_THM",
   ``!labl s. Apply_Relab labl (coname s) = COMPL (Apply_Relab labl (name s))``,
     Induct
- >- REWRITE_TAC [Apply_Relab_def, Lab_COMPL_def]
+ >- REWRITE_TAC [Apply_Relab_def, COMPL_LAB_def]
  >> REPEAT GEN_TAC
  >> REWRITE_TAC [Apply_Relab_def]
  >> COND_CASES_TAC
- >- ASM_REWRITE_TAC [Label_distinct', Lab_COMPL_def, Lab_COMPL_COMPL]
- >> ASM_CASES_TAC ``SND (h:Label # Label) = name s``
- >- ASM_REWRITE_TAC [Lab_COMPL_def]
+ >- ASM_REWRITE_TAC [Label_distinct', COMPL_LAB_def, COMPL_COMPL_LAB]
+ >> ASM_CASES_TAC ``SND (h :Label # Label) = name s``
+ >- ASM_REWRITE_TAC [COMPL_LAB_def]
  >> IMP_RES_TAC COMPL_THM
  >> ASM_REWRITE_TAC []);
 
-val IS_RELABELLING = prove (``!labl. Is_Relabelling (Apply_Relab labl)``,
+val IS_RELABELING = store_thm (
+   "IS_RELABELING" ,``!labl. Is_Relabeling (Apply_Relab labl)``,
     Induct
- >- REWRITE_TAC [Is_Relabelling_def, Apply_Relab_def, Lab_COMPL_def]
+ >- REWRITE_TAC [Is_Relabeling_def, Apply_Relab_def, COMPL_LAB_def]
  >> GEN_TAC
- >> REWRITE_TAC [Is_Relabelling_def, Apply_Relab_def]
+ >> REWRITE_TAC [Is_Relabeling_def, Apply_Relab_def]
  >> GEN_TAC
  >> COND_CASES_TAC
- >- ASM_REWRITE_TAC [Label_distinct', Lab_COMPL_def, Lab_COMPL_COMPL]
+ >- ASM_REWRITE_TAC [Label_distinct', COMPL_LAB_def, COMPL_COMPL_LAB]
  >> ASM_CASES_TAC ``SND (h :Label # Label) = name s``
- >- ASM_REWRITE_TAC [Lab_COMPL_def]
+ >- ASM_REWRITE_TAC [COMPL_LAB_def]
  >> IMP_RES_TAC COMPL_THM
  >> ASM_REWRITE_TAC [Apply_Relab_COMPL_THM]);
 
 (* Defining a relabelling function through substitution-like notation.
-   RELAB: (Label # Label)list -> Relabelling
+   RELAB: (Label # Label)list -> Relabeling
  *)
-val RELAB_def = Define `RELAB labl = ABS_Relabelling (Apply_Relab labl)`;
+val RELAB_def = Define `RELAB labl = ABS_Relabeling (Apply_Relab labl)`;
 
 (* Define the type of (pure) CCS agent expressions. *)
 val _ = Datatype `CCS = nil
@@ -240,7 +250,7 @@ val _ = Datatype `CCS = nil
 		      | sum CCS CCS
 		      | par CCS CCS
 		      | restr (Label set) CCS
-		      | relab CCS Relabelling
+		      | relab CCS Relabeling
 		      | rec string CCS`;
 
 val _ = overload_on ("nu", ``restr``);
@@ -302,6 +312,13 @@ val ARB'_def = Define `ARB' = @x:CCS. T`;
 (* |- !t1 t2. ((T => t1 | t2) = t1) /\ ((F => t1 | t2) = t2) *)
 val CCS_COND_CLAUSES = save_thm (
    "CCS_COND_CLAUSES", INST_TYPE [``:'a`` |-> ``:CCS``] COND_CLAUSES);
+
+(* Single-label restriction *)
+val restr1_def = Define `
+    restr1 (n: string) (P :CCS) = restr {name n} P`;
+
+val _ = export_rewrites ["restr1_def"]
+val _ = overload_on ("nu", ``restr1``);
 
 (******************************************************************************)
 (*                                                                            *)
@@ -402,7 +419,7 @@ val TRANS_PREFIX_EQ = save_thm ("TRANS_PREFIX_EQ",
    (SPECL [``prefix u E``, ``u' :Action``, ``E' :CCS``]))
       TRANS_cases);
 
-(* |- ∀u' u E' E. TRANS (prefix u E) u' E' ⇒ (u' = u) ∧ (E' = E) *)
+(* |- ∀u E u' E'. u..E --u'-> E' ⇒ (u' = u) ∧ (E' = E) *)
 val TRANS_PREFIX = save_thm ("TRANS_PREFIX", EQ_IMP_LR TRANS_PREFIX_EQ);
 
 (******************************************************************************)
@@ -411,15 +428,10 @@ val TRANS_PREFIX = save_thm ("TRANS_PREFIX", EQ_IMP_LR TRANS_PREFIX_EQ);
 (*                                                                            *)
 (******************************************************************************)
 
-(* |- !E E' u E''. TRANS(sum E E')u E'' = TRANS E u E'' \/ TRANS E' u E'' *)
 val SUM_cases_EQ = save_thm ("SUM_cases_EQ",
-  ((GEN ``D :CCS``) o
-   (GEN ``D' :CCS``) o
-   (GEN ``u :Action``) o
-   (GEN ``D'' :CCS``) o
-   (REWRITE_RULE [CCS_distinct', CCS_11]) o
-   (SPECL [``sum D D'``, ``u :Action``, ``D'' :CCS``]))
-      TRANS_cases);
+    GENL [``D :CCS``, ``D' :CCS``, ``u :Action``, ``D'' :CCS``]
+	 (REWRITE_RULE [CCS_distinct', CCS_11]
+		       (SPECL [``sum D D'``, ``u :Action``, ``D'' :CCS``] TRANS_cases)));
 
 val SUM_cases = save_thm ("SUM_cases", EQ_IMP_LR SUM_cases_EQ);
 
@@ -441,15 +453,12 @@ val TRANS_SUM_EQ' = store_thm (
   ``!E1 E2 u E. TRANS (sum E1 E2) u E = TRANS E1 u E \/ TRANS E2 u E``, 
     REWRITE_TAC [TRANS_SUM_EQ]);
 
-val TRANS_SUM = store_thm ("TRANS_SUM",
-  ``!E E' u E''. TRANS (sum E E') u E'' ==> TRANS E u E'' \/ TRANS E' u E''``,
-    REPEAT GEN_TAC
- >> REWRITE_TAC [fst (EQ_IMP_RULE (SPEC_ALL TRANS_SUM_EQ))]);
+val TRANS_SUM = save_thm ("TRANS_SUM", EQ_IMP_LR TRANS_SUM_EQ);
 
 val TRANS_COMM_EQ = store_thm ("TRANS_COMM_EQ",
   ``!E E' E'' u. TRANS (sum E E') u E'' = TRANS (sum E' E) u E''``,
     REPEAT GEN_TAC
- >> EQ_TAC
+ >> EQ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       DISCH_TAC \\
       IMP_RES_TAC TRANS_SUM >|
@@ -507,40 +516,25 @@ val TRANS_SUM_NIL_EQ = store_thm (
       SUM1_TAC >> ASM_REWRITE_TAC [] ]);   
 
 (* |- ∀E u E'. E + nil --u-> E' ⇒ E --u-> E' *)
-val TRANS_SUM_NIL = save_thm ("TRANS_SUM_NIL",
-  ((GEN ``E :CCS``) o
-   (GEN ``u :Action``) o
-   (GEN ``E' :CCS``))
-      (EQ_IMP_LR' TRANS_SUM_NIL_EQ));
+val TRANS_SUM_NIL = save_thm ("TRANS_SUM_NIL", EQ_IMP_LR TRANS_SUM_NIL_EQ);
 
 val TRANS_P_SUM_P_EQ = store_thm ("TRANS_P_SUM_P_EQ",
   ``!E u E'. TRANS (sum E E) u E' = TRANS E u E'``,
     REPEAT GEN_TAC
  >> EQ_TAC
- >| [ DISCH_TAC >> IMP_RES_TAC TRANS_SUM,
-      DISCH_TAC >> SUM1_TAC >> ASM_REWRITE_TAC [] ]);
+ >| [ DISCH_TAC \\
+      IMP_RES_TAC TRANS_SUM,
+      DISCH_TAC \\
+      SUM1_TAC >> ASM_REWRITE_TAC [] ]);
 
-val TRANS_P_SUM_P = save_thm ("TRANS_P_SUM_P",
-  ((GEN ``E :CCS``) o
-   (GEN ``u :Action``) o
-   (GEN ``E' :CCS``))
-      (EQ_IMP_LR' TRANS_P_SUM_P_EQ));
+val TRANS_P_SUM_P = save_thm ("TRANS_P_SUM_P", EQ_IMP_LR TRANS_P_SUM_P_EQ);
 
 val PAR_cases_EQ = save_thm ("PAR_cases_EQ",
-  ((GEN ``D :CCS``) o
-   (GEN ``D' :CCS``) o
-   (GEN ``u :Action``) o
-   (GEN ``D'' :CCS``) o
-   (REWRITE_RULE [CCS_distinct', CCS_11]) o
-   (SPECL [``par D D'``, ``u :Action``, ``D'' :CCS``]))
-      TRANS_cases);
+    GENL [``D :CCS``, ``D' :CCS``, ``u :Action``, ``D'' :CCS``]
+	 (REWRITE_RULE [CCS_distinct', CCS_11]
+		       (SPECL [``par D D'``, ``u :Action``, ``D'' :CCS``] TRANS_cases)));
 
-val PAR_cases = save_thm ("PAR_cases",
-  ((GEN ``D :CCS``) o
-   (GEN ``D' :CCS``) o
-   (GEN ``u :Action``) o
-   (GEN ``D'' :CCS``))
-      (EQ_IMP_LR' PAR_cases_EQ));
+val PAR_cases = save_thm ("PAR_cases", EQ_IMP_LR PAR_cases_EQ);
 
 (* NOTE: the shape of this theorem can be easily got from above definition by replacing
          REWRITE_RULE to SIMP_RULE, however the inner existential variable (E1) has a
@@ -574,12 +568,7 @@ val TRANS_PAR_EQ = store_thm ("TRANS_PAR_EQ",
    >| [ PAR1_TAC, PAR2_TAC, PAR3_TAC ]
    >> ASM_REWRITE_TAC [] ]);
 
-val TRANS_PAR = save_thm ("TRANS_PAR",
-  ((GEN ``E :CCS``) o
-   (GEN ``E' :CCS``) o
-   (GEN ``u :Action``) o
-   (GEN ``E'' :CCS``))
-      (EQ_IMP_LR' TRANS_PAR_EQ));
+val TRANS_PAR = save_thm ("TRANS_PAR", EQ_IMP_LR TRANS_PAR_EQ);
 
 val TRANS_PAR_P_NIL = store_thm ("TRANS_PAR_P_NIL",
   ``!E u E'. TRANS (par E nil) u E' ==> (?E''. TRANS E u E'' /\ (E' = par E'' nil))``,
@@ -598,26 +587,18 @@ val TRANS_PAR_NO_SYNCR = store_thm ("TRANS_PAR_NO_SYNCR",
       IMP_RES_TAC TRANS_PREFIX >> IMP_RES_TAC Action_distinct,
       IMP_RES_TAC TRANS_PREFIX >> IMP_RES_TAC Action_11 \\
       CHECK_ASSUME_TAC
-        (REWRITE_RULE [SYM (Q.ASSUME `l'' = l`),
-		       SYM (Q.ASSUME `COMPL l'' = l'`), Lab_COMPL_COMPL]
-		      (ASSUME ``~(l = COMPL l')``)) \\
+        (REWRITE_RULE [SYM (ASSUME ``(l'': Label) = l``),
+		       SYM (ASSUME ``COMPL (l'' :Label) = l'``), COMPL_COMPL_LAB]
+		      (ASSUME ``~(l = COMPL (l' :Label))``)) \\
       RW_TAC bool_ss [] ]);
 
 val RESTR_cases_EQ = save_thm ("RESTR_cases_EQ",
-  ((GEN ``D :CCS``) o
-   (GEN ``L :Label set``) o
-   (GEN ``u: Action``) o
-   (GEN ``D' :CCS``))
-      (REWRITE_RULE [CCS_distinct', CCS_11, Action_distinct, Action_11]
-		    (SPECL [``restr L D``, ``u :Action``, ``D' :CCS``]
-			   TRANS_cases)));
+    GENL [``D :CCS``, ``L :Label set``, ``u: Action``, ``D' :CCS``]
+	 (REWRITE_RULE [CCS_distinct', CCS_11, Action_distinct, Action_11]
+		       (SPECL [``restr L D``, ``u :Action``, ``D' :CCS``]
+			      TRANS_cases)));
 
-val RESTR_cases = save_thm ("RESTR_cases",
-  ((GEN ``D :CCS``) o
-   (GEN ``L :Label set``) o
-   (GEN ``u: Action``) o
-   (GEN ``D' :CCS``))
-      (EQ_IMP_LR' RESTR_cases_EQ));
+val RESTR_cases = save_thm ("RESTR_cases", EQ_IMP_LR RESTR_cases_EQ);
 
 val TRANS_RESTR_EQ = store_thm ("TRANS_RESTR_EQ",
   ``!E L u E'.
@@ -652,12 +633,7 @@ val TRANS_RESTR_EQ = store_thm ("TRANS_RESTR_EQ",
 	ASM_REWRITE_TAC [REWRITE_RULE [a2] a4] ] ]
   end);
 
-val TRANS_RESTR = save_thm ("TRANS_RESTR",
-  ((GEN ``E :CCS``) o
-   (GEN ``L :Label set``) o
-   (GEN ``u: Action``) o
-   (GEN ``E' :CCS``))
-      (EQ_IMP_LR' TRANS_RESTR_EQ));
+val TRANS_RESTR = save_thm ("TRANS_RESTR", EQ_IMP_LR TRANS_RESTR_EQ);
 
 val TRANS_P_RESTR = store_thm ("TRANS_P_RESTR",
   ``!E u E' L. TRANS (restr L E) u (restr L E') ==> TRANS E u E'``,
@@ -747,12 +723,7 @@ val TRANS_RELAB_EQ = store_thm ("TRANS_RELAB_EQ",
       RELAB_TAC \\
       PURE_ONCE_ASM_REWRITE_TAC [] ]);
 
-val TRANS_RELAB = save_thm ("TRANS_RELAB",
-  ((GEN ``E :CCS``) o
-   (GEN ``rf :Relabelling``) o
-   (GEN ``u :Action``) o
-   (GEN ``E' :CCS``))
-      (EQ_IMP_LR' TRANS_RELAB_EQ));
+val TRANS_RELAB = save_thm ("TRANS_RELAB", EQ_IMP_LR TRANS_RELAB_EQ);
 
 val TRANS_RELAB_labl = save_thm ("TRANS_RELAB_labl",
     GEN_ALL (Q.SPECL [`E`, `RELAB labl`] TRANS_RELAB));
@@ -769,12 +740,14 @@ val RELAB_NIL_NO_TRANS = store_thm ("RELAB_NIL_NO_TRANS",
 val APPLY_RELAB_THM = save_thm ("APPLY_RELAB_THM",
     GEN_ALL
       (REWRITE_RULE [GSYM RELAB_def]
-	(MATCH_MP (MATCH_MP ABS_Relabelling_one_one
-			    (Q.SPEC `labl` IS_RELABELLING))
-		  (Q.SPEC `labl` IS_RELABELLING))));
+	(MATCH_MP (MATCH_MP ABS_Relabeling_one_one
+			    (Q.SPEC `labl` IS_RELABELING))
+		  (Q.SPEC `labl` IS_RELABELING))));
 
 val REC_cases_EQ = save_thm ("REC_cases_EQ",
-    GEN_ALL (REWRITE_RULE [CCS_distinct', CCS_11] (SPEC ``rec X E`` TRANS_cases)));
+    GENL [``X :string``, ``E :CCS``, ``u :Action``, ``E'' :CCS``]
+	 (SPECL [``u :Action``, ``E'' :CCS``]
+		(REWRITE_RULE [CCS_distinct', CCS_11] (SPEC ``rec X E`` TRANS_cases))));
 
 val REC_cases = save_thm ("REC_cases", EQ_IMP_LR REC_cases_EQ);
 
@@ -789,46 +762,9 @@ val TRANS_REC_EQ = store_thm ("TRANS_REC_EQ",
       (* goal 2 (of 2) *)
       PURE_ONCE_REWRITE_TAC [REC] ]);
 
-val TRANS_REC = save_thm ("TRANS_REC",
-  ((GEN ``X :string``) o
-   (GEN ``E :CCS``) o
-   (GEN ``u :Action``) o
-   (GEN ``E' :CCS``))
-      (EQ_IMP_LR' TRANS_REC_EQ));
-
-(******************************************************************************)
-(*                                                                            *)
-(*         Mini support for weak transitions (no other theorems)              *)
-(*                                                                            *)
-(******************************************************************************)
-
-val epsilon_def = Define `epsilon = []`;
-val _ = Unicode.unicode_version { u = UTF8.chr 0x03B5, tmnm = "epsilon"};
-val _ = TeX_notation { hol = UTF8.chr 0x03B5,
-                       TeX = ("\\HOLepsilon", 1) }
-
-(* Weak transition relation *)
-val (WEAK_TRANS_rules, WEAK_TRANS_ind, WEAK_TRANS_cases) = Hol_reln `
-    (!E E' l. TRANS E (label l) E' ==> WEAK_TRANS E [l] E') /\
-    (!E E'.   TRANS E tau E'       ==> WEAK_TRANS E epsilon E') /\
-    (!E.                               WEAK_TRANS E epsilon E) /\
-    (!E1 E2 E3 l1 l2.
-               WEAK_TRANS E1 l1 E2 /\
-               WEAK_TRANS E2 l2 E3 ==> WEAK_TRANS E1 (l1 ++ l2) E3)`;
-
-val _ =
-    add_rule { term_name = "WEAK_TRANS", fixity = Infix (NONASSOC, 450),
-	pp_elements = [ BreakSpace(1,0), TOK "==", HardSpace 0, TM, HardSpace 0, TOK "=>>",
-			BreakSpace(1,0) ],
-	paren_style = OnlyIfNecessary,
-	block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)) };
-
-(* by definition, TRANS implies WEAK_TRANS *)
-val TRANS_IMP_WEAK_TRANS = store_thm (
-   "TRANS_IMP_WEAK_TRANS", ``!E l E'. TRANS E (label l) E' ==> WEAK_TRANS E [l] E'``,
-    PROVE_TAC [WEAK_TRANS_rules]);
+val TRANS_REC = save_thm ("TRANS_REC", EQ_IMP_LR TRANS_REC_EQ);
 
 val _ = export_theory ();
 val _ = DB.html_theory "CCS";
 
-(* last updated: March 20, 2017 *)
+(* last updated: May 7, 2017 *)

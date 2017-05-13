@@ -16,10 +16,17 @@ sig
   val RESTR_TAC			: tactic
   val SUM1_TAC			: tactic
   val SUM2_TAC			: tactic
+  val eqf_elim			: thm -> thm
+
+  val from_compact		: thm -> thm
+  val from_compact_tm		: term -> term
+  val to_compact		: thm -> thm
+  val to_compact_tm		: term -> term
+
+  val strip_trans		: thm -> (term * term) list
 
   val CCS_TRANS_CONV		: conv
   val CCS_TRANS_CONV'		: conv
   val CCS_TRANS			: term -> thm * (term * term) list
   val CCS_TRANS'		: term -> thm * (term * term) list
-
 end

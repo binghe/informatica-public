@@ -10,6 +10,15 @@ open StrongEQTheory StrongEQLib StrongLawsTheory WeakEQTheory;
 
 val _ = new_theory "Example";
 
+(******************************************************************************)
+(*                                                                            *)
+(*                     The coffee machine model                               *)
+(*                                                                            *)
+(******************************************************************************)
+
+val VM = ``rec "VM" (In "coin"..(In "ask-esp"..rec "VM1" (Out "esp-coffee"..var "VM") +
+				 In "ask-am"..rec "VM2" (Out "am-coffee"..var "VM")))``;
+
 (* ex1 =
 |- label (name "a")..label (name "b")..nil +
    label (name "b")..label (name "a")..nil
@@ -69,7 +78,7 @@ val ex3 = store_thm ("ex3",
  >> CONJ_TAC (* 2 sub-goals here *)
  >- REWRITE_TAC [PREFIX]
  >> MATCH_MP_TAC SUM1
- >> REWRITE_TAC [PREFIX, Lab_COMPL_def]);
+ >> REWRITE_TAC [PREFIX, COMPL_LAB_def]);
 
 (* prove: (nu c)(a.c.0 | (b.0+c.0)) --b-> (nu c)(a.c.0|0) *)
 val ex4 = store_thm ("ex4",
@@ -84,7 +93,7 @@ val ex4 = store_thm ("ex4",
 			      (prefix (label (name "c")) nil))
 		      nil))``,
     MATCH_MP_TAC RESTR
- >> RW_TAC std_ss [CHR_11, Lab_COMPL_def, IN_SING]
+ >> RW_TAC std_ss [CHR_11, COMPL_LAB_def, IN_SING]
  >> MATCH_MP_TAC PAR2
  >> MATCH_MP_TAC SUM1
  >> REWRITE_TAC [PREFIX]);
@@ -99,7 +108,7 @@ val ex5 = store_thm ("ex5",
     MATCH_MP_TAC PAR1
  >> MATCH_MP_TAC PAR3
  >> EXISTS_TAC ``name "a"``
- >> RW_TAC std_ss [Lab_COMPL_def] (* two sub-goals *)
+ >> RW_TAC std_ss [COMPL_LAB_def] (* two sub-goals *)
  >| [ REWRITE_TAC [PREFIX],
       REWRITE_TAC [PREFIX] ]);
 
@@ -120,11 +129,11 @@ val ex6 = store_thm ("ex6",
  >> Cases_on `l` (* 2 sub-goals divided by names and conames of `l` *)
  >| [ DISJ2_TAC \\
       ONCE_REWRITE_TAC [TRANS_cases] \\
-      RW_TAC std_ss [CCS_distinct, Lab_COMPL_def, Label_distinct],
-      REWRITE_TAC [Lab_COMPL_def] \\
+      RW_TAC std_ss [CCS_distinct, COMPL_LAB_def, Label_distinct],
+      REWRITE_TAC [COMPL_LAB_def] \\
       DISJ1_TAC \\
       ONCE_REWRITE_TAC [TRANS_cases] \\
-      RW_TAC std_ss [CCS_distinct, Lab_COMPL_def, Label_distinct] ]);
+      RW_TAC std_ss [CCS_distinct, COMPL_LAB_def, Label_distinct] ]);
 
 (* prove: (nu a)(a.0 | `a.0) --a-> (nu a)(0 | `a.0) is not derivable *)
 val ex7 = store_thm ("ex7",
@@ -136,7 +145,7 @@ val ex7 = store_thm ("ex7",
 		  (par nil (prefix (label (coname "a")) nil)))``,
     ONCE_REWRITE_TAC [TRANS_cases] (* step 1: remove outside restr *)
  >> RW_TAC std_ss [CCS_distinct]
- >> RW_TAC std_ss [Lab_COMPL_def, IN_SING]);
+ >> RW_TAC std_ss [COMPL_LAB_def, IN_SING]);
 
 (* A root of unknown LTS, (a.nil | `a.nil) *)
 val r1 = ``par (prefix (label (name "a")) nil) (prefix (label (coname "a")) nil)``;
@@ -145,7 +154,7 @@ val r1_has_trans = store_thm ("r1_has_trans", ``?l G. TRANS ^r1 l G``,
     ONCE_REWRITE_TAC [TRANS_cases]
  >> RW_TAC std_ss [CCS_distinct]
  >> ONCE_REWRITE_TAC [TRANS_cases]
- >> RW_TAC std_ss [CCS_distinct, Lab_COMPL_def]
+ >> RW_TAC std_ss [CCS_distinct, COMPL_LAB_def]
 (* 3 possible cases here:
 ∃l G.
   (G = par nil (prefix (label (coname "a")) nil)) ∧ (label (name "a") = l) ∨
@@ -177,7 +186,7 @@ val r1_trans_2 = store_thm ("r1_trans_2", ``TRANS ^r1 ^co_a ^r1_s2``,
 val r1_trans_3 = store_thm ("r1_trans_3", ``TRANS ^r1 tau ^r1_s3``,
     MATCH_MP_TAC PAR3
  >> EXISTS_TAC ``name "a"``
- >> REWRITE_TAC [PREFIX, Lab_COMPL_def]);
+ >> REWRITE_TAC [PREFIX, COMPL_LAB_def]);
 
 (* finally, there's a proof showing that no other transitions are possible *)
 val r1_has_no_other_trans = store_thm (
@@ -188,7 +197,7 @@ val r1_has_no_other_trans = store_thm (
     ONCE_REWRITE_TAC [TRANS_cases]
  >> RW_TAC std_ss [CCS_distinct]
  >> ONCE_REWRITE_TAC [TRANS_cases]
- >> RW_TAC std_ss [CCS_distinct, Lab_COMPL_def]
+ >> RW_TAC std_ss [CCS_distinct, COMPL_LAB_def]
  >> METIS_TAC []);
 
 (* then we have to prove both s1 and s2 have single transition to this last status *)
@@ -214,7 +223,7 @@ val par_nils_no_trans = store_thm (
     ONCE_REWRITE_TAC [TRANS_cases]
  >> RW_TAC std_ss [CCS_distinct] (* 3 sub-goals sharing the same tacticals *)
  >> ONCE_REWRITE_TAC [TRANS_cases]
- >> RW_TAC std_ss [CCS_distinct, Lab_COMPL_def, Label_distinct]);
+ >> RW_TAC std_ss [CCS_distinct, COMPL_LAB_def, Label_distinct]);
 
 val r2 = ``restr { name "a" }
 		 (par (prefix (label (name "a")) nil)
@@ -226,7 +235,7 @@ val r2_has_trans = store_thm ("r2_has_trans", ``?l G. TRANS ^r2 l G``,
  >> ONCE_REWRITE_TAC [TRANS_cases]
  >> RW_TAC std_ss [CCS_distinct]	(* par rewrited into 3 possible cases *)
  >> ONCE_REWRITE_TAC [TRANS_cases]
- >> RW_TAC std_ss [CCS_distinct, Label_distinct, Lab_COMPL_def]
+ >> RW_TAC std_ss [CCS_distinct, Label_distinct, COMPL_LAB_def]
 (*
 ∃l E' l'.
   ((E' = par nil (prefix (label (coname "a")) nil)) ∧
@@ -248,7 +257,7 @@ val r2_trans = store_thm ("r2_trans",
  >> RW_TAC std_ss [Label_distinct]
  >> MATCH_MP_TAC PAR3
  >> EXISTS_TAC ``name "a"``
- >> REWRITE_TAC [PREFIX, Lab_COMPL_def]);
+ >> REWRITE_TAC [PREFIX, COMPL_LAB_def]);
 
 (* above theorem indicates that (G = par nil nil) and (l = tau) are the only solution
    (after removing the restr), now we prove there's no others. It's incredibly hard! *)
@@ -273,7 +282,7 @@ val r2_has_no_other_trans = store_thm (
 	   POP_ASSUM (ASSUME_TAC o (ONCE_REWRITE_RULE [TRANS_cases])) \\
 	   FULL_SIMP_TAC std_ss [CCS_distinct, CCS_11] \\
 	   `l' = coname "a"` by PROVE_TAC [Action_11] \\
-	   `COMPL l' = name "a"` by PROVE_TAC [Lab_COMPL_def] \\
+	   `COMPL l' = name "a"` by PROVE_TAC [COMPL_LAB_def] \\
 	   PROVE_TAC [IN_SING],
 	   (* case 1.3 *)
 	   PROVE_TAC [Action_11] ],
@@ -305,7 +314,7 @@ val r2_has_no_other_trans = store_thm (
 	   POP_ASSUM (ASSUME_TAC o (ONCE_REWRITE_RULE [TRANS_cases])) \\
 	   FULL_SIMP_TAC std_ss [CCS_distinct, CCS_11] \\
 	   `l' = coname "a"` by PROVE_TAC [Action_11] \\
-	   `COMPL l' = name "a"` by PROVE_TAC [Lab_COMPL_def] \\
+	   `COMPL l' = name "a"` by PROVE_TAC [COMPL_LAB_def] \\
 	   PROVE_TAC [IN_SING],
 	   (* case 3.3 *)
 	   PROVE_TAC [Action_distinct] ] ]);

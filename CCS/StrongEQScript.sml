@@ -356,10 +356,7 @@ val STRONG_EQUIV_PRESD_BY_PAR = store_thm (
  >> CONJ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       BETA_TAC \\
-      EXISTS_TAC ``E1: CCS`` \\
-      EXISTS_TAC ``E1': CCS`` \\
-      EXISTS_TAC ``E2: CCS`` \\
-      EXISTS_TAC ``E2': CCS`` \\
+      take [`E1`, `E1'`, `E2`, `E2'`] \\
       ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
       PURE_ONCE_REWRITE_TAC [STRONG_BISIM] \\
@@ -379,10 +376,7 @@ val STRONG_EQUIV_PRESD_BY_PAR = store_thm (
             MATCH_MP_TAC PAR1 \\
             PURE_ONCE_ASM_REWRITE_TAC [],
             (* goal 2.1.1.2 (of 2) *)
-            EXISTS_TAC ``E1''': CCS`` \\
-            EXISTS_TAC ``E2'': CCS`` \\
-            EXISTS_TAC ``F3: CCS`` \\
-            EXISTS_TAC ``F4: CCS`` \\
+            take [`E1'''`, `E2''`, `F3`, `F4`] \\
             ASM_REWRITE_TAC [] ],
           (* goal 2.1.2 (of 3) *)
           IMP_RES_TAC (MATCH_MP PROPERTY_STAR_LR 
@@ -393,10 +387,7 @@ val STRONG_EQUIV_PRESD_BY_PAR = store_thm (
           [ (* goal 2.1.2.1 (of 2) *)
             MATCH_MP_TAC PAR2 >> PURE_ONCE_ASM_REWRITE_TAC [],
             (* goal 2.1.2.2 (of 2) *)
-            EXISTS_TAC ``F1: CCS`` \\
-            EXISTS_TAC ``F2: CCS`` \\
-            EXISTS_TAC ``E1''': CCS`` \\
-            EXISTS_TAC ``E2'': CCS`` \\
+            take [`F1`, `F2`, `E1'''`, `E2''`] \\
             ASM_REWRITE_TAC [] ],
           (* goal 2.1.3 (of 3) *)
           IMP_RES_TAC (MATCH_MP PROPERTY_STAR_LR 
@@ -411,10 +402,7 @@ val STRONG_EQUIV_PRESD_BY_PAR = store_thm (
             EXISTS_TAC ``l: Label`` \\
             ASM_REWRITE_TAC [],
             (* goal 2.1.3.2 (of 2) *)
-            EXISTS_TAC ``E1''': CCS`` \\
-            EXISTS_TAC ``E2''': CCS`` \\
-            EXISTS_TAC ``E2'': CCS`` \\
-            EXISTS_TAC ``E2'''': CCS`` \\
+            take [`E1'''`, `E2'''`, `E2''`, `E2''''`] \\
             ASM_REWRITE_TAC [] ] ], 
          (* goal 2.2 (of 2) *)
          ASSUME_TAC
@@ -431,10 +419,7 @@ val STRONG_EQUIV_PRESD_BY_PAR = store_thm (
              MATCH_MP_TAC PAR1 \\
              PURE_ONCE_ASM_REWRITE_TAC [],
              (* goal 2.2.1.2 (of 2) *)
-             EXISTS_TAC ``E1''': CCS`` \\
-             EXISTS_TAC ``E1'': CCS`` \\ 
-             EXISTS_TAC ``F3: CCS`` \\
-             EXISTS_TAC ``F4: CCS`` \\ 
+             take [`E1'''`, `E1''`, `F3`, `F4`] \\
              ASM_REWRITE_TAC [] ],
            (* goal 2.2.2 (of 3) *)
            IMP_RES_TAC (MATCH_MP PROPERTY_STAR_LR 
@@ -446,10 +431,7 @@ val STRONG_EQUIV_PRESD_BY_PAR = store_thm (
              MATCH_MP_TAC PAR2 \\
              PURE_ONCE_ASM_REWRITE_TAC [],
              (* goal 2.2.2.2 (of 2) *)
-             EXISTS_TAC ``F1: CCS`` \\
-             EXISTS_TAC ``F2: CCS`` \\
-             EXISTS_TAC ``E1''': CCS`` \\
-             EXISTS_TAC ``E1'': CCS`` \\
+             take [`F1`, `F2`, `E1'''`, `E1''`] \\
              ASM_REWRITE_TAC [] ],
            (* goal 2.2.3 (of 3) *)
            IMP_RES_TAC (MATCH_MP PROPERTY_STAR_LR
@@ -464,10 +446,7 @@ val STRONG_EQUIV_PRESD_BY_PAR = store_thm (
              EXISTS_TAC ``l: Label`` \\
              ASM_REWRITE_TAC [],
              (* goal 2.2.3.2 (of 2) *)
-             EXISTS_TAC ``E1''': CCS`` \\
-             EXISTS_TAC ``E1'': CCS`` \\
-             EXISTS_TAC ``E1'''': CCS`` \\
-             EXISTS_TAC ``E2''': CCS`` \\ 
+             take [`E1'''`, `E1''`, `E1''''`, `E2'''`] \\ 
              ASM_REWRITE_TAC [] ] ] ] ]);
 
 (* Strong equivalence is substitutive under parallel operator on the right:
@@ -513,9 +492,7 @@ val STRONG_EQUIV_SUBST_RESTR = store_thm (
  >> CONJ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       BETA_TAC \\
-      EXISTS_TAC ``E: CCS`` \\
-      EXISTS_TAC ``E': CCS`` \\ 
-      EXISTS_TAC ``L: (Label)set`` \\
+      take [`E`, `E'`, `L`] \\
       ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
       PURE_ONCE_REWRITE_TAC [STRONG_BISIM] \\
@@ -536,9 +513,7 @@ val STRONG_EQUIV_SUBST_RESTR = store_thm (
             REWRITE_TAC [REWRITE_RULE [ASSUME ``u = tau``]
                                (ASSUME ``TRANS E2 u E2'``)],
             (* goal 2.1.1.2 (of 2) *)
-            EXISTS_TAC ``E'''': CCS`` \\
-            EXISTS_TAC ``E2': CCS`` \\ 
-            EXISTS_TAC ``L': (Label)set`` \\
+            take [`E''''`, `E2'`, `L'`] \\
             ASM_REWRITE_TAC [] ],
           (* goal 2.1.2 (of 2) *)
           IMP_RES_TAC (MATCH_MP PROPERTY_STAR_LR  
@@ -552,32 +527,28 @@ val STRONG_EQUIV_SUBST_RESTR = store_thm (
             ASM_REWRITE_TAC [REWRITE_RULE [ASSUME ``u = label l``]
                                    (ASSUME ``TRANS E2 u E2'``)],
             (* goal 2.1.2.2 (of 2) *)
-            EXISTS_TAC ``E'''': CCS`` \\
-            EXISTS_TAC ``E2': CCS`` \\
-            EXISTS_TAC ``L': (Label)set`` \\
+            take [`E''''`, `E2'`, `L'`] \\
             ASM_REWRITE_TAC [] ] ],  
           (* goal 2.2 (of 2) *)
           ASSUME_TAC (REWRITE_RULE [ASSUME ``E''' = restr L' E2``]
-                             (ASSUME ``TRANS E''' u E2'``)) \\ 
+				   (ASSUME ``TRANS E''' u E2'``)) \\ 
           IMP_RES_TAC TRANS_RESTR >| (* 2 sub-goals here *)
           [ (* goal 2.2.1 (of 2) *)
             IMP_RES_TAC (MATCH_MP PROPERTY_STAR_LR
-                         (ASSUME ``STRONG_EQUIV E1 E2``)) \\ 
+				  (ASSUME ``STRONG_EQUIV E1 E2``)) \\ 
             EXISTS_TAC ``restr L' E1'`` \\ 
             CONJ_TAC >| (* 2 sub-goals here *)
             [ (* goal 2.2.1.1 (of 2) *)
               ASM_REWRITE_TAC [] \\
               MATCH_MP_TAC RESTR \\
               REWRITE_TAC [REWRITE_RULE [ASSUME ``u = tau``]
-                                (ASSUME ``TRANS E1 u E1'``)],
+					(ASSUME ``TRANS E1 u E1'``)],
               (* goal 2.2.1.2 (of 2) *)
-              EXISTS_TAC ``E1': CCS`` \\
-              EXISTS_TAC ``E'''': CCS`` \\   
-              EXISTS_TAC ``L': (Label)set`` \\
+              take [`E1'`, `E''''`, `L'`] \\
               ASM_REWRITE_TAC [] ],  
            (* goal 2.2.2 (of 2) *)
            IMP_RES_TAC (MATCH_MP PROPERTY_STAR_LR  
-                        (ASSUME ``STRONG_EQUIV E1 E2``)) \\ 
+				 (ASSUME ``STRONG_EQUIV E1 E2``)) \\ 
            EXISTS_TAC ``restr L' E1'`` \\ 
            CONJ_TAC >| (* 2 sub-goals here *)
            [ (* goal 2.2.2.1 (of 2) *)
@@ -585,18 +556,16 @@ val STRONG_EQUIV_SUBST_RESTR = store_thm (
              MATCH_MP_TAC RESTR \\
              EXISTS_TAC ``l: Label`` \\
              ASM_REWRITE_TAC [REWRITE_RULE [ASSUME ``u = label l``]
-                                    (ASSUME ``TRANS E1 u E1'``)],
+					   (ASSUME ``TRANS E1 u E1'``)],
              (* goal 2.2.2.2 (of 2) *)
-             EXISTS_TAC ``E1': CCS`` \\
-             EXISTS_TAC ``E'''': CCS`` \\ 
-             EXISTS_TAC ``L': (Label)set`` \\
+             take [`E1'`, `E''''`, `L'`] \\
              ASM_REWRITE_TAC [] ] ] ] ]);
 
 (* Strong equivalence is substitutive under relabelling operator. *)
 val STRONG_EQUIV_SUBST_RELAB = store_thm (
    "STRONG_EQUIV_SUBST_RELAB",
-      ``!E E'. 
-         STRONG_EQUIV E E' ==> 
+      ``!E E'.
+         STRONG_EQUIV E E' ==>
          (!rf. STRONG_EQUIV (relab E rf) (relab E' rf))``,
     REPEAT STRIP_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_EQUIV]
@@ -605,9 +574,7 @@ val STRONG_EQUIV_SUBST_RELAB = store_thm (
  >> CONJ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       BETA_TAC \\
-      EXISTS_TAC ``E: CCS`` \\
-      EXISTS_TAC ``E': CCS`` \\
-      EXISTS_TAC ``rf: Relabelling`` \\
+      take [`E`, `E'`, `rf`] \\
       ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
       PURE_ONCE_REWRITE_TAC [STRONG_BISIM] \\
@@ -615,10 +582,10 @@ val STRONG_EQUIV_SUBST_RELAB = store_thm (
       REPEAT STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 2.1 (of 2) *)
         ASSUME_TAC (REWRITE_RULE [ASSUME ``E'' = relab E1 rf'``]
-                            (ASSUME ``TRANS E'' u E1'``)) \\
+				 (ASSUME ``TRANS E'' u E1'``)) \\
         IMP_RES_TAC TRANS_RELAB \\
         IMP_RES_TAC (MATCH_MP PROPERTY_STAR_LR
-                      (ASSUME ``STRONG_EQUIV E1 E2``)) \\
+			      (ASSUME ``STRONG_EQUIV E1 E2``)) \\
         EXISTS_TAC ``relab E2' rf'`` \\
         CONJ_TAC >| (* 2 sub-goals here *)
         [ (* goal 2.1.1 (of 2) *)
@@ -626,16 +593,14 @@ val STRONG_EQUIV_SUBST_RELAB = store_thm (
           MATCH_MP_TAC RELAB \\
           PURE_ONCE_ASM_REWRITE_TAC [],
           (* goal 2.1.2 (of 2) *)
-          EXISTS_TAC ``E'''': CCS`` \\
-          EXISTS_TAC ``E2': CCS`` \\
-          EXISTS_TAC ``rf': Relabelling`` \\
+          take [`E''''`, `E2'`, `rf'`] \\
           ASM_REWRITE_TAC [] ],
         (* goal 2.2 (of 2) *)
         ASSUME_TAC (REWRITE_RULE [ASSUME ``E''' = relab E2 rf'``]
-                            (ASSUME ``TRANS E''' u E2'``)) \\
+				 (ASSUME ``TRANS E''' u E2'``)) \\
         IMP_RES_TAC TRANS_RELAB \\ 
         IMP_RES_TAC (MATCH_MP PROPERTY_STAR_LR  
-                      (ASSUME ``STRONG_EQUIV E1 E2``)) \\
+			      (ASSUME ``STRONG_EQUIV E1 E2``)) \\
         EXISTS_TAC ``relab E1' rf'`` \\
         CONJ_TAC >| (* 2 sub-goals here *)
         [ (* goal 2.2.1 (of 2) *)
@@ -643,9 +608,7 @@ val STRONG_EQUIV_SUBST_RELAB = store_thm (
           MATCH_MP_TAC RELAB \\
           PURE_ONCE_ASM_REWRITE_TAC [],
           (* goal 2.2.2 (of 2) *)
-          EXISTS_TAC ``E1': CCS`` \\
-          EXISTS_TAC ``E'''': CCS`` \\ 
-          EXISTS_TAC ``rf': Relabelling`` \\
+          take [`E1'`, `E''''`, `rf'`] \\
           ASM_REWRITE_TAC [] ] ] ]);
 
 (******************************************************************************)
@@ -776,15 +739,11 @@ val STRONG_EQUIV_IS_BIGUNION_BISIM'' = save_thm (
     EXT (GEN ``E: CCS``
 	  (EXT (SPEC ``E: CCS`` STRONG_EQUIV_IS_BIGUNION_BISIM))));
 
-(* Then use: STRONG_EQUIV_IS_STRONG_BISIM to prove that STRONG_EQUIV is maximal *)
-
-(*
-val STRONG_EQUIV_IS_MAXIMAL = store_thm (
-   "STRONG_EQUIV_IS_MAXIMAL", ``!Bsm. STRONG_BISIM Bsm ==> Bsm RSUBSET STRONG_EQUIV``,
-    GEN_TAC
- >> REWRITE_TAC [RSUBSET]
- >> 
-*)
+val STRONG_EQUIV_EQ_BIGUNION_BISIM = store_thm (
+   "STRONG_EQUIV_EQ_BIGUNION_BISIM",
+  ``STRONG_EQUIV = CURRY (BIGUNION { UNCURRY R | STRONG_BISIM R })``,
+    REWRITE_TAC [STRONG_EQUIV_IS_BIGUNION_BISIM'',
+		 BIGUNION_BISIM_def]);
 
 (* Define the strong bisimulation relation up to STRONG_EQUIV *)
 val STRONG_BISIM_UPTO = new_definition (

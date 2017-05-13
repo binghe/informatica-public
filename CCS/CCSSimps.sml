@@ -63,21 +63,43 @@ Examining and Traversing the Stack
     val variables = fn : unit -> unit
  *)
 
+fun eqf_elim thm = let
+    val concl = (rconcl thm) handle HOL_ERR _ => ``F``
+in
+    if concl = ``F`` then
+	STRIP_FORALL_RULE EQF_ELIM thm
+    else
+	thm
+end;
+
+local
+    val In = GSYM In_def
+    and Out = GSYM Out_def
+    and restr1 = GSYM restr1_def;
+    val def = [In_def, Out_def, restr1_def]
+    and rev_def = [In, Out, restr1]
+in
+    fun from_compact_tm tm = rconcl (QCONV (REWRITE_CONV def) tm);
+    fun to_compact_tm tm = rconcl (QCONV (REWRITE_CONV rev_def) tm);
+    fun from_compact thm = REWRITE_RULE def thm;
+    fun to_compact thm = REWRITE_RULE rev_def thm
+end;
+
 (* Conversion for executing the operational semantics. *)
 local
     val list2_pair = fn [x, y] => (x, y);
     val f = (fn c => map (snd o dest_eq) (strip_conj c));
-    fun convert tm = rconcl (QCONV (REWRITE_CONV [In_def, Out_def]) tm);
-    fun invert thm = REWRITE_RULE [GSYM In_def, GSYM Out_def] thm;
-    fun strip_ccs (thm) =
-	let
-	  val concl = (rconcl thm) handle HOL_ERR _ => ``F``
-	in
-	    if concl = ``F`` then []
-	    else
-		map (list2_pair o f) (strip_disj concl)
-	end
+    fun convert tm = from_compact_tm tm;
+    fun invert thm = to_compact thm;
 in
+
+fun strip_trans (thm) = let
+    val concl = (rconcl thm) handle HOL_ERR _ => ``F``
+in
+    if concl = ``F`` then []
+    else
+	map (list2_pair o f) (strip_disj concl)
+end;
 
 fun CCS_TRANS_CONV tm =
 
@@ -117,7 +139,7 @@ fun CCS_TRANS_CONV tm =
 			    extr_acts (tl actl) L
 			else
 			    let	val thmlc = Label_IN_CONV 
-					      (rconcl (REWRITE_CONV [Lab_COMPL_def] ``COMPL ^l``)) L
+					      (rconcl (REWRITE_CONV [COMPL_LAB_def] ``COMPL ^l``)) L
 			    in
 				if (rconcl thmlc = ``T``) then
 				    extr_acts (tl actl) L
@@ -169,9 +191,9 @@ fun CCS_TRANS_CONV tm =
 				    Label_IN_CONV (arg_action a) L]
 				   (ASSUME ``~(l:Label IN ^L)``)) \\
 		   CHECK_ASSUME_TAC
-		     (REWRITE_RULE [ASSUME ``l = ^(arg_action a)``, Lab_COMPL_def,
+		     (REWRITE_RULE [ASSUME ``l = ^(arg_action a)``, COMPL_LAB_def,
 				    Label_IN_CONV
-					(rconcl (REWRITE_CONV [Lab_COMPL_def]
+					(rconcl (REWRITE_CONV [COMPL_LAB_def]
 							      ``COMPL ^(arg_action a)``)) L]
 				   (ASSUME ``~((COMPL l:Label) IN ^L)``))) actl) ],
       (* goal 2 *)
@@ -220,9 +242,9 @@ fun CCS_TRANS_CONV tm =
 				       (ASSUME ``~(l:Label IN ^L)``)) \\
 		       CHECK_ASSUME_TAC
 		         (REWRITE_RULE
-			      [ASSUME ``l = ^(arg_action a)``, Lab_COMPL_def,
+			      [ASSUME ``l = ^(arg_action a)``, COMPL_LAB_def,
 			       Label_IN_CONV
-				 (rconcl (REWRITE_CONV [Lab_COMPL_def] ``COMPL ^(arg_action a)``)) L]
+				 (rconcl (REWRITE_CONV [COMPL_LAB_def] ``COMPL ^(arg_action a)``)) L]
 			      (ASSUME ``~((COMPL l:Label) IN ^L)``)) \\
 		       ASM_REWRITE_TAC []) actl) ],
       (* goal 2 *)
@@ -237,9 +259,9 @@ fun CCS_TRANS_CONV tm =
 	     else
 		 EXISTS_TAC (arg_action a) \\
 		 ASM_REWRITE_TAC
-		     [thm, Lab_COMPL_def,
+		     [thm, COMPL_LAB_def,
 		      Label_IN_CONV (arg_action a) L,
-		      Label_IN_CONV (rconcl (REWRITE_CONV [Lab_COMPL_def]
+		      Label_IN_CONV (rconcl (REWRITE_CONV [COMPL_LAB_def]
 						``COMPL ^(arg_action a)``)) L]))
 	lp) ]) (* prove *)
 (****************************************************************** Q. E. D. **)
@@ -271,7 +293,7 @@ fun CCS_TRANS_CONV tm =
 			val thm_act =
 			    REWRITE_RHS_RULE [relabel_def, Apply_Relab_def,
 					      Label_distinct, Label_distinct', Label_11,
-					      Lab_COMPL_def, Lab_COMPL_COMPL]
+					      COMPL_LAB_def, COMPL_COMPL_LAB]
 					     (REFL ``relabel (Apply_Relab ^labl) ^act``);
 			val thm_act' = RELAB_EVAL_CONV (rconcl thm_act)
 		    in
@@ -356,7 +378,7 @@ fun CCS_TRANS_CONV tm =
 				       a = (if is_tau act then
 						act
 					    else
-						rconcl (REWRITE_CONV [COMPL_ACT_def, Lab_COMPL_def]
+						rconcl (REWRITE_CONV [COMPL_ACT_def, COMPL_LAB_def]
 								    ``COMPL_ACT ^act``)))
 				   dl2
 	    in
@@ -371,7 +393,7 @@ fun CCS_TRANS_CONV tm =
 				       a = (if is_tau act then
 						act
 					    else
-						rconcl (REWRITE_CONV [COMPL_ACT_def, Lab_COMPL_def]
+						rconcl (REWRITE_CONV [COMPL_ACT_def, COMPL_LAB_def]
 								    ``COMPL_ACT ^act``)))
 				   dl2
 	    in
@@ -465,7 +487,7 @@ fun CCS_TRANS_CONV tm =
               else
 		  let val eq = REWRITE_RULE [REWRITE_RULE [Action_11]
 							  (ASSUME ``label l = ^(hd actl1)``),
-					     Lab_COMPL_def]
+					     COMPL_LAB_def]
 					    (ASSUME ``label (COMPL l:Label) = ^a``)
 		  in
 		      CHECK_ASSUME_TAC
@@ -483,7 +505,7 @@ fun CCS_TRANS_CONV tm =
         (fn a => ASM_REWRITE_TAC [] \\
 		 MATCH_MP_TAC PAR3 \\
 		 EXISTS_TAC (arg_action a) \\
-		 REWRITE_TAC [Lab_COMPL_def, GEN_ALL thm1, GEN_ALL thm2])
+		 REWRITE_TAC [COMPL_LAB_def, GEN_ALL thm1, GEN_ALL thm2])
         (act_sync dl1 dl2)) ])
 (****************************************************************** Q. E. D. **)
 		  else
@@ -509,7 +531,7 @@ fun CCS_TRANS_CONV tm =
 	(fn a => ASM_REWRITE_TAC [] \\
 		 MATCH_MP_TAC PAR3 \\
 		 EXISTS_TAC (arg_action a) \\
-		 REWRITE_TAC [Lab_COMPL_def, GEN_ALL thm1, GEN_ALL thm2])
+		 REWRITE_TAC [COMPL_LAB_def, GEN_ALL thm1, GEN_ALL thm2])
         (act_sync dl1 dl2)) ])
 (****************************************************************** Q. E. D. **)
 	      end (* val [dl1, dl2] *)
@@ -518,7 +540,7 @@ fun CCS_TRANS_CONV tm =
 (* case 7: rec *)
   else if is_rec tm then
       let val (X, P) = args_rec tm;
-	  val thmS = REWRITE_CONV [CCS_Subst_def] ``CCS_Subst ^P ^tm ^X``;
+	  val thmS = SIMP_CONV (srw_ss ()) [CCS_Subst_def] ``CCS_Subst ^P ^tm ^X``;
 	  val thm = CCS_TRANS_CONV (rconcl thmS)
       in
 	  GEN_ALL (REWRITE_CONV [TRANS_REC_EQ, thmS, thm] ``TRANS ^tm u E``)
@@ -531,15 +553,15 @@ fun CCS_TRANS_CONV' tm = (invert o CCS_TRANS_CONV o convert) tm;
 
 (** CCS_TRANS returns both a theorem and a list of CCS transitions **)
 fun CCS_TRANS tm =
-  let val thm = CCS_TRANS_CONV tm;
-      val trans = strip_ccs thm
+  let val thm = CCS_TRANS_CONV (from_compact_tm tm);
+      val trans = strip_trans thm
   in
-      (thm, trans)
+      (eqf_elim thm, trans)
   end;
 
 fun CCS_TRANS' tm =
   let val thm = CCS_TRANS_CONV' tm;
-      val trans = strip_ccs thm
+      val trans = strip_trans thm
   in
       (thm, trans)
   end;
@@ -613,29 +635,28 @@ end; (* local *)
       ν {name "a"} (label (name "a")..nil || label (coname "a")..nil) ||
       nil)
 
- 7. (nu d) (a.(b.d.0|c.d.0) | `d.`d.e.0)
-   CCS_TRANS_CONV ``(restr {name "d"})
-			(label (name "a")..(label (name "b")..label (name "d")..nil ||
-					    label (name "c")..label (name "d")..nil) ||
-			 label (coname "d")..label (coname "d")..label (name "e")..nil)``
-   CCS_TRANS' ``ν {name "d"}
-	       (In "a"..(In "b"..In "d"..nil || In "c"..In "d"..nil) ||
-	        Out "d"..Out "d"..In "e"..nil)``
+ 7. CCS_TRANS_CONV'
+	``rec "VM" (In "coin"..(In "ask-esp"..rec "VM1" (Out "esp-coffee"..var "VM") +
+			        In "ask-am"..rec "VM2" (Out "am-coffee"..var "VM")))``
+
    |- ∀u E.
-     ν {name "d"}
-       (label (name "a")
+     rec "VM1"
+       (Out "esp-coffee"
         ..
-        (label (name "b")..label (name "d")..nil ||
-         label (name "c")..label (name "d")..nil) ||
-        label (coname "d")..label (coname "d")..label (name "e")..nil)
+        rec "VM"
+          (In "coin"
+           ..
+           (In "ask-esp"..rec "VM1" (Out "esp-coffee"..var "VM") +
+            In "ask-am"..rec "VM2" (Out "am-coffee"..var "VM"))))
      --u->
      E ⇔
-     (u = label (name "a")) ∧
+     (u = Out "esp-coffee") ∧
      (E =
-      ν {name "d"}
-        (label (name "b")..label (name "d")..nil ||
-         label (name "c")..label (name "d")..nil ||
-         label (coname "d")..label (coname "d")..label (name "e")..nil))
+      rec "VM"
+        (In "coin"
+         ..
+         (In "ask-esp"..rec "VM1" (Out "esp-coffee"..var "VM") +
+          In "ask-am"..rec "VM2" (Out "am-coffee"..var "VM"))))
  *)
 
 end (* struct *)

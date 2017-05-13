@@ -29,9 +29,8 @@ sig
   val ONCE_ASM_REWRITE_LHS_RULE	: thm list -> thm -> thm
   val ONCE_ASM_REWRITE_LHS_TAC	: thm list -> tactic
   val SWAP_FORALL_CONV		: term -> thm
-  val EQ_IMP_LR'		: thm -> thm
+  val STRIP_FORALL_RULE		: (thm -> thm) -> thm -> thm
   val EQ_IMP_LR			: thm -> thm
-  val EQ_IMP_RL'		: thm -> thm
   val EQ_IMP_RL			: thm -> thm
   val lconcl			: thm -> term
   val rconcl			: thm -> term

@@ -141,15 +141,15 @@ fun STRONG_RESTR_ELIM_CONV tm =
 			      SPEC P' (MP (SPECL [l, L] STRONG_RESTR_PR_LAB_NIL)
 					  (DISJ1 (EQT_ELIM thm) ``COMPL ^l IN ^L``))
 			  else
-			      let val thmc = REWRITE_RHS_RULE [Lab_COMPL_def] (REFL ``COMPL ^l``);
+			      let val thmc = REWRITE_RHS_RULE [COMPL_LAB_def] (REFL ``COMPL ^l``);
 				  val thm' = Label_IN_CONV (rconcl thmc) L
 			      in
 				  if (rconcl thm' = ``T``) then
-				      SPEC P' (MP (ONCE_REWRITE_RULE [Lab_COMPL_def]
+				      SPEC P' (MP (ONCE_REWRITE_RULE [COMPL_LAB_def]
 							(SPECL [l, L] STRONG_RESTR_PR_LAB_NIL))
 						  (DISJ2 ``^l IN ^L`` (EQT_ELIM thm')))
 				  else
-				      SPEC P' (MP (ONCE_REWRITE_RULE [Lab_COMPL_def]
+				      SPEC P' (MP (ONCE_REWRITE_RULE [COMPL_LAB_def]
 							(SPECL [l, L] STRONG_RESTR_PREFIX_LABEL))
 						  (CONJ (EQF_ELIM thm) (EQF_ELIM thm')))
 			      end
@@ -184,7 +184,7 @@ fun STRONG_RELAB_ELIM_CONV tm =
 		  val thm_act = REWRITE_RHS_RULE
 				    [relabel_def, Apply_Relab_def,
 				     Label_distinct, Label_distinct', Label_11,
-				     Lab_COMPL_def, Lab_COMPL_COMPL]
+				     COMPL_LAB_def, COMPL_COMPL_LAB]
 				    (REFL ``relabel (Apply_Relab ^labl) ^u``);
 		  val thm_act' = RELAB_EVAL_CONV (rconcl thm_act)
 	      in
@@ -294,7 +294,7 @@ fun ALL_SYNC_CONV f n1 f' n2 =
       val c2 = TRANS c1 (SIMPLIFY_CONV (rconcl c1));
       val c3 = TRANS c2 (REWRITE_CONV [SYNC_def] (rconcl c2));
       val c4 = TRANS c3 (SIMPLIFY_CONV (rconcl c3));
-      val c5 = TRANS c4 (REWRITE_CONV [LABEL_def, Lab_COMPL_def, Action_distinct_label,  
+      val c5 = TRANS c4 (REWRITE_CONV [LABEL_def, COMPL_LAB_def, Action_distinct_label,  
                                        Label_distinct, Label_distinct', Label_11]
 				      (rconcl c4))
   in
@@ -364,7 +364,7 @@ fun STRONG_PAR_PREFIX_CONV (u, P) (v, Q) =
 	  SPECL [u, P, Q] STRONG_PAR_PREF_TAU
       else
 	  let val [l1, l2] = map arg_action [u, v];
-	      val thmc = REWRITE_RHS_RULE [Lab_COMPL_def] (REFL ``^l1 = COMPL ^l2``)
+	      val thmc = REWRITE_RHS_RULE [COMPL_LAB_def] (REFL ``^l1 = COMPL ^l2``)
 	  in
 	      if (rconcl thmc = ``T``) then (* synchronization between l1 and l2 *)
 		  SPECL [P, Q] (MP (SPECL [l1, l2] STRONG_PAR_PREF_SYNCR)
