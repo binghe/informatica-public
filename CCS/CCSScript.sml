@@ -287,20 +287,18 @@ val CCS_11 = TypeBase.one_one_of ``:CCS``;
    E' for an agent variable X.
 
    This works under the hypothesis that the Barendregt convention holds. *)
-
 val CCS_Subst_def = Define `
-   (CCS_Subst nil E' X = nil) /\
+   (CCS_Subst nil	   E' X = nil) /\
    (CCS_Subst (prefix u E) E' X = prefix u (CCS_Subst E E' X)) /\
-   (CCS_Subst (sum E1 E2) E' X = sum (CCS_Subst E1 E' X)
-				     (CCS_Subst E2 E' X)) /\
-   (CCS_Subst (restr L E) E' X = restr L (CCS_Subst E E' X)) /\
-   (CCS_Subst (relab E f) E' X = relab (CCS_Subst E E' X) f) /\
-   (CCS_Subst (par E1 E2) E' X = par (CCS_Subst E1 E' X)
-				     (CCS_Subst E2 E' X)) /\
-   (CCS_Subst (var Y) E' X = if (Y = X) then E' else (var Y)) /\ 
-   (CCS_Subst (rec Y E) E' X =
-	if (Y = X) then (rec Y E)
-	else rec Y (CCS_Subst E E' X))`;
+   (CCS_Subst (sum E1 E2)  E' X = sum (CCS_Subst E1 E' X)
+				      (CCS_Subst E2 E' X)) /\
+   (CCS_Subst (par E1 E2)  E' X = par (CCS_Subst E1 E' X)
+				      (CCS_Subst E2 E' X)) /\
+   (CCS_Subst (restr L E)  E' X = restr L (CCS_Subst E E' X)) /\
+   (CCS_Subst (relab E f)  E' X = relab   (CCS_Subst E E' X) f) /\
+   (CCS_Subst (var Y)      E' X = if (Y = X) then E' else (var Y)) /\ 
+   (CCS_Subst (rec Y E)    E' X = if (Y = X) then (rec Y E)
+					     else (rec Y (CCS_Subst E E' X)))`;
 
 (* Note that in the rec clause, if Y = X then all occurrences of Y in E are X 
    and bound, so there exist no free variables X in E to be replaced with E'.
@@ -314,11 +312,11 @@ val CCS_COND_CLAUSES = save_thm (
    "CCS_COND_CLAUSES", INST_TYPE [``:'a`` |-> ``:CCS``] COND_CLAUSES);
 
 (* Single-label restriction *)
-val restr1_def = Define `
-    restr1 (n: string) (P :CCS) = restr {name n} P`;
+val Restr_def = Define `
+    Restr (n: string) (P :CCS) = restr {name n} P`;
 
-val _ = export_rewrites ["restr1_def"]
-val _ = overload_on ("nu", ``restr1``);
+val _ = export_rewrites ["Restr_def"]
+val _ = overload_on ("nu", ``Restr``);
 
 (******************************************************************************)
 (*                                                                            *)
@@ -767,4 +765,4 @@ val TRANS_REC = save_thm ("TRANS_REC", EQ_IMP_LR TRANS_REC_EQ);
 val _ = export_theory ();
 val _ = DB.html_theory "CCS";
 
-(* last updated: May 7, 2017 *)
+(* last updated: May 14, 2017 *)

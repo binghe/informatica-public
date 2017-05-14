@@ -142,4 +142,4 @@ val _ = TeX_notation { hol = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3, (* double-tilde 
 val _ = export_theory ();
 val _ = DB.html_theory "WeakEQ";
 
-(* last updated: May 7, 2017 *)
+(* last updated: May 14, 2017 *)

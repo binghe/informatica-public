@@ -1376,9 +1376,9 @@ val PREF_IS_PREFIX = store_thm (
  >> REWRITE_TAC []);
 
 (* --------------------------------------------------------------------------- *)
-(* Define the notation used for indexed summations:                      (176) *)
+(* Define the notation used for indexed summations:                            *)
 (* given a function f: num->CCS and an index n:num, the primitive recursive    *)
-(* function SIGMA is such that SIGMA f n denotes the summation                 *)
+(* function CCS_SIGMA is such that SIGMA f n denotes the summation             *)
 (* (f 0) + (f 1) + ... + (f n).                                                *)
 (* --------------------------------------------------------------------------- *)
 
@@ -1397,6 +1397,29 @@ val _ = overload_on ("SIGMA", ``CCS_SIGMA``);
 val [SIGMA_BASE, SIGMA_INDUCT] =
     map (fn (s, thm) => save_thm (s, thm))
         (combine (["SIGMA_BASE", "SIGMA_INDUCT"], CONJUNCTS CCS_SIGMA_def));
+
+(* --------------------------------------------------------------------------- *)
+(* Define the notation used for indexed compositions (par):                    *)
+(* given a function f: num->CCS and an index n:num, the primitive recursive    *)
+(* function CCS_COMP is such that SIGMA f n denotes the composition            *)
+(* (f 0) | (f 1) | ... | (f n).                                                *)
+(* --------------------------------------------------------------------------- *)
+
+val CCS_COMP_def = Define `
+   (CCS_COMP (f :num -> CCS) 0 = f 0) /\
+   (CCS_COMP f (SUC n) = par (CCS_COMP f n) (f (SUC n))) `;
+
+val _ = overload_on ("PI", ``CCS_COMP``);
+
+(*
+val COMP_BASE =
+   |- ∀f. PI f 0 = f 0
+val COMP_INDUCT =
+   |- ∀f n. PI f (SUC n) = PI f n || f (SUC n)
+ *)
+val [COMP_BASE, COMP_INDUCT] =
+    map (fn (s, thm) => save_thm (s, thm))
+        (combine (["COMP_BASE", "COMP_INDUCT"], CONJUNCTS CCS_COMP_def));
 
 (* --------------------------------------------------------------------------- *)
 (* Define the functions to compute the summation of the synchronizing summands *)
@@ -1981,4 +2004,4 @@ val STRONG_PAR_LAW = store_thm (
 val _ = export_theory ();
 val _ = DB.html_theory "StrongLaws";
 
-(* last updated: March 22, 2017 *)
+(* last updated: May 14, 2017 *)

@@ -191,3 +191,5 @@ fun list_apply_tac _ [] = []
     (f (hd actl)) :: (list_apply_tac f (tl actl));
 
 end (* struct *)
+
+(* last updated: May 7, 2017 *)

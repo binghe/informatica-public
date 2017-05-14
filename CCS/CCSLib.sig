@@ -43,3 +43,5 @@ sig
   val list_apply_tac		: ('a -> tactic) -> 'a list -> tactic list
 
 end
+
+(* last updated: May 14, 2017 *)

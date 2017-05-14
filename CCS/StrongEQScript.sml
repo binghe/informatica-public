@@ -757,21 +757,7 @@ val STRONG_BISIM_UPTO = new_definition (
            (!E2. TRANS E' u E2 ==> 
                  ?E1. TRANS E u E1 /\ (STRONG_EQUIV O Bsm O STRONG_EQUIV) E1 E2)))``);
 
-(* Lemma 2.1. If R is a bisimulation up to ~, then ~ R ~ is a bisimulation *)
-(* TODO
-val STR_BISIM_UPTO_IMP_STR_BISIM = store_thm (
-   "STR_BISIM_UPTO_IMP_STR_BISIM",
- ``!R. STRONG_BISIM_UPTO R ==> STRONG_BISIM (STRONG_EQUIV O R O STRONG_EQUIV)``,
-); *)
-
-(* Proposition 2.10. If R is a bisimulation up to ~, then R RSUBSET ~ *)
-(* TODO
-val STR_BISIM_UPTO_SUBSET_STR_BISIM = store_thm (
-   "STR_BISIM_UPTO_SUBSET_STR_BISIM",
-  ``!R. STRONG_BISIM_UPTO R ==> R RSUBSET STRONG_EQUIV``,
-); *)
-
 val _ = export_theory ();
 val _ = DB.html_theory "StrongEQ";
 
-(* last updated: March 25, 2017 *)
+(* last updated: May 14, 2017 *)

@@ -73,16 +73,16 @@ in
 end;
 
 local
-    val In = GSYM In_def
-    and Out = GSYM Out_def
-    and restr1 = GSYM restr1_def;
-    val def = [In_def, Out_def, restr1_def]
-    and rev_def = [In, Out, restr1]
+    val In       = GSYM In_def
+    and Out      = GSYM Out_def
+    and Restr    = GSYM Restr_def;
+    val list     = [In_def, Out_def, Restr_def]
+    and list_rev = [In,     Out,     Restr]
 in
-    fun from_compact_tm tm = rconcl (QCONV (REWRITE_CONV def) tm);
-    fun to_compact_tm tm = rconcl (QCONV (REWRITE_CONV rev_def) tm);
-    fun from_compact thm = REWRITE_RULE def thm;
-    fun to_compact thm = REWRITE_RULE rev_def thm
+    fun from_compact_tm tm = rconcl (QCONV (REWRITE_CONV list) tm);
+    fun   to_compact_tm tm = rconcl (QCONV (REWRITE_CONV list_rev) tm);
+    fun from_compact   thm = REWRITE_RULE list thm;
+    fun   to_compact   thm = REWRITE_RULE list_rev thm
 end;
 
 (* Conversion for executing the operational semantics. *)

@@ -229,3 +229,5 @@ fun S_SUBST_TAC thmlist =
  >> S_RHS_SUBST_TAC thmlist;
 
 end (* struct *)
+
+(* last updated: May 14, 2017 *)
