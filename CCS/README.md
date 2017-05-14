@@ -1,4 +1,4 @@
-#A Formalization of the Process Algebra CCS in HOL4
+# A Formalization of the Process Algebra CCS in HOL4
 ### by Chun Tian, University of Bologna
 
 based on «A formalization of the process algebra CCS in high order logic» by Prof. Monica Nesi <monica.nesi@univaq.it>
