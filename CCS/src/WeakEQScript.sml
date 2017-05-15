@@ -123,9 +123,9 @@ val _ = TeX_notation { hol = UTF8.chr 0x2248,
 (*                                                                            *)
 (******************************************************************************)
 
-(* Rooted weak bisimilarity (RWEAK_EQUIV) is based on WEAK_EQUIV *)
-val RWEAK_EQUIV = new_definition ("RWEAK_EQUIV",
-  ``RWEAK_EQUIV E E' =
+(* Rooted weak bisimilarity (observation congruence) is based on WEAK_EQUIV *)
+val OBS_CONGR = new_definition ("OBS_CONGR",
+  ``OBS_CONGR E E' =
        (!u.
          (!E1. TRANS E u E1 ==>
                (?E2. WEAK_TRANS E' u E2 /\ WEAK_EQUIV E1 E2)) /\
@@ -133,9 +133,9 @@ val RWEAK_EQUIV = new_definition ("RWEAK_EQUIV",
                (?E1. WEAK_TRANS E  u E1 /\ WEAK_EQUIV E1 E2)))``);
 
 val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
-			    tok = "~~c", term_name = "RWEAK_EQUIV" };
+			    tok = "~~c", term_name = "OBS_CONGR" };
 
-val _ = Unicode.unicode_version { u = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3, tmnm = "RWEAK_EQUIV"};
+val _ = Unicode.unicode_version { u = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3, tmnm = "OBS_CONGR"};
 val _ = TeX_notation { hol = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3, (* double-tilde ^ r *)
                        TeX = ("\\HOLTokenRootedWeakEquiv", 1) };
 
