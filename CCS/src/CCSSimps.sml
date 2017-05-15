@@ -72,25 +72,10 @@ in
 	thm
 end;
 
-local
-    val In       = GSYM In_def
-    and Out      = GSYM Out_def
-    and Restr    = GSYM Restr_def;
-    val list     = [In_def, Out_def, Restr_def]
-    and list_rev = [In,     Out,     Restr]
-in
-    fun from_compact_tm tm = rconcl (QCONV (REWRITE_CONV list) tm);
-    fun   to_compact_tm tm = rconcl (QCONV (REWRITE_CONV list_rev) tm);
-    fun from_compact   thm = REWRITE_RULE list thm;
-    fun   to_compact   thm = REWRITE_RULE list_rev thm
-end;
-
 (* Conversion for executing the operational semantics. *)
 local
     val list2_pair = fn [x, y] => (x, y);
     val f = (fn c => map (snd o dest_eq) (strip_conj c));
-    fun convert tm = from_compact_tm tm;
-    fun invert thm = to_compact thm;
 in
 
 fun strip_trans (thm) = let
@@ -479,7 +464,8 @@ fun CCS_TRANS_CONV tm =
       IMP_RES_TAC TRANS_PAR >| (* 3 sub-goals here *)
       [ IMP_RES_TAC thm1 >> ASM_REWRITE_TAC [],
         IMP_RES_TAC thm2 >> ASM_REWRITE_TAC [],
-        IMP_RES_TAC thm1 >> IMP_RES_TAC thm2 >|
+        IMP_RES_TAC thm1 \\
+        IMP_RES_TAC thm2 >|
         (list_apply_tac
 	  (fn a =>
 	      if is_tau (hd actl1) then
@@ -548,22 +534,12 @@ fun CCS_TRANS_CONV tm =
   else (* no need to distinguish on (rconcl thm) *)
       failwith "CCS_TRANS_CONV";
 
-(* An enhanced version with supports of In and Out syntax sugars *)
-fun CCS_TRANS_CONV' tm = (invert o CCS_TRANS_CONV o convert) tm;
-
 (** CCS_TRANS returns both a theorem and a list of CCS transitions **)
 fun CCS_TRANS tm =
-  let val thm = CCS_TRANS_CONV (from_compact_tm tm);
+  let val thm = CCS_TRANS_CONV tm;
       val trans = strip_trans thm
   in
       (eqf_elim thm, trans)
-  end;
-
-fun CCS_TRANS' tm =
-  let val thm = CCS_TRANS_CONV' tm;
-      val trans = strip_trans thm
-  in
-      (thm, trans)
   end;
 
 end; (* local *)
@@ -577,7 +553,6 @@ end; (* local *)
 
  1. (ν a) (a.0 | `a.0)
    CCS_TRANS_CONV ``(restr {name "a"}) (label (name "a")..nil || label (coname "a")..nil)``
-   CCS_TRANS_CONV' ``(nu {name "a"}) (In "a"..nil || Out "a"..nil)``
 
    |- ∀u E.
      ν {name "a"} (label (name "a")..nil || label (coname "a")..nil) --u->
@@ -587,7 +562,6 @@ end; (* local *)
    CCS_TRANS_CONV
 	 ``par (prefix (label (name "a")) nil)
 	       (prefix (label (coname "a")) nil)``
-   CCS_TRANS' ``In "a"..nil || Out "a"..nil``
 
    |- ∀u E.
      label (name "a")..nil || label (coname "a")..nil --u-> E ⇔
@@ -608,7 +582,6 @@ end; (* local *)
  5. a.b.0 + b.a.0
    CCS_TRANS_CONV ``label (name "a")..label (name "b")..nil +
 		    label (name "b")..label (name "a")..nil``
-   CCS_TRANS' ``In "a"..In "b"..nil + In "b"..In "a"..nil``
 
    |- ∀u E''.
      label (name "a")..label (name "b")..nil +
@@ -621,7 +594,6 @@ end; (* local *)
  6. (nu a)(a.0|`a.0) | a.0
    CCS_TRANS_CONV ``(restr {name "a"} (label (name "a")..nil || label (coname "a")..nil)) ||
 		    (label (name "a")..nil)``
-   CCS_TRANS_CONV' ``(nu {name "a"} (In "a"..nil || Out "a"..nil)) || In "a"..nil``
 
    |- ∀u E.
      ν {name "a"} (label (name "a")..nil || label (coname "a")..nil) ||
@@ -635,7 +607,7 @@ end; (* local *)
       ν {name "a"} (label (name "a")..nil || label (coname "a")..nil) ||
       nil)
 
- 7. CCS_TRANS_CONV'
+ 7. CCS_TRANS_CONV
 	``rec "VM" (In "coin"..(In "ask-esp"..rec "VM1" (Out "esp-coffee"..var "VM") +
 			        In "ask-am"..rec "VM2" (Out "am-coffee"..var "VM")))``
 
@@ -660,3 +632,5 @@ end; (* local *)
  *)
 
 end (* struct *)
+
+(* last updated: May 15, 2017 *)

@@ -52,10 +52,9 @@ val Label_11 = TypeBase.one_one_of ``:Label``;
 val _ = Datatype `Action = tau | label Label`;
 val _ = Unicode.unicode_version { u = UnicodeChars.tau, tmnm = "tau"};
 
-(* also see functions {from,to}_compat(_tm) in CCSSimps *)
-val  In_def = Define  `In act = label (name   act)`;
-val Out_def = Define `Out act = label (coname act)`;
-val _ = export_rewrites ["In_def", "Out_def"];
+(* The compact representation for (visible) input and output actions, suggested by Michael Norrish *)
+val _ = overload_on ("In", ``\a. label (name a)``);
+val _ = overload_on ("Out", ``\a. label (coname a)``);
 
 (* Define structural induction on actions
    |- ∀P. P tau ∧ (∀L. P (label L)) ⇒ ∀A. P A 
@@ -253,7 +252,10 @@ val _ = Datatype `CCS = nil
 		      | relab CCS Relabeling
 		      | rec string CCS`;
 
+(* compact representation for single-action restriction *)
+val _ = overload_on ("nu", ``\n P. restr {name n} P``);
 val _ = overload_on ("nu", ``restr``);
+
 val _ = Unicode.unicode_version { u = UnicodeChars.nu, tmnm = "nu" };
 
 val _ = overload_on ("+", ``sum``); (* priority: 500 *)
@@ -310,13 +312,6 @@ val ARB'_def = Define `ARB' = @x:CCS. T`;
 (* |- !t1 t2. ((T => t1 | t2) = t1) /\ ((F => t1 | t2) = t2) *)
 val CCS_COND_CLAUSES = save_thm (
    "CCS_COND_CLAUSES", INST_TYPE [``:'a`` |-> ``:CCS``] COND_CLAUSES);
-
-(* Single-label restriction *)
-val Restr_def = Define `
-    Restr (n: string) (P :CCS) = restr {name n} P`;
-
-val _ = export_rewrites ["Restr_def"]
-val _ = overload_on ("nu", ``Restr``);
 
 (******************************************************************************)
 (*                                                                            *)
