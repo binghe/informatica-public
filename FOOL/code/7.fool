@@ -1,0 +1,2 @@
+let int foo (int n, bool f) 0 ;
+in foo(3, false);

@@ -1,0 +1,4 @@
+let bool foo(int x)
+if (x==0) then { true }
+else { false };
+in print(foo(3));
