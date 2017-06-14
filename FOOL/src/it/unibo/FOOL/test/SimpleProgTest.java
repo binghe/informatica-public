@@ -7,18 +7,24 @@
 
 package it.unibo.FOOL.test;
 
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+
 /*
  * Test #2: simple program with arithmetic operations only
  */
 
-public class SimpleProgTest extends ProgTest {	
-	public static void main(String[] args) {
-		prog = "print ((2*3+5)==13) == false;\n";
-		run();
-	}
+public class SimpleProgTest extends UnitTest {
+    @Test
+    public void testSimpleProg() {
+	prog = "((2*3+5)==13) == false;\n";
+	result = 1;
+	assertEquals(run(), result);
+    }
 }
 
-/*
+/** @formatter:off
+6. Disassemble Bytecode:
 Disassembly:
 .global 0
 0000:	iconst     2
@@ -30,8 +36,7 @@ Disassembly:
 0022:	ieq          
 0023:	null         
 0024:	ieq          
-0025:	print        
-0026:	halt         
+0025:	halt         
 
 7. Run Bytecode:
 1

@@ -1,0 +1,6 @@
+class C = object end;					
+let C f(C o) o; 						
+    int g(C o) 1;						
+in (new C).f().g();						
+
+// result: 1

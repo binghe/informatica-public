@@ -20,48 +20,51 @@ package it.unibo.FOOL.env;
  * Modified by Chun Tian, while it's still language independent.
  */
 
-import java.util.*;
+import java.util.Map;
 
 public abstract class ScopedSymbol extends Symbol implements Scope {
-	Scope enclosingScope;
+    Scope enclosingScope;
+    int next_id = 0; // the next available ID for new symbols
 
-	public ScopedSymbol(String name, Type type, Scope enclosingScope) {
-		super(name, type);
-		this.enclosingScope = enclosingScope;
+    public ScopedSymbol(String name, Type type, Scope enclosingScope) {
+	super(name, type);
+	this.enclosingScope = enclosingScope;
+    }
+
+    public ScopedSymbol(String name, Scope enclosingScope) {
+	super(name);
+	this.enclosingScope = enclosingScope;
+    }
+
+    public Symbol resolve(String name) {
+	Symbol s = getMembers().get(name);
+	if (s != null) return s;
+	// if not here, check any enclosing scope
+	if (getEnclosingScope() != null) {
+	    return getEnclosingScope().resolve(name);
 	}
+	return null; // not found
+    }
 
-	public ScopedSymbol(String name, Scope enclosingScope) {
-		super(name);
-		this.enclosingScope = enclosingScope;
+    public void define(Symbol sym) {
+	getMembers().put(sym.name, sym);
+	sym.scope = this; // track the scope in each symbol
+	if (sym instanceof VariableSymbol) {
+	    VariableSymbol var = (VariableSymbol) sym;
+	    var.id = next_id++; // allocate a new ID for the var
 	}
+    }
 
-	public Symbol resolve(String name) {
-		Symbol s = getMembers().get(name);
-		if (s != null) return s;
-		// if not here, check any enclosing scope
-		if (getEnclosingScope() != null) {
-			return getEnclosingScope().resolve(name);
-		}
-		return null; // not found
-	}
+    /*
+     * Indicate how subclasses store scope members. Allows us to factor out
+     * common code in this class.
+     */
+    public abstract Map<String, Symbol> getMembers();
 
-	public void define(Symbol sym) {
-		getMembers().put(sym.name, sym);
-		sym.scope = this; // track the scope in each symbol
-		sym.id = next_id++; // allocate a new ID for the var
-	}
-
-	public Symbol resolveType(String name) { return resolve(name); }
-	public Scope getEnclosingScope() { return enclosingScope; }
-	public String getScopeName() { return name; }
-
-	int next_id = 0; // the next available ID for new symbols
-	public void setNextID(int n) { next_id = n; }
-	public int getNextID() { return next_id; }
-
-	/*
-	 * Indicate how subclasses store scope members. Allows us to factor out
-	 * common code in this class.
-	 */
-	public abstract Map<String, Symbol> getMembers();
+    // @formatter:off
+    public Symbol resolveType(String name) { return resolve(name); }
+    public Scope getEnclosingScope() { return enclosingScope; }
+    public String getScopeName() { return name; }
+    public int getNextID() { return next_id; }
+    public void setNextID(int n) { next_id = n; }
 }

@@ -18,29 +18,119 @@ public interface FOOLListener extends ParseTreeListener {
 	 */
 	void exitProg(FOOLParser.ProgContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code singleExp}
+	 * Enter a parse tree produced by the {@code codeBody}
 	 * labeled alternative in {@link FOOLParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void enterCodeBody(FOOLParser.CodeBodyContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code codeBody}
+	 * labeled alternative in {@link FOOLParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void exitCodeBody(FOOLParser.CodeBodyContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code globalVar}
+	 * labeled alternative in {@link FOOLParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void enterGlobalVar(FOOLParser.GlobalVarContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code globalVar}
+	 * labeled alternative in {@link FOOLParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void exitGlobalVar(FOOLParser.GlobalVarContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code classDef}
+	 * labeled alternative in {@link FOOLParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void enterClassDef(FOOLParser.ClassDefContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code classDef}
+	 * labeled alternative in {@link FOOLParser#block}.
+	 * @param ctx the parse tree
+	 */
+	void exitClassDef(FOOLParser.ClassDefContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code singleExp}
+	 * labeled alternative in {@link FOOLParser#body}.
 	 * @param ctx the parse tree
 	 */
 	void enterSingleExp(FOOLParser.SingleExpContext ctx);
 	/**
 	 * Exit a parse tree produced by the {@code singleExp}
-	 * labeled alternative in {@link FOOLParser#block}.
+	 * labeled alternative in {@link FOOLParser#body}.
 	 * @param ctx the parse tree
 	 */
 	void exitSingleExp(FOOLParser.SingleExpContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code letInExp}
-	 * labeled alternative in {@link FOOLParser#block}.
+	 * labeled alternative in {@link FOOLParser#body}.
 	 * @param ctx the parse tree
 	 */
 	void enterLetInExp(FOOLParser.LetInExpContext ctx);
 	/**
 	 * Exit a parse tree produced by the {@code letInExp}
-	 * labeled alternative in {@link FOOLParser#block}.
+	 * labeled alternative in {@link FOOLParser#body}.
 	 * @param ctx the parse tree
 	 */
 	void exitLetInExp(FOOLParser.LetInExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link FOOLParser#defcls}.
+	 * @param ctx the parse tree
+	 */
+	void enterDefcls(FOOLParser.DefclsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FOOLParser#defcls}.
+	 * @param ctx the parse tree
+	 */
+	void exitDefcls(FOOLParser.DefclsContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link FOOLParser#supers}.
+	 * @param ctx the parse tree
+	 */
+	void enterSupers(FOOLParser.SupersContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FOOLParser#supers}.
+	 * @param ctx the parse tree
+	 */
+	void exitSupers(FOOLParser.SupersContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link FOOLParser#slots}.
+	 * @param ctx the parse tree
+	 */
+	void enterSlots(FOOLParser.SlotsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FOOLParser#slots}.
+	 * @param ctx the parse tree
+	 */
+	void exitSlots(FOOLParser.SlotsContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code slotNoInit}
+	 * labeled alternative in {@link FOOLParser#slotd}.
+	 * @param ctx the parse tree
+	 */
+	void enterSlotNoInit(FOOLParser.SlotNoInitContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code slotNoInit}
+	 * labeled alternative in {@link FOOLParser#slotd}.
+	 * @param ctx the parse tree
+	 */
+	void exitSlotNoInit(FOOLParser.SlotNoInitContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code slotInit}
+	 * labeled alternative in {@link FOOLParser#slotd}.
+	 * @param ctx the parse tree
+	 */
+	void enterSlotInit(FOOLParser.SlotInitContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code slotInit}
+	 * labeled alternative in {@link FOOLParser#slotd}.
+	 * @param ctx the parse tree
+	 */
+	void exitSlotInit(FOOLParser.SlotInitContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link FOOLParser#let}.
 	 * @param ctx the parse tree
@@ -146,30 +236,6 @@ public interface FOOLListener extends ParseTreeListener {
 	 */
 	void exitFactor(FOOLParser.FactorContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code intVal}
-	 * labeled alternative in {@link FOOLParser#value}.
-	 * @param ctx the parse tree
-	 */
-	void enterIntVal(FOOLParser.IntValContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code intVal}
-	 * labeled alternative in {@link FOOLParser#value}.
-	 * @param ctx the parse tree
-	 */
-	void exitIntVal(FOOLParser.IntValContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code boolVal}
-	 * labeled alternative in {@link FOOLParser#value}.
-	 * @param ctx the parse tree
-	 */
-	void enterBoolVal(FOOLParser.BoolValContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code boolVal}
-	 * labeled alternative in {@link FOOLParser#value}.
-	 * @param ctx the parse tree
-	 */
-	void exitBoolVal(FOOLParser.BoolValContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code baseExp}
 	 * labeled alternative in {@link FOOLParser#value}.
 	 * @param ctx the parse tree
@@ -182,17 +248,17 @@ public interface FOOLListener extends ParseTreeListener {
 	 */
 	void exitBaseExp(FOOLParser.BaseExpContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code ifExp}
+	 * Enter a parse tree produced by the {@code classExp}
 	 * labeled alternative in {@link FOOLParser#value}.
 	 * @param ctx the parse tree
 	 */
-	void enterIfExp(FOOLParser.IfExpContext ctx);
+	void enterClassExp(FOOLParser.ClassExpContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code ifExp}
+	 * Exit a parse tree produced by the {@code classExp}
 	 * labeled alternative in {@link FOOLParser#value}.
 	 * @param ctx the parse tree
 	 */
-	void exitIfExp(FOOLParser.IfExpContext ctx);
+	void exitClassExp(FOOLParser.ClassExpContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code varExp}
 	 * labeled alternative in {@link FOOLParser#value}.
@@ -206,17 +272,53 @@ public interface FOOLListener extends ParseTreeListener {
 	 */
 	void exitVarExp(FOOLParser.VarExpContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code funExp}
+	 * Enter a parse tree produced by the {@code intVal}
 	 * labeled alternative in {@link FOOLParser#value}.
 	 * @param ctx the parse tree
 	 */
-	void enterFunExp(FOOLParser.FunExpContext ctx);
+	void enterIntVal(FOOLParser.IntValContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code funExp}
+	 * Exit a parse tree produced by the {@code intVal}
 	 * labeled alternative in {@link FOOLParser#value}.
 	 * @param ctx the parse tree
 	 */
-	void exitFunExp(FOOLParser.FunExpContext ctx);
+	void exitIntVal(FOOLParser.IntValContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code methodExp}
+	 * labeled alternative in {@link FOOLParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void enterMethodExp(FOOLParser.MethodExpContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code methodExp}
+	 * labeled alternative in {@link FOOLParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void exitMethodExp(FOOLParser.MethodExpContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code slotExp}
+	 * labeled alternative in {@link FOOLParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void enterSlotExp(FOOLParser.SlotExpContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code slotExp}
+	 * labeled alternative in {@link FOOLParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void exitSlotExp(FOOLParser.SlotExpContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code ifExp}
+	 * labeled alternative in {@link FOOLParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void enterIfExp(FOOLParser.IfExpContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code ifExp}
+	 * labeled alternative in {@link FOOLParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void exitIfExp(FOOLParser.IfExpContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code printExp}
 	 * labeled alternative in {@link FOOLParser#value}.
@@ -229,4 +331,28 @@ public interface FOOLListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPrintExp(FOOLParser.PrintExpContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code boolVal}
+	 * labeled alternative in {@link FOOLParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void enterBoolVal(FOOLParser.BoolValContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code boolVal}
+	 * labeled alternative in {@link FOOLParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void exitBoolVal(FOOLParser.BoolValContext ctx);
+	/**
+	 * Enter a parse tree produced by the {@code funExp}
+	 * labeled alternative in {@link FOOLParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void enterFunExp(FOOLParser.FunExpContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code funExp}
+	 * labeled alternative in {@link FOOLParser#value}.
+	 * @param ctx the parse tree
+	 */
+	void exitFunExp(FOOLParser.FunExpContext ctx);
 }

@@ -1,4 +1,4 @@
-/*
+/**
  * An bytecode compiler and interpreter for FOOL+ language in Java/ANTLR
  * 
  * Course project for COMPILATORI E INTERPRETI (ANALISI STATICA DI PROGRAMMI)
@@ -7,18 +7,37 @@
 
 package it.unibo.FOOL.test;
 
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+
 /*
  * Test #15: code/3.fool
  */
 
-public final class Code3Test extends ProgTest {
-	public static void main(String[] args) {
-		prog = "let bool foo(int x)\n if (x==0) then { true }\n else { false };\n in print(foo(3));\n";
-		run();
-	}
+public final class Code3Test extends UnitTest {
+    @Test
+    public void testCode3() {
+	prog = "let bool foo(int x)\n if (x==0) then { true }\n else { false };\n in foo(3);\n";
+	result = 0;
+	assertEquals(run(), result);
+    }
 }
 
-/*
+/** @formatter:off
+3. Symbol Analysis:
+base ID of <foo():bool> is 0
+defined variable x in <foo(int):bool>
+defined function: <foo(int):bool>
+locals: []
+created new generic function: foo
+added new method foo(int) into gf
+ done.
+4. Type Analysis:
+type of prog is: bool
+5. Emit Bytecode:
+defining function foo(int) [nargs: 1(0 + 1), nlocals: 0]
+nlocals for top-level LET: 0
+ done.
 6. Disassemble Bytecode:
 Disassembly:
 .global 0
@@ -34,9 +53,8 @@ Disassembly:
 0033:	null         
 0034:	ret          
 0035:	iconst     3
-0040:	call       #0:foo()@5
-0045:	print        
-0046:	halt         
+0040:	call       #0:foo(int)@5
+0045:	halt         
 
 7. Run Bytecode:
 0

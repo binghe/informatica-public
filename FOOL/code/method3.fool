@@ -1,0 +1,7 @@
+class C1 = object int x = 1; end;					
+class C2 = object int y = 2; end;					
+let int f(C1 a) a.x;							
+    int f(C2 b) b.y;							
+in print f(new C1) + f(new C2);
+
+// result: 3

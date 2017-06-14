@@ -1,0 +1,11 @@
+class a(int x1) = object
+      int x;
+      int y = 6;
+end;
+
+class b = object
+      inherit a(1);
+      int z = 2;
+end;
+
+new b().y;

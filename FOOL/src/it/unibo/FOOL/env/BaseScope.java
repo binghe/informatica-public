@@ -23,35 +23,37 @@ package it.unibo.FOOL.env;
 import java.util.*;
 
 public abstract class BaseScope implements Scope {
-	Scope enclosingScope; // null if global (outermost) scope
-	Map<String, Symbol> symbols = new LinkedHashMap<String, Symbol>();
+    Scope enclosingScope; // null if global (outermost) scope
+    Map<String, Symbol> symbols = new LinkedHashMap<String, Symbol>();
+    int next_id = 0; // the next available ID for new variables
 
-	public BaseScope(Scope parent) { this.enclosingScope = parent; }
+    public BaseScope(Scope parent) {
+	enclosingScope = parent;
+    }
 
-	int next_id = 0; // the next available ID for new variables
-	public void setNextID(int n) { next_id = n; }
-	public int getNextID() { return next_id; }
+    public Symbol resolve(String name) {
+	Symbol s = symbols.get(name);
+	if (s != null) return s;
+	// if not here, check any enclosing scope
+	if (enclosingScope != null) return enclosingScope.resolve(name);
+	return null; // not found
+    }
 
-	public Symbol resolve(String name) {
-		Symbol s = symbols.get(name);
-		if (s != null)
-			return s;
-		// if not here, check any enclosing scope
-		if (enclosingScope != null)
-			return enclosingScope.resolve(name);
-		return null; // not found
+    public void define(Symbol sym) {
+	symbols.put(sym.name, sym);
+	sym.scope = this; // track the scope in each symbol
+	if (sym instanceof VariableSymbol) {
+	    VariableSymbol var = (VariableSymbol) sym;
+	    var.id = next_id++; // allocate a new ID for the var
 	}
+    }
 
-	public void define(Symbol sym) {
-		symbols.put(sym.name, sym);
-		sym.scope = this;   // track the scope in each symbol
-		if (sym instanceof VariableSymbol)
-			sym.id = next_id++; // allocate a new ID for the var
-	}
+    public String toString() {
+	return symbols.keySet().toString();
+    }
 
-	public Scope getEnclosingScope() { return enclosingScope; }
-
-	public String toString() {
-		return symbols.keySet().toString();
-	}
+    // @formatter:off
+    public Scope getEnclosingScope() { return enclosingScope; }
+    public void setNextID(int n) { next_id = n; }
+    public int getNextID() { return next_id; }
 }

@@ -1,0 +1,4 @@
+class C1 (int x0) = object int x = x0; end; 
+class C2 (int y0) = object inherit C1 (y0); int y = y0 + 1; end; 
+let C2 o = new C2(5); in print o.x; 
+// result: 5

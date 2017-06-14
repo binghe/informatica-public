@@ -7,18 +7,23 @@
 
 package it.unibo.FOOL.test;
 
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+
 /*
  * Test #4: condition (if..then..else) expressions (assembly)
  */
 
-public final class CondProgTest extends ProgTest {
-	public static void main(String[] args) {
-		prog = "print (if (if true then { false } else { true }) then {1} else {2});\n";
-		run();
-	}
+public final class CondProgTest extends UnitTest {
+    @Test
+    public void testCondProg() {
+	prog = "(if (if true then { false } else { true }) then {1} else {2});\n";
+	result = 2;
+	assertEquals(run(), result);
+    }
 }
 
-/*
+/** @formatter:off
 6. Disassemble Bytecode:
 Disassembly:
 .global 0

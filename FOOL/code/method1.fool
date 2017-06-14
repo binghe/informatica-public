@@ -1,0 +1,2 @@
+class C = object int x = 1; end; let int f(C a) a.x; C c = new C; in print f(c);
+// result: 1

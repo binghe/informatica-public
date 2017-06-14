@@ -1,0 +1,7 @@
+let int f(bool b)						
+     let int y = 10;						
+         int f(int x) x+y;					
+     in (if b then {f(false)} else {f(2)});			
+ in f(true);							
+
+// result: 12

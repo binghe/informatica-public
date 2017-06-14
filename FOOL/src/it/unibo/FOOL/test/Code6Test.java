@@ -7,21 +7,42 @@
 
 package it.unibo.FOOL.test;
 
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+
 /*
  * Test #13: code/6.fool (multiple local functions with parameters)
  */
 
-public final class Code6Test extends ProgTest {
-	public static void main(String[] args) {
-		prog = "let int gee(int n) n+1 ; \n int foo(int n)\n if (n==0) then { 1 } else { n*gee(n + -1) } ;\n in print(foo(3)) ;\n";
-		run();
-	}
+public final class Code6Test extends UnitTest {
+    @Test
+    public void testCode6() {
+	prog = "let int gee(int n) n+1 ; \n" + "int foo(int n)\n if (n==0) then { 1 } else { n*gee(n + -1) } ;\n"
+		+ "in foo(3) ;\n";
+	result = 9;
+	assertEquals(run(), result);
+    }
 }
 
-/*
+/** @formatter:off
+3. Symbol Analysis:
+base ID of <gee():int> is 0
+defined variable n in <gee(int):int>
+defined function: <gee(int):int>
+base ID of <foo():int> is 0
+defined variable n in <foo(int):int>
+defined function: <foo(int):int>
+locals: []
+created new generic function: gee
+added new method gee(int) into gf
+created new generic function: foo
+added new method foo(int) into gf
+ done.
+4. Type Analysis:
+type of prog is: int
 5. Emit Bytecode:
-defining function gee [nargs: 1(0 + 1), nlocals: 0]
-defining function foo [nargs: 1(0 + 1), nlocals: 0]
+defining function gee(int) [nargs: 1(0 + 1), nlocals: 0]
+defining function foo(int) [nargs: 1(0 + 1), nlocals: 0]
 nlocals for top-level LET: 0
  done.
 6. Disassemble Bytecode:
@@ -45,13 +66,12 @@ Disassembly:
 0055:	load       0
 0060:	iconst     -1
 0065:	iadd         
-0066:	call       #0:gee()@5
+0066:	call       #0:gee(int)@5
 0071:	imul         
 0072:	ret          
 0073:	iconst     3
-0078:	call       #1:foo()@22
-0083:	print        
-0084:	halt         
+0078:	call       #1:foo(int)@22
+0083:	halt         
 
 7. Run Bytecode:
 9

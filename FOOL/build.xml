@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project FOOL-Chun with Jar-in-Jar Loader">
+    <!--this file was created by Eclipse Runnable JAR file Export Wizard-->
+    <!--ANT 1.7 is required-->
+    <!--define folder properties-->
+    <property name="dir.buildfile" value="."/>
+    <property name="dir.jarfile" value="${dir.buildfile}"/>
+    <target name="create_run_jar">
+        <delete file="${dir.jarfile}/FOOL.jar" quiet="true"/>
+        <jar destfile="${dir.jarfile}/FOOL.jar">
+            <manifest>
+                <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
+                <attribute name="Rsrc-Main-Class" value="it.unibo.FOOL.Main"/>
+                <attribute name="Class-Path" value="."/>
+                <attribute name="Rsrc-Class-Path" value="./ antlr-runtime-4.7.jar"/>
+            </manifest>
+            <zipfileset src="jar-in-jar-loader.zip"/>
+            <fileset dir="${dir.jarfile}/bin/">
+	      <exclude name="it/unibo/FOOL/test/"/>
+	    </fileset>
+            <zipfileset dir="${dir.buildfile}/lib"
+			includes="antlr-runtime-4.7.jar"/>
+        </jar>
+    </target>
+</project>

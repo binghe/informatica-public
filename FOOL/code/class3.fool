@@ -1,0 +1,2 @@
+class C = object int x = 5; end;
+let C o = new C; in o.x;

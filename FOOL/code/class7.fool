@@ -1,0 +1,5 @@
+   class A = object int x = 5; end;					
+class B = object inherit A; int x = 3; int y = 2; end;		
+let A a = new B; in print a.x;
+
+// result: 3

@@ -1,0 +1,6 @@
+class inner = object int x = 5; end;					
+class outer = object inner y = new inner; end;			
+let outer o = new outer; in print o.y.x;
+
+// result: 5
+

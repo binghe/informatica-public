@@ -1,0 +1,5 @@
+let int fact(int n, int acc)					
+     if (n==1) then {acc} else {fact(n + -1, n*acc)};		
+ in print fact(10, 1);						
+
+// result: 3628800

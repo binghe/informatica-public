@@ -1,0 +1,10 @@
+class A = object end;				
+class B = object inherit A; end;			
+let int foo(A o1, A o2, int x) 1+x;			
+    int foo(A o1, B o2, int x) 2+x;			
+    int foo(B o1, A o2, int x) 3+x;			
+    int foo(B o1, B o2, int x) 4+x;			
+    A obj = new B();					
+in obj.foo(obj, 6);					
+
+// result: 10

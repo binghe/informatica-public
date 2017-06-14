@@ -1,0 +1,5 @@
+class C = object int x = 1; end;					
+let int f(C a, int y) a.x + y;					
+    C c = new C;							
+in print c.f(1);
+// result: 2

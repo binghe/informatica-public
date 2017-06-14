@@ -1,0 +1,11 @@
+   class A = object end;				
+class B = object inherit A; end;			
+let int foo(A o1, A o2) 1;				
+    int foo(A o1, B o2) 2;				
+    int foo(B o1, A o2) 3;				
+    int foo(B o1, B o2) 4;				
+    bool flag = false;				
+    A obj = (if flag then {new A()} else {new B()}); 
+in obj.foo(obj) + 6;					
+
+// result: 10
