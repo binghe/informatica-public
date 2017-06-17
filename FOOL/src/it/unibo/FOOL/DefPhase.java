@@ -217,7 +217,7 @@ public class DefPhase extends FOOLBaseListener {
 	    }
 	    VariableSymbol var = new VariableSymbol(name, type);
 	    currentScope.define(var); // Define symbol in current scope
-	    System.out.println("defined slt/variable " + name + " in " + currentScope);
+	    System.out.println("defined slot/variable " + name + " in " + currentScope);
 	    if (currentScope instanceof MethodSymbol) {
 		// disable initialization check for function parameters
 		var.setInit(true);

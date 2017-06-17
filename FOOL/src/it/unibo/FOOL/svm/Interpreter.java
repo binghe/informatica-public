@@ -210,7 +210,7 @@ public class Interpreter implements Serializable {
 	    case Bytecode.INSTR_PRINT:
 		System.out.println(operands[sp]);
 		break;
-	    case Bytecode.INSTR_STRUCT:
+	    case Bytecode.INSTR_ALLOCA:
 		nfields = getIntOperand();
 		operands[++sp] = new StructSpace(nfields);
 		break;
@@ -220,18 +220,18 @@ public class Interpreter implements Serializable {
 	    case Bytecode.INSTR_POP:
 		--sp;
 		break;
-	    case Bytecode.INSTR_DBR:
+	    case Bytecode.INSTR_INDIRECTBR:
 		ip = (Integer) operands[sp--];
 		break;
-	    case Bytecode.INSTR_DBRT:
+	    case Bytecode.INSTR_INDIRECTBRT:
 		addr = (Integer) operands[sp--];
 		if (operands[sp--].equals(1)) ip = addr;
 		break;
-	    case Bytecode.INSTR_DBRF:
+	    case Bytecode.INSTR_INDIRECTBRF:
 		addr = (Integer) operands[sp--];
 		if (operands[sp--].equals(0)) ip = addr;
 		break;
-	    case Bytecode.INSTR_DCALL:
+	    case Bytecode.INSTR_INVOKE:
 		funcIndexInConstPool = (Integer) operands[sp--];
 		call(funcIndexInConstPool);
 		break;
@@ -262,7 +262,7 @@ public class Interpreter implements Serializable {
 		v = operands[sp--];
 		struct.fields[fieldOffset] = v;
 		break;
-	    case Bytecode.INSTR_DSTRUCT:
+	    case Bytecode.INSTR_DALLOCA:
 		nfields = (Integer) operands[sp--];
 		operands[++sp] = new StructSpace(nfields);
 		break;

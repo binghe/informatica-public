@@ -19,6 +19,7 @@ public final class TailRecursiveTest extends UnitTest {
 	result = 3628800;
 	trace = true;
 	tail_rec = true;
+	use_indirect = true;
 	assertEquals(run(), result);
     }
 }

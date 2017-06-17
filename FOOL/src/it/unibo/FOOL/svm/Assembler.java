@@ -25,7 +25,7 @@ import java.util.*;
 public class Assembler {
     public static final int INITIAL_CODE_SIZE = 1024;
     // A switch to use all dynamic instructs or not
-    boolean dynamic_instr = false;
+    boolean use_indirect = false;
 
     protected Map<String, Integer> instructionOpcodeMapping = new HashMap<String, Integer>();
     protected Map<String, Label> labels = new HashMap<String, Label>();
@@ -45,6 +45,8 @@ public class Assembler {
     }
 
     // @formatter:off
+    public boolean use_indirect() { return use_indirect; }
+    public void useIndirect(boolean flag) { use_indirect = flag; }
     public byte[] getMachineCode() { return code; }
     public int getCodeMemorySize() { return ip; }
     public int getDataSize() { return dataSize; }
@@ -221,14 +223,13 @@ public class Assembler {
      * right.
      */
     public static void writeInt(byte[] memory, int index, int value) {
-	memory[index++] = (byte) ((value >> (8 * 3)) & 0xFF); // get highest
-							      // byte
+	memory[index++] = (byte) ((value >> (8 * 3)) & 0xFF);
 	memory[index++] = (byte) ((value >> (8 * 2)) & 0xFF);
 	memory[index++] = (byte) ((value >> (8 * 1)) & 0xFF);
 	memory[index++] = (byte) (value & 0xFF);
     }
 
-    /** syntactic sugars to help writing correct assembly @formatter:off */
+    // syntactic sugars to help writing correct assembly @formatter:off
     public void iadd()             { gen("iadd"); }
     public void isub()             { gen("isub"); }
     public void imul()             { gen("imul"); }
@@ -246,57 +247,58 @@ public class Assembler {
     public void fconst(float f)    { gen("fconst", f); }
     public void sconst(String s)   { gen("sconst", s); }
     public void print()            { gen("print"); }
-    public void nil()              { gen("null"); }
+    public void zero()             { gen("null"); }
     public void pop()              { gen("pop"); }
     public void halt()             { gen("halt"); }
     public void aconst(Label l)    { gen("aconst", l); }
     public void pconst(Function f) { gen("pconst", f); }
-    public void dynamic_call()     { gen("dcall"); }
-    public void dynamic_br()       { gen("dbr"); }
-    public void dynamic_brt()      { gen("dbrt"); }
-    public void dynamic_brf()      { gen("dbrf"); }
-    public void dynamic_load()     { gen("dload"); }
-    public void dynamic_gload()    { gen("dgload"); }
+    public void invoke()           { gen("invoke"); }
+    public void indirectbr()       { gen("indirectbr"); }  // unused
+    public void indirectbrt()      { gen("indirectbrt"); } // unused
+    public void indirectbrf()      { gen("indirectbrf"); } // unused
+    public void dynamic_load()     { gen("dload"); }       // unused
+    public void dynamic_gload()    { gen("dgload"); }      // unused
     public void dynamic_fload()    { gen("dfload"); }
-    public void dynamic_store()    { gen("dstore"); }
-    public void dynamic_gstore()   { gen("gstore"); }
-    public void dynamic_fstore()   { gen("fstore"); }
-    public void dynamic_struct()   { gen("dstruct"); } // @formatter:on
+    public void dynamic_store()    { gen("dstore"); }      // unused
+    public void dynamic_gstore()   { gen("gstore"); }      // unused
+    public void dynamic_fstore()   { gen("fstore"); }      // unused
+    public void dynamic_alloca()   { gen("dalloca"); }     // unused
+    // @formatter:on
 
     public void call(Object func) {
-	if (dynamic_instr) {
+	if (use_indirect) {
 	    gen("pconst", func);
-	    gen("dcall");
+	    gen("invoke");
 	} else
 	    gen("call", func);
     }
 
     public void br(Object label) {
-	if (dynamic_instr) {
+	if (use_indirect) {
 	    gen("aconst", label);
-	    gen("dbr");
+	    gen("indirectbr");
 	} else
 	    gen("br", label);
     }
 
     public void brt(Object label) {
-	if (dynamic_instr) {
+	if (use_indirect) {
 	    gen("aconst", label);
-	    gen("dbrt");
+	    gen("indirectbrt");
 	} else
 	    gen("brt", label);
     }
 
     public void brf(Object label) {
-	if (dynamic_instr) {
+	if (use_indirect) {
 	    gen("aconst", label);
-	    gen("dbrf");
+	    gen("indirectbrf");
 	} else
 	    gen("brf", label);
     }
 
     public void load(int n) {
-	if (dynamic_instr) {
+	if (use_indirect) {
 	    gen("iconst", n);
 	    gen("dload");
 	} else
@@ -304,7 +306,7 @@ public class Assembler {
     }
 
     public void gload(int n) {
-	if (dynamic_instr) {
+	if (use_indirect) {
 	    gen("iconst", n);
 	    gen("dgload");
 	} else
@@ -312,7 +314,7 @@ public class Assembler {
     }
 
     public void fload(int n) {
-	if (dynamic_instr) {
+	if (use_indirect) {
 	    gen("iconst", n);
 	    gen("dfload");
 	} else
@@ -320,7 +322,7 @@ public class Assembler {
     }
 
     public void store(int n) {
-	if (dynamic_instr) {
+	if (use_indirect) {
 	    gen("iconst", n);
 	    gen("dstore");
 	} else
@@ -328,7 +330,7 @@ public class Assembler {
     }
 
     public void gstore(int n) {
-	if (dynamic_instr) {
+	if (use_indirect) {
 	    gen("iconst", n);
 	    gen("dgstore");
 	} else
@@ -336,18 +338,18 @@ public class Assembler {
     }
 
     public void fstore(int n) {
-	if (dynamic_instr) {
+	if (use_indirect) {
 	    gen("iconst", n);
 	    gen("dfstore");
 	} else
 	    gen("fstore", n);
     }
 
-    public void struct(int n) {
-	if (dynamic_instr) {
+    public void alloca(int n) {
+	if (use_indirect) {
 	    gen("iconst", n);
-	    gen("dstruct");
+	    gen("dalloca");
 	} else
-	    gen("struct", n);
+	    gen("alloca", n);
     }
 }

@@ -15,7 +15,8 @@ package it.unibo.FOOL.svm;
  * We make no guarantees that this code is fit for any purpose. 
  * Visit http://www.pragmaticprogrammer.com/titles/tpdsl for more book information.
 ***/
-import java.util.Vector;
+
+import java.util.*;
 
 public class Label {
     String name;
@@ -24,12 +25,10 @@ public class Label {
     boolean isDefined = false;
     Vector<Integer> forwardReferences = null;
 
-    public Label(String name) {
-	this.name = name;
-    }
-
     public void addForwardReference(int address) {
-	if (forwardReferences == null) forwardReferences = new Vector<Integer>();
+	if (forwardReferences == null) {
+	    forwardReferences = new Vector<Integer>();
+	}
 	forwardReferences.addElement(new Integer(address));
     }
 
@@ -50,5 +49,5 @@ public class Label {
     }
 
     // @formatter:off
-    public int hashCode() { return name.hashCode(); }
+    public Label(String name) { this.name = name; }
 }

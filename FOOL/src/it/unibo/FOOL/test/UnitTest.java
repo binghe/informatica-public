@@ -21,6 +21,7 @@ public abstract class UnitTest {
     protected static Object result;
     protected static boolean trace = false;
     protected static boolean tail_rec = true;
+    protected static boolean use_indirect = false;
     protected static Assembler assem;
 
     public static void compile() {
@@ -53,12 +54,13 @@ public abstract class UnitTest {
 
 	System.out.println("4. Emit Bytecode:");
 	EmitPhase emit = new EmitPhase(typ);
+	assem = emit.getAssembly();
 	emit.set_tail_rec(tail_rec);
+	assem.useIndirect(use_indirect);
 	emit.visit(tree);
 	if (emit.on_error()) {
 	    throw new RuntimeException("EmitPhase failed.");
 	}
-	assem = emit.getAssembly();
 
 	System.out.println("5. Disassemble Bytecode:");
 	Disassembler disasm = new Disassembler(assem);

@@ -7,8 +7,8 @@
 
 package it.unibo.FOOL.test.emit;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.junit.Assert.*;
+import org.junit.*;
 import it.unibo.FOOL.svm.*;
 import it.unibo.FOOL.test.*;
 
@@ -22,7 +22,8 @@ public final class DynamicLabelTest extends UnitTest {
 	Assembler assem = new Assembler();
 	Label end = assem.newLabel("end");
 
-	assem.gen("br", end);
+	assem.aconst(end);
+	assem.indirectbr();
 	assem.setLabel(end);
 	assem.gen("halt");
 	assem.check();

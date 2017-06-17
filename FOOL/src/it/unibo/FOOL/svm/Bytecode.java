@@ -87,24 +87,24 @@ public class Bytecode {
     public static final short INSTR_GSTORE  = 25; // store in global memory
     public static final short INSTR_FSTORE  = 26; // field store
     public static final short INSTR_PRINT   = 27; // print stack top
-    public static final short INSTR_STRUCT  = 28; // push new struct on stack
+    public static final short INSTR_ALLOCA  = 28; // push new vector on stack
     public static final short INSTR_NULL    = 29; // push null onto stack
     public static final short INSTR_POP     = 30; // throw away top of stack
     public static final short INSTR_HALT    = 31; // halt machine
     // DYNAMIC INSTRUCTIONS taking operands on stack
     public static final short INSTR_ACONST  = 32; // push constant address
     public static final short INSTR_PCONST  = 33; // push constant pointer
-    public static final short INSTR_DCALL   = 34; // (d) call function
-    public static final short INSTR_DBR     = 35; // (d) branch
-    public static final short INSTR_DBRT    = 36; // (d) branch if true
-    public static final short INSTR_DBRF    = 37; // (d) branch if false
+    public static final short INSTR_INVOKE  = 34; // indirect call function
+    public static final short INSTR_INDIRECTBR  = 35; // indirect branch
+    public static final short INSTR_INDIRECTBRT = 36; // indirect branch if true
+    public static final short INSTR_INDIRECTBRF = 37; // indirect branch if false
     public static final short INSTR_DLOAD   = 38; // (d) load from local context
     public static final short INSTR_DGLOAD  = 39; // (d) load from global memory
     public static final short INSTR_DFLOAD  = 40; // (d) field load store in local context
     public static final short INSTR_DSTORE  = 41; // (d) store in local context
     public static final short INSTR_DGSTORE = 42; // (d) store in global memory
     public static final short INSTR_DFSTORE = 43; // (d) field store
-    public static final short INSTR_DSTRUCT = 44; // (d) push new struct on stack
+    public static final short INSTR_DALLOCA = 44; // (d) push new vector on stack
 
     // array index is the opcode
     public static Instruction[] instructions = new Instruction[] {
@@ -136,23 +136,23 @@ public class Bytecode {
 	new Instruction("gstore", INT), // 25
 	new Instruction("fstore", INT), // 26
 	new Instruction("print"),       // 27
-	new Instruction("struct", INT), // 28
+	new Instruction("alloca", INT), // 28
 	new Instruction("null"),        // 29
 	new Instruction("pop"),         // 30
 	new Instruction("halt"),        // 31
 	// DYNAMIC INSTRUCTIONS taking operands on stack
 	new Instruction("aconst", LABEL), // 32
 	new Instruction("pconst", FUNC),  // 33
-	new Instruction("dcall"),   // 34
-	new Instruction("dbr"),     // 35
-	new Instruction("dbrt"),    // 36
-	new Instruction("dbrf"),    // 37
+	new Instruction("invoke"),        // 34
+	new Instruction("indirectbr"),    // 35
+	new Instruction("indirectbrt"),   // 36
+	new Instruction("indirectbrf"),   // 37
 	new Instruction("dload"),   // 38
 	new Instruction("dgload"),  // 39
 	new Instruction("dfload"),  // 40
 	new Instruction("dstore"),  // 41
 	new Instruction("dgstore"), // 42
 	new Instruction("dfstore"), // 43
-	new Instruction("dstruct")  // 44
+	new Instruction("dalloca")  // 44
     };
 }

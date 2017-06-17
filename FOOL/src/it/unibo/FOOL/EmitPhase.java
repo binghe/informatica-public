@@ -69,7 +69,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 	if (text.equals("true"))
 	    assem.iconst(1);
 	else
-	    assem.nil();
+	    assem.zero();
 	return body;
     }
 
@@ -89,7 +89,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
     public ParseTree visitTerm(FOOLParser.TermContext ctx) {
 	ParseTree body = visitChildren(ctx);
 	Type right = types.get(ctx.right);
-	if (right != null) assem.gen("imul");
+	if (right != null) assem.imul();
 	return body;
     }
 
@@ -104,7 +104,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 	Label L1 = assem.newLabel("else");
 	Label L2 = assem.newLabel("endif");
 	visit(ctx.cond);	// gen(cond)
-	assem.nil();	// push 0 (false)
+	assem.zero();	// push 0 (false)
 	assem.ieq();	// test if cond is true
 	assem.brt(L1);	// if not, go to L1 (else)
 	visit(ctx.thenBranch);	// gen(then)
@@ -233,7 +233,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 		List<Label> labels = assem.getLabels();
 		for (Label l : labels) {
 		    if (l.address == last_ip + 5) {
-			l.address += nargs * 5;
+			l.address += nargs * (assem.use_indirect() ? 6 : 5);
 			l.resolveForwardReferences(code);
 		    }
 		}
@@ -359,7 +359,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 	List<ClassSymbol> list = cls.getLocalPrecedenceList();
 	int temp = nargs + nlocals - 1;
 	int n = list.size() + 1; // the last place is for 0
-	assem.struct(n);  // create a new struct holding the list
+	assem.alloca(n);  // create a new struct holding the list
 	assem.store(temp);
 	int i = 0;
 	for (ClassSymbol c : list) {
@@ -367,7 +367,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 	    assem.load(temp);  // load class precedence list
 	    assem.fstore(i++); // store one index into the list
 	}
-	assem.nil();
+	assem.zero();
 	assem.load(temp);
 	assem.fstore(i);  // append 0 at last
 	assem.load(temp); // load class precedence list
@@ -420,7 +420,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 	int nslots = cls.getNextID();
 
 	// 2. generate code to create an object and call its init function
-	assem.struct(nslots);
+	assem.alloca(nslots);
 	visitChildren(ctx);
 	assem.call(new Function(nfName));
 	return ctx;
@@ -527,7 +527,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 		if (t instanceof ClassSymbol) {
 		    ClassSymbol cls = (ClassSymbol) t;
 		    List<ClassSymbol> lst = cls.getLocalPrecedenceList();
-		    assem.struct(lst.size() + 1);
+		    assem.alloca(lst.size() + 1);
 		    assem.store(C2);
 		    for (ClassSymbol c : lst) {
 			assem.iconst(c.getTypeIndex());
@@ -536,13 +536,13 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 		    }
 		} else {
 		    assert (t instanceof BuiltinTypeSymbol);
-		    assem.struct(2);
+		    assem.alloca(2);
 		    assem.store(C2);
 		    assem.iconst(t.getTypeIndex());
 		    assem.load(C2);
 		    assem.fstore(x++);
 		}
-		assem.nil();
+		assem.zero();
 		assem.load(C2);
 		assem.fstore(x); // C2[last] = 0
 		// check the type of each method against the input argument, the
@@ -576,7 +576,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 	    assem.call(new Function("_unbox"));
 	}
 	assem.load(result);
-	assem.dynamic_call(); // call *result -- API extension
+	assem.invoke(); // invoke *result -- API extension
 	assem.ret();
 	need_runtime = true;
     }
@@ -650,7 +650,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 	assem.iconst(1);       // return true
 	assem.br(end);
 	assem.setLabel(fail);
-	assem.nil();           // return false
+	assem.zero();           // return false
 	assem.setLabel(end);
 	assem.ret();
     }
@@ -662,15 +662,15 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 	int value = 0, type = 1, outer = 2, inner = 3;
 
 	assem.defineFunction("_box", nargs, nlocals);
-	assem.struct(2);       // [_, _]
+	assem.alloca(2);       // [_, _]
 	assem.store(inner);
 	assem.load(type);
 	assem.load(inner);
 	assem.fstore(0);       // [type _]
-	assem.nil();
+	assem.zero();
 	assem.load(inner);
 	assem.fstore(1);       // [type 0]
-	assem.struct(2);
+	assem.alloca(2);
 	assem.store(outer);    // [_, _]
 	assem.load(inner);
 	assem.load(outer);
@@ -697,7 +697,7 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
 	assem.load(0);    // load arg
 	assem.fload(0);   // load arg[0]
 	assem.fload(1);   // load arg[0][1]
-	assem.nil();      // push 0
+	assem.zero();     // push 0
 	assem.ieq();      // arg[0][1] == 0 ?
 	assem.brt(unbox); // if so, go to unbox
 	assem.load(0);    // else load arg

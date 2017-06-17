@@ -7,9 +7,9 @@
 
 package it.unibo.FOOL.test.plus;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import java.util.*;
-import org.junit.Test;
+import org.junit.*;
 import it.unibo.FOOL.svm.*;
 import it.unibo.FOOL.test.*;
 
@@ -35,7 +35,7 @@ public final class SubclassTest extends UnitTest {
 	Label restart = assem.newLabel("restart");
 	Label success = assem.newLabel("success");
 	Label fail = assem.newLabel("fail");
-	Label end = assem.newLabel("end_of_loop");
+	Label end0 = assem.newLabel("end_of_loop");
 	List<Integer> C1_list = Arrays.asList(103, 102, 101, 100, 0);
 	List<Integer> C2_list = Arrays.asList(102, 101, 100, 0);
 	int x;
@@ -44,78 +44,78 @@ public final class SubclassTest extends UnitTest {
 	assem.defineDataSize(5);
 
 	int C1 = 0;             // [103 102 101 100 0]
-	assem.gen("struct", C1_list.size());
-	assem.gen("gstore", C1);
+	assem.alloca(C1_list.size());
+	assem.gstore(C1);
 
 	x = 0;
 	for (int c : C1_list) {
-	    assem.gen("iconst", c);
-	    assem.gen("gload", C1);
-	    assem.gen("fstore", x++); // C1[i] = v
+	    assem.iconst(c);
+	    assem.gload(C1);
+	    assem.fstore(x++); // C1[i] = v
 	}
 
 	int C2 = 1;             // [ 102 101 100 0]
-	assem.gen("struct", C2_list.size());
-	assem.gen("gstore", C2);
+	assem.alloca(C2_list.size());
+	assem.gstore(C2);
 
 	x = 0;
 	for (int c : C2_list) {
-	    assem.gen("iconst", c);
-	    assem.gen("gload", C2);
-	    assem.gen("fstore", x++); // C2[i] = 102
+	    assem.iconst(c);
+	    assem.gload(C2);
+	    assem.fstore(x++); // C2[i] = 102
 	}
 
 	// 2. initialization
 	int i = 2;              // loop variable
 	int i_val = 0;
-	assem.gen("iconst", i_val);
-	assem.gen("gstore", i);
+	assem.iconst(i_val);
+	assem.gstore(i);
 
 	int e = 3;              // end value
 	int e_val = 0;          // type index of root class
-	assem.gen("iconst", e_val);
-	assem.gen("gstore", e);
+	assem.iconst(e_val);
+	assem.gstore(e);
 
 	int h = 4;              // head of C2 (102 here)
-	assem.gen("gload", C2);
-	assem.gen("fload", 0);
-	assem.gen("gstore", h);
+	assem.gload(C2);
+	assem.fload(0);
+	assem.gstore(h);
 
 	// 2. end condition
 	assem.setLabel(restart);
-	assem.gen("gload", C1);
-	assem.gen("gload", i);  // load i
-	assem.gen("dfload");	// load C1[i] -- API extension
-	assem.gen("gload", e);  // load e
-	assem.gen("ieq");       // i == e ?
-	assem.gen("brt", fail); // goto end
+	assem.gload(C1);
+	assem.gload(i);  // load i
+	assem.dynamic_fload();  // load C1[i] -- API extension
+	assem.gload(e);  // load e
+	assem.ieq();       // i == e ?
+	assem.brt(fail); // goto end
 
 	// 3. loop body
-	assem.gen("gload", C1);
-	assem.gen("gload", i);
-	assem.gen("dfload");	// load C1[i] -- API extension
-	assem.gen("gload", h);
-	assem.gen("ieq");
-	assem.gen("brt", success);
+	assem.gload(C1);
+	assem.gload(i);
+	assem.dynamic_fload();  // load C1[i] -- API extension
+	assem.gload(h);
+	assem.ieq();
+	assem.brt(success);
 
 	// 4. increase counter
-	assem.gen("gload", i);  // load i
-	assem.gen("iconst", 1); // 1
-	assem.gen("iadd");      // i + 1
-	assem.gen("gstore", i); // save i
+	assem.gload(i);  // load i
+	assem.iconst(1); // 1
+	assem.iadd();      // i + 1
+	assem.gstore(i); // save i
 
 	// 5. restart the loop
-	assem.gen("br", restart);
+	assem.br(restart);
 
 	// 6. return value
 	assem.setLabel(success);
-	assem.gen("iconst", 1); // return true
-	assem.gen("br", end);
+	assem.iconst(1); // return true
+	assem.br(end0);
 
 	assem.setLabel(fail);
-	assem.gen("null");      // return false
-	assem.setLabel(end);
-	assem.gen("halt");
+	assem.zero();    // return false
+	assem.setLabel(end0);
+	assem.halt();
 	assem.check();
 
 	Disassembler disasm = new Disassembler(assem);
