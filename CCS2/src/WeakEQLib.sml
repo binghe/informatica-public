@@ -277,6 +277,8 @@ let OE_SUBST_TAC =
 
  *)
 
+val EPS_INDUCT_TAC = RULE_INDUCT_THEN EPS_INDUCT ASSUME_TAC ASSUME_TAC;
+
 end (* struct *)
 
 (* last updated: Jun 18, 2017 *)

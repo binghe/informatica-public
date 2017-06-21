@@ -17,8 +17,7 @@ val _ = new_theory "StrongEQ";
 (******************************************************************************)
 
 (* Define the strong bisimulation relation on CCS processes. *)
-val STRONG_BISIM = new_definition (
-   "STRONG_BISIM",
+val STRONG_BISIM = new_definition ("STRONG_BISIM",
   ``STRONG_BISIM (Bsm :('a, 'b) simulation) =
        (!E E'.
 	  Bsm E E' ==>
@@ -130,18 +129,18 @@ val UNION_STRONG_BISIM = store_thm (
 
 (* Define the strong equivalence relation for CCS processes.
 
-   Two states E and E' are bisimilar (or bisimulation equivalent, denoted E ~ E',
-   if there exists a bisimulation R such that (E, E') IN R.
+  Two states E and E' are bisimilar (or bisimulation equivalent, denoted E ~ E',
+  if there exists a bisimulation R such that (E, E') IN R.
 
+  Old definition:
 val STRONG_EQUIV = new_definition ("STRONG_EQUIV",
   ``STRONG_EQUIV E E' = (?Bsm. Bsm E E' /\ STRONG_BISIM Bsm)``);
- *)
 
-(* Obsevations:
+  Obsevations on new definition:
    1. STRONG_EQUIV_cases ==> STRONG_EQUIV_rules (by EQ_IMP_LR)
    2. STRONG_EQUIV_cases is the same as PROPERTY_STAR
-   3. STRONG_EQUIV_coind is new (the co-induction principle)
- *)
+   3. STRONG_EQUIV_coind is new (the co-inductive principle)
+ *) (* NEW *)
 val (STRONG_EQUIV_rules, STRONG_EQUIV_coind, STRONG_EQUIV_cases) = Hol_coreln `
     (!(E :('a, 'b) CCS) (E' :('a, 'b) CCS).
        (!u.
@@ -164,7 +163,9 @@ val STRONG_EQUIV_IS_STRONG_BISIM = store_thm (
  >> PURE_ONCE_REWRITE_TAC [GSYM STRONG_EQUIV_cases]
  >> RW_TAC bool_ss []);
 
-val STRONG_EQUIV = store_thm ("STRONG_EQUIV",
+(* Alternative definition of STRONG_EQUIV *)
+val STRONG_EQUIV = store_thm ((* NEW *)
+   "STRONG_EQUIV",
   ``!E E'. STRONG_EQUIV E E' = (?Bsm. Bsm E E' /\ STRONG_BISIM Bsm)``,
     REPEAT GEN_TAC
  >> EQ_TAC (* 2 sub-goals here *)
@@ -223,7 +224,8 @@ val EQUAL_IMP_STRONG_EQUIV = store_thm (
  >> PURE_ASM_REWRITE_TAC [STRONG_EQUIV_REFL]);
 
 (* Prop. 4, page 91: strong equivalence satisfies property [*] *)
-val PROPERTY_STAR = save_thm ("PROPERTY_STAR", STRONG_EQUIV_cases);
+val PROPERTY_STAR = save_thm ((* NEW *)
+   "PROPERTY_STAR", STRONG_EQUIV_cases);
 
 val PROPERTY_STAR_LR = save_thm (
    "PROPERTY_STAR_LR", EQ_IMP_LR PROPERTY_STAR);
@@ -410,7 +412,7 @@ val STRONG_EQUIV_PRESD_BY_PAR = store_thm (
  *)
 val STRONG_EQUIV_SUBST_PAR_R = save_thm (
    "STRONG_EQUIV_SUBST_PAR_R",
-      GEN_ALL
+    Q.GENL [`E'`, `E`]
        (DISCH_ALL
 	(GEN_ALL
 	 (UNDISCH
@@ -425,7 +427,7 @@ val STRONG_EQUIV_SUBST_PAR_R = save_thm (
  *)
 val STRONG_EQUIV_SUBST_PAR_L = save_thm (
    "STRONG_EQUIV_SUBST_PAR_L",
-      GEN_ALL
+    Q.GENL [`E'`, `E`]
        (DISCH_ALL
 	(GEN_ALL
 	 (UNDISCH
@@ -573,11 +575,11 @@ val STRONG_EQUIV_SUBST_RELAB = store_thm (
 (*									    *)
 (******************************************************************************)
 
-val BIGUNION_BISIM_def = Define `
+val BIGUNION_BISIM_def = Define (* NEW *) `
     BIGUNION_BISIM = CURRY (BIGUNION { UNCURRY R | STRONG_BISIM R })`;
 
 (* STRONG_EQUIV is the union of all STRONG_BISIMs *)
-val STRONG_EQUIV_IS_BIGUNION_BISIM = store_thm (
+val STRONG_EQUIV_IS_BIGUNION_BISIM = store_thm ((* NEW *)
    "STRONG_EQUIV_IS_BIGUNION_BISIM",
   ``!E E'. STRONG_EQUIV E E' = BIGUNION_BISIM E E'``,
     REWRITE_TAC [BIGUNION_BISIM_def]
@@ -607,25 +609,25 @@ val STRONG_EQUIV_IS_BIGUNION_BISIM = store_thm (
 	ASM_REWRITE_TAC [UNCURRY],
 	ASM_REWRITE_TAC [] ] ]);
 
-val STRONG_EQUIV_IS_BIGUNION_BISIM' = store_thm (
+val STRONG_EQUIV_IS_BIGUNION_BISIM' = store_thm ((* NEW *)
    "STRONG_EQUIV_IS_BIGUNION_BISIM'",
   ``STRONG_EQUIV = BIGUNION_BISIM``,
     REWRITE_TAC [FUN_EQ_THM, STRONG_EQUIV_IS_BIGUNION_BISIM]);
 
 (* forward way: |- STRONG_EQUIV = BIGUNION_BISIM *)
-val STRONG_EQUIV_IS_BIGUNION_BISIM'' = save_thm (
+val STRONG_EQUIV_IS_BIGUNION_BISIM'' = save_thm ((* NEW *)
    "STRONG_EQUIV_IS_BIGUNION_BISIM''",
     EXT (GEN ``E :('a, 'b) CCS``
 	  (EXT (SPEC ``E :('a, 'b) CCS`` STRONG_EQUIV_IS_BIGUNION_BISIM))));
 
-val STRONG_EQUIV_EQ_BIGUNION_BISIM = store_thm (
+val STRONG_EQUIV_EQ_BIGUNION_BISIM = store_thm ((* NEW *)
    "STRONG_EQUIV_EQ_BIGUNION_BISIM",
   ``STRONG_EQUIV = CURRY (BIGUNION { UNCURRY R | STRONG_BISIM R })``,
     REWRITE_TAC [STRONG_EQUIV_IS_BIGUNION_BISIM'',
 		 BIGUNION_BISIM_def]);
 
 (* Define the strong bisimulation relation up to STRONG_EQUIV *)
-val STRONG_BISIM_UPTO = new_definition (
+val STRONG_BISIM_UPTO = new_definition ((* NEW *)
    "STRONG_BISIM_UPTO",
   ``STRONG_BISIM_UPTO (Bsm :('a, 'b) simulation) =
        (!E E'.
@@ -639,4 +641,4 @@ val STRONG_BISIM_UPTO = new_definition (
 val _ = export_theory ();
 val _ = DB.html_theory "StrongEQ";
 
-(* last updated: May 14, 2017 *)
+(* last updated: Jun 20, 2017 *)

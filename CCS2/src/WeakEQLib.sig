@@ -15,6 +15,8 @@ sig
   val OE_REPEATC		: conv -> conv
   val OE_LHS_CONV_TAC		: conv -> tactic
   val OE_RHS_CONV_TAC		: conv -> tactic
+
+  val EPS_INDUCT_TAC		: tactic
 end
 
 (* last updated: Jun 18, 2017 *)

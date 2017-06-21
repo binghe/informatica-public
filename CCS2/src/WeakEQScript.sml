@@ -11,21 +11,115 @@ open CCSLib CCSTheory StrongEQTheory;
 val _ = new_theory "WeakEQ";
 
 (******************************************************************************)
-(*									    *)
+(*									      *)
 (*    Operational definition of obs. equiv. for CCS and related properties    *)
-(*									    *)
+(*									      *)
 (******************************************************************************)
 
-(* Define the epsilon transition relation. *)
-val (EPS_rules, EPS_ind, EPS_cases) = Hol_reln `
-    (!E E'. TRANS E tau E'	     ==> EPS E E') /\
-    (!E.				 EPS E E) /\
-    (!E E1 E'. EPS E E1 /\ EPS E1 E' ==> EPS E E')`;
+(* new definition for the epsilon transition relation. *)
+val EPS_def = Define `EPS = RTC (\E E'. TRANS E tau E')`;
 
-val [ONE_TAU, EPS_REFL, EPS_TRANS] =
-    map save_thm (combine (["ONE_TAU", "EPS_REFL", "EPS_TRANS"], CONJUNCTS EPS_rules));
+val ONE_TAU = store_thm ((* new *)
+   "ONE_TAU", ``!E E'. TRANS E tau E' ==> EPS E E'``,
+    REWRITE_TAC [EPS_def]
+ >> REPEAT STRIP_TAC
+ >> MATCH_MP_TAC RTC_SINGLE
+ >> BETA_TAC >> ASM_REWRITE_TAC []);
 
-val EPS_INDUCT_TAC = RULE_INDUCT_THEN EPS_ind ASSUME_TAC ASSUME_TAC;
+val EPS_REFL = store_thm ((* new *)
+   "EPS_REFL", ``!E. EPS E E``,
+    REWRITE_TAC [EPS_def, RTC_REFL]);
+
+local
+    val trans = (REWRITE_RULE [GSYM EPS_def]) o BETA_RULE o (ISPEC ``(\E E'. TRANS E tau E')``)
+in
+
+(* |- ∀x y z. EPS x y ∧ EPS y z ⇒ EPS x z
+ *)
+val EPS_TRANS = save_thm ((* new *)
+   "EPS_TRANS", trans (REWRITE_RULE [transitive_def] RTC_TRANSITIVE));
+
+(* |- ∀P.
+     (∀x. P x x) ∧ (∀x y z. x --τ-> y ∧ P y z ⇒ P x z) ⇒
+     ∀x y. EPS x y ⇒ P x y
+ *)
+val EPS_ind = save_thm ((* new *)
+   "EPS_ind", trans RTC_INDUCT);
+
+(* |- ∀P.
+     (∀x. P x x) ∧ (∀x y z. x --τ-> y ∧ EPS y z ∧ P y z ⇒ P x z) ⇒
+     ∀x y. EPS x y ⇒ P x y
+ *)
+val EPS_strongind = save_thm ((* new *)
+   "EPS_strongind", trans RTC_STRONG_INDUCT);
+
+(* |- ∀P.
+     (∀x. P x x) ∧ (∀x y z. P x y ∧ y --τ-> z ⇒ P x z) ⇒
+     ∀x y. EPS x y ⇒ P x y
+ *)
+val EPS_ind_right = save_thm ((* new *)
+   "EPS_ind_right", trans RTC_INDUCT_RIGHT1);
+
+(* |- ∀P.
+     (∀x. P x x) ∧ (∀x y z. P x y ∧ EPS x y ∧ y --τ-> z ⇒ P x z) ⇒
+     ∀x y. EPS x y ⇒ P x y
+ *)
+val EPS_strongind_right = save_thm ((* new *)
+   "EPS_strongind_right", trans RTC_STRONG_INDUCT_RIGHT1);
+
+(* ∀x y. EPS x y ⇔ (x = y) ∨ ∃u. x --τ-> u ∧ EPS u y
+ *)
+val EPS_cases1 = save_thm ((* new *)
+   "EPS_cases1", trans RTC_CASES1);
+
+(* ∀x y. EPS x y ⇔ (x = y) ∨ ∃u. EPS x u ∧ u --τ-> y
+ *)
+val EPS_cases2 = save_thm ((* new *)
+   "EPS_cases2", trans RTC_CASES2);
+
+(* |- ∀x y. EPS x y ⇔ ∃u. EPS x u ∧ EPS u y
+ *)
+val EPS_cases_rtc_twice = save_thm ((* new *)
+   "EPS_cases_rtc_twice", trans RTC_CASES_RTC_TWICE);
+
+end; (* local *)
+
+(* A slightly different version of EPS induction theorem *)
+val EPS_INDUCT = store_thm ((* new *)
+   "EPS_INDUCT", ``!P. (!E E'.    TRANS E tau E' ==> P E E') /\
+		       (!E.       P E E) /\
+		       (!E E1 E'. P E E1 /\ P E1 E' ==> P E E') ==>
+		   !x y. EPS x y ==> P x y``,
+    GEN_TAC >> STRIP_TAC
+ >> HO_MATCH_MP_TAC EPS_strongind
+ >> REPEAT STRIP_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      ASM_REWRITE_TAC [],
+      (* goal 2 (of 2) *)
+      NTAC 2 RES_TAC]);
+
+val EPS_INDUCT_TAC = RULE_INDUCT_THEN EPS_INDUCT ASSUME_TAC ASSUME_TAC;
+
+(* This cases theorem is not the same with any theorem in relationTheory *)
+val EPS_cases = store_thm ((* new *)
+   "EPS_cases",
+  ``!E E'. EPS E E' = TRANS E tau E' \/ (E = E') \/ ?E1. EPS E E1 /\ EPS E1 E'``,
+    REPEAT GEN_TAC
+ >> EQ_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      Q.SPEC_TAC (`E'`, `E'`) \\
+      Q.SPEC_TAC (`E`, `E`) \\
+      HO_MATCH_MP_TAC EPS_strongind \\
+      REPEAT STRIP_TAC >- RW_TAC std_ss [] \\ (* 4 sub-goals here, first is easy *)
+      NTAC 2 DISJ2_TAC \\ (* then the rest 3 goals share the same tacticals *)
+      Q.EXISTS_TAC `E'` \\
+      IMP_RES_TAC ONE_TAU \\
+      ASM_REWRITE_TAC [],
+      (* goal 2 (of 2) *)
+      REPEAT STRIP_TAC >| (* 3 sub-goals here *)
+      [ IMP_RES_TAC ONE_TAU,
+        ASM_REWRITE_TAC [EPS_REFL],
+        IMP_RES_TAC EPS_TRANS ] ]);
 
 (* Define the weak transition relation (double arrow transition). *)
 val WEAK_TRANS = new_definition ("WEAK_TRANS",
@@ -33,8 +127,8 @@ val WEAK_TRANS = new_definition ("WEAK_TRANS",
 
 val _ =
     add_rule { term_name = "WEAK_TRANS", fixity = Infix (NONASSOC, 450),
-	pp_elements = [ BreakSpace(1,0), TOK "==", HardSpace 0, TM, HardSpace 0, TOK "=>>",
-			BreakSpace(1,0) ],
+	pp_elements = [ BreakSpace(1,0), TOK "==", HardSpace 0, TM, HardSpace 0,
+			TOK "=>>", BreakSpace(1,0) ],
 	paren_style = OnlyIfNecessary,
 	block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)) };
 
@@ -62,6 +156,24 @@ val WEAK_TRANS_TAU = store_thm (
  >> ASM_REWRITE_TAC []
  >> MATCH_MP_TAC ONE_TAU
  >> ASM_REWRITE_TAC []);
+
+(* A weak transition on tau implies at least one transition on tau *)
+val WEAK_TRANS_TAU_IMP_TRANS_TAU = store_thm ((* NEW *)
+   "WEAK_TRANS_TAU_IMP_TRANS_TAU",
+  ``!E E'. WEAK_TRANS E tau E' ==> ?E1. TRANS E tau E1 /\ EPS E1 E'``,
+    REWRITE_TAC [WEAK_TRANS]
+ >> REPEAT STRIP_TAC
+ >> NTAC 3 (POP_ASSUM MP_TAC)
+ >> Q.SPEC_TAC (`E1`, `E1`)
+ >> Q.SPEC_TAC (`E`, `E`)
+ >> HO_MATCH_MP_TAC EPS_strongind
+ >> REPEAT STRIP_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
+      (* goal 2 (of 2) *)
+      Q.EXISTS_TAC `E''` >> ASM_REWRITE_TAC [] \\
+      IMP_RES_TAC ONE_TAU \\
+      IMP_RES_TAC EPS_TRANS ]);
 
 val EPS_AND_WEAK = store_thm ("EPS_AND_WEAK",
   ``!E E1 u E2 E'.
@@ -128,17 +240,17 @@ val CONVERSE_WEAK_BISIM = store_thm ("CONVERSE_WEAK_BISIM",
  >> ASM_REWRITE_TAC []);
 
 (******************************************************************************)
-(*									    *)
+(*									      *)
 (*    Some auxiliary results for proving that the composition of two weak     *)
-(*    bisimulations is a weak bisimulation.				   *)
-(*									    *)
+(*    bisimulations is a weak bisimulation.				      *)
+(*									      *)
 (******************************************************************************)
 
 (* Different formulation of case 1 in Milner's proof. *)
 val EPS_TRANS_AUX = store_thm (
    "EPS_TRANS_AUX",
   ``!E E1.
-	 EPS E E1 ==> 
+	 EPS E E1 ==>
 	 (!Wbsm E'. 
 	   WEAK_BISIM Wbsm /\ Wbsm E E' ==> (?E2. EPS E' E2 /\ Wbsm E1 E2))``,
     EPS_INDUCT_TAC (* 3 sub-goals here *)
@@ -323,7 +435,17 @@ val UNION_WEAK_BISIM = store_thm (
       Q.EXISTS_TAC `E2`, Q.EXISTS_TAC `E1` ]
  >> ASM_REWRITE_TAC []);
 
-(* new definition, also called OBS_EQUIV *)
+(* Define the weak equivalence relation for CCS processes.
+
+  Old definition:
+val OBS_EQUIV = new_definition ("OBS_EQUIV",
+  ``OBS_EQUIV E E' = (?Bsm. Bsm E E' /\ OBS_BISIM Bsm)``);
+
+  Obsevations on new definition:
+   1. WEAK_EQUIV_cases ==> WEAK_EQUIV_rules (by EQ_IMP_LR)
+   2. WEAK_EQUIV_cases is the same as OBS_PROPERTY_STAR
+   3. WEAK_EQUIV_coind is new (the co-inductive principle)
+ *) (* NEW *)
 val (WEAK_EQUIV_rules, WEAK_EQUIV_coind, WEAK_EQUIV_cases) = Hol_coreln `
     (!(E :('a, 'b) CCS) (E' :('a, 'b) CCS).
        (!l.
@@ -344,10 +466,9 @@ val WEAK_EQUIV_IS_WEAK_BISIM = store_thm (
  >> PURE_ONCE_REWRITE_TAC [GSYM WEAK_EQUIV_cases]
  >> ASM_REWRITE_TAC []);
 
-(* Alternative definition of WEAK_EQUIV, similar with STRONG_EQUIV (definition).
-   "Weak bisimilarity contains all weak bisimulations (thus maximal)"
- *)
-val WEAK_EQUIV = store_thm ("WEAK_EQUIV",
+(* Alternative definition of WEAK_EQUIV, similar with STRONG_EQUIV. *)
+val WEAK_EQUIV = store_thm ((* NEW *)
+   "WEAK_EQUIV",
   ``!E E'. WEAK_EQUIV E E' = (?Wbsm. Wbsm E E' /\ WEAK_BISIM Wbsm)``,
     REPEAT GEN_TAC
  >> EQ_TAC (* 2 sub-goals here *)
@@ -410,12 +531,13 @@ val OBS_EQUIV_TRANS = store_thm (
 			   (Wbsm': ('a, 'b) simulation) y z``
  >> CONJ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
-      BETA_TAC >> Q.EXISTS_TAC `E'` >> ASM_REWRITE_TAC [],
+      BETA_TAC \\
+      Q.EXISTS_TAC `E'` >> ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
       IMP_RES_TAC COMP_WEAK_BISIM ]);
 
 (* Observation equivalence satisfies the property [*] *)
-val OBS_PROPERTY_STAR = save_thm (
+val OBS_PROPERTY_STAR = save_thm ((* NEW *)
    "OBS_PROPERTY_STAR", WEAK_EQUIV_cases);
 
 val OBS_PROPERTY_STAR_LR = save_thm (
@@ -1247,10 +1369,10 @@ val OBS_EQUIV_SUBST_RELAB = store_thm (
 	  ASM_REWRITE_TAC [] ] ] ]);
 
 (******************************************************************************)
-(*									    *)
-(*	  Relationship between strong bisimulation (strong equiv.)	  *)
-(*	     and weak bisimulation (observation equivalence)		*)
-(*									    *)
+(*									      *)
+(*	  Relationship between strong bisimulation (strong equiv.)	      *)
+(*	     and weak bisimulation (observation equivalence)		      *)
+(*									      *)
 (******************************************************************************)
 
 (* Prove that a strong bisimulation is a particular weak bisimulation. *)
