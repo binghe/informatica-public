@@ -16,10 +16,8 @@
 		<p>List of publications (public code):</p>
 		<ul>
 			<li>
-				<p>
-					<filepath>CCS</filepath>: A formalization of process
-					algebra CCS in HOL4 (MSC exam project)
-				</p>
+				<filepath>CCS</filepath>: A formalization of process algebra
+				CCS in HOL4 (MSC exam project)
 			</li>
 			<li>
 				<filepath>CCS2</filepath>: Further formalization of process
@@ -33,7 +31,10 @@
 				<filepath>cryptanalysis</filepath>: Differential cryptanalysis
 				on DES (reduced to 4 rounds) (Cryptografia demo code)
 			</li>
-			<li>lambek: Formalized Lambek Calculus in HOL4 (CLP exam project)</li>
+			<li>
+				<filepath>lambek</filepath>: Formalized Lambek Calculus in HOL4
+				(CLP exam project)
+			</li>
 		</ul>
 	</body>
 </topic>
