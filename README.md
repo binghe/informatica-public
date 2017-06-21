@@ -12,6 +12,6 @@ List of publications \(public code\):
 
 -   CCS2: Further formalization of process algebra CCS in HOL4 \(tirocinio\)
 -   FOOL: A bytecode compiler and interpreter for FOOL+ language \(ASP exam project\)
--   cryptanalysis: Differential cryptanalysis on DES \(reduced to 4 rounds\)
--   lambek: Formalized Lambek Calculus in HOL4
+-   cryptanalysis: Differential cryptanalysis on DES \(reduced to 4 rounds\) \(Cryptografia demo code\)
+-   lambek: Formalized Lambek Calculus in HOL4 \(CLP exam project\)
 
