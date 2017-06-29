@@ -4,8 +4,7 @@ let
     int foo(A o1, B o2) 2;				
     int foo(B o1, A o2) 3;				
     int foo(B o1, B o2) 4;				
-    bool flag = true;				
     A obj = new A();
 in obj.foo(obj) + 6;					
 
-// result: 10
+// result: no applicable method

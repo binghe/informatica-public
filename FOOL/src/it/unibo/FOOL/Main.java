@@ -39,7 +39,12 @@ public final class Main {
 		System.err.println("Unknown file format");
 	} else {
 	    input = CharStreams.fromStream(System.in); // ANTLR 4.7
-	    vm = compile(input);
+	    try {
+		vm = compile(input);
+	    } catch (Exception e) {
+		e.printStackTrace();
+		return;
+	    }
 	    System.out.println("7. Run bytecode:");
 	    vm.setTrace(true);
 	    vm.exec();

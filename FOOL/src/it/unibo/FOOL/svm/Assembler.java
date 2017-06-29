@@ -24,6 +24,7 @@ import java.util.*;
 
 public class Assembler {
     public static final int INITIAL_CODE_SIZE = 1024;
+    public static final String MAIN_FUNCTION = "_main";
     // A switch to use all dynamic instructs or not
     boolean use_indirect = false;
 
@@ -192,7 +193,7 @@ public class Assembler {
 
     public void defineFunction(String name, int args, int locals) {
 	Function f = new Function(name, args, locals, ip);
-	if (name.equals("main")) mainFunction = f;
+	if (name.equals(MAIN_FUNCTION)) mainFunction = f;
 	// Did someone referred to this function before it was defined?
 	// if so, replace element in constant pool (at same index)
 	if (constPool.contains(f))

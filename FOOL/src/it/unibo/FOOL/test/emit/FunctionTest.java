@@ -7,8 +7,8 @@
 
 package it.unibo.FOOL.test.emit;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.junit.Assert.*;
+import org.junit.*;
 import it.unibo.FOOL.svm.*;
 
 public final class FunctionTest {
@@ -24,7 +24,7 @@ public final class FunctionTest {
 	assem.gen("call", new Function("g"));
 	assem.gen("ret");
 
-	assem.defineFunction("main", 0, 0);
+	assem.defineFunction("_main", 0, 0);
 	assem.gen("call", new Function("g"));
 	assem.gen("pop");
 	assem.gen("call", new Function("f"));

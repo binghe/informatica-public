@@ -7,8 +7,8 @@
 
 package it.unibo.FOOL.test.emit;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.junit.Assert.*;
+import org.junit.*;
 import it.unibo.FOOL.svm.*;
 
 public final class FuncallTest {
@@ -22,7 +22,7 @@ public final class FuncallTest {
 	assem.gen("iadd");
 	assem.gen("ret");
 
-	assem.defineFunction("main", 0, 0);
+	assem.defineFunction("_main", 0, 0);
 	assem.gen("iconst", 1);
 	assem.gen("iconst", 2);
 	assem.gen("call", new Function("add"));
@@ -33,7 +33,7 @@ public final class FuncallTest {
 	disasm.disassemble();
 	Interpreter vm = new Interpreter(assem);
 	vm.setTrace(true);
-	Object retVal = null;
+	Object retVal = 3;
 	try {
 	    retVal = vm.exec();
 	} catch (Exception e) {

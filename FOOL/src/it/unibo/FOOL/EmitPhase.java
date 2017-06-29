@@ -210,9 +210,9 @@ public class EmitPhase extends FOOLBaseVisitor<ParseTree> {
     }
 
     /**
-     * Tail recursion optimization: if the last instruct is a call to current
+     * Tail recursion optimization: if the last instruction is a call to current
      * function, then instead of calling itself, just jump to the beginning of
-     * the function (before storing stack args back to frame).
+     * the function (before storing stack arguments back to stack frame).
      */
     public void tail_recursion_optimization(String name, int nargs, Label begin_of_fun) {
 	byte[] code = assem.getMachineCode();

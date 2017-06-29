@@ -296,6 +296,7 @@ public class TypePhase extends FOOLBaseListener {
 	    if (fun == null) {
 		System.err.println("[exitMethodExp] no applicable method for gf: " + name);
 		on_error = true;
+		return;
 	    }
 
 	    Type typ = fun.getType();
