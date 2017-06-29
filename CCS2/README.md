@@ -24,12 +24,12 @@ The following is a brief listing of what's available in the distribution:
 
 -   StrongLawsScript.sml: Strong laws for CCS processes
 
--   StrongLawLib.\{sml|sig\}: Utilities for building strong equivalence theorems
+-   StrongLawsConv.\{sml|sig\}: Utilities for building strong equivalence theorems
 
 -   WeakEQScript.sml: Definition and basic results of weak equivalence
 
 -   WeakLawsScript.sml: Weak equivalence laws for CCS processes
 
--   WeakLawLib.\{sml|sig\}: Utilities for building weak equivalence theorems
+-   WeakLawsConv.\{sml|sig\}: Utilities for building weak equivalence theorems
 
 

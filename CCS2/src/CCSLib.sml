@@ -23,6 +23,9 @@ in
     val PAT_X_ASSUM = PAT_X_ASSUM;
     val qpat_x_assum = qpat_x_assum;
 
+    (* Q.GENL generalises in wrong order #428, fixed on June 27, 2017 *)
+    fun Q_GENL qs th = List.foldr (fn (q, th) => Q.GEN q th) th qs;
+
     (* Tacticals for better expressivity *)
     fun fix  ts = MAP_EVERY Q.X_GEN_TAC ts;	(* from HOL Light *)
     fun set  ts = MAP_EVERY Q.ABBREV_TAC ts;	(* from HOL mizar mode *)

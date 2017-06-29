@@ -75,8 +75,9 @@ val Action_distinct_label = save_thm ("Action_distinct_label", GSYM Action_disti
 val Action_11 = TypeBase.one_one_of ``:'b Action``;
 
 (* |- ∀A. A ≠ tau ⇒ ∃L. A = label L *)
-val Action_not_tau_is_Label = save_thm ("Action_not_tau_is_Label",
-    GEN ``A :'b Action`` (DISJ_IMP (SPEC ``A :'b Action`` Action_nchotomy)));
+val Action_no_tau_is_Label = save_thm (
+   "Action_no_tau_is_Label",
+    Q.GEN `A` (DISJ_IMP (Q.SPEC `A` Action_nchotomy)));
 
 (* Extract the label from a visible action, LABEL: Action -> Label. *)
 val    LABEL_def = Define `    LABEL (label (l: 'b Label)) = l`;
@@ -258,7 +259,7 @@ val _ = Datatype `CCS = nil
 		      | rec 'a CCS`;
 
 (* compact representation for single-action restriction *)
-val _ = overload_on ("nu", ``\n P. restr {name n} P``);
+val _ = overload_on ("nu", ``\(n :'b) P. restr {name n} P``);
 val _ = overload_on ("nu", ``restr``);
 
 val _ = Unicode.unicode_version { u = UnicodeChars.nu, tmnm = "nu" };
@@ -359,7 +360,7 @@ val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELING, REC] =
 		   "RELABELING", "REC"],
                   CONJUNCTS TRANS_rules));
 
-(* Tactics for proofs about the transition relation TRANS, re-defined in CCSSimps *)
+(* Tactics for proofs about the transition relation TRANS *)
 val [PREFIX_TAC, SUM1_TAC, SUM2_TAC,
      PAR1_TAC, PAR2_TAC, PAR3_TAC,
      RESTR_TAC, RELAB_TAC, REC_TAC] = map RULE_TAC (CONJUNCTS TRANS_rules);
@@ -399,12 +400,9 @@ val TRANS_IMP_NO_NIL' = store_thm ("TRANS_IMP_NO_NIL'",
    |- !X u E'. ~TRANS (var X) u E'
  *)
 val VAR_NO_TRANS = save_thm ("VAR_NO_TRANS",
-  ((GEN ``X :'a``) o
-   (GEN ``u :'b Action``) o
-   (GEN ``E :('a, 'b) CCS``) o
-   (REWRITE_RULE [CCS_distinct', CCS_11]) o
-   (SPECL [``var X``, ``u :'b Action``, ``E :('a, 'b) CCS``]))
-      TRANS_cases);
+    Q_GENL [`X`, `u`, `E`]
+	   (REWRITE_RULE [CCS_distinct', CCS_11]
+			 (Q.SPECL [`var X`, `u`, `E`] TRANS_cases)));
 
 (* |- !u E u' E'. TRANS (prefix u E) u' E' = (u' = u) /\ (E' = E) *)
 val TRANS_PREFIX_EQ = save_thm ("TRANS_PREFIX_EQ",
@@ -428,7 +426,7 @@ val TRANS_PREFIX = save_thm ("TRANS_PREFIX", EQ_IMP_LR TRANS_PREFIX_EQ);
 (******************************************************************************)
 
 val SUM_cases_EQ = save_thm ("SUM_cases_EQ",
-    Q.GENL [`D`, `D'`, `u`, `D''`]
+    Q_GENL [`D`, `D'`, `u`, `D''`]
 	 (REWRITE_RULE [CCS_distinct', CCS_11]
 		       (SPECL [``sum D D'``, ``u :'b Action``, ``D'' :('a, 'b) CCS``]
 			      TRANS_cases)));
@@ -530,9 +528,9 @@ val TRANS_P_SUM_P_EQ = store_thm ("TRANS_P_SUM_P_EQ",
 val TRANS_P_SUM_P = save_thm ("TRANS_P_SUM_P", EQ_IMP_LR TRANS_P_SUM_P_EQ);
 
 val PAR_cases_EQ = save_thm ("PAR_cases_EQ",
-    Q.GENL [`D`, `D'`, `u`, `D''`]
+    Q_GENL [`D`, `D'`, `u`, `D''`]
 	(REWRITE_RULE [CCS_distinct', CCS_11]
-		      (SPECL [``par D D'``, ``u :'b Action``, ``D'' :('a, 'b) CCS``] TRANS_cases)));
+		      (Q.SPECL [`par D D'`, `u`, `D''`] TRANS_cases)));
 
 val PAR_cases = save_thm ("PAR_cases", EQ_IMP_LR PAR_cases_EQ);
 
@@ -593,10 +591,9 @@ val TRANS_PAR_NO_SYNCR = store_thm ("TRANS_PAR_NO_SYNCR",
       RW_TAC bool_ss [] ]);
 
 val RESTR_cases_EQ = save_thm ("RESTR_cases_EQ",
-    GENL [``D :('a, 'b) CCS``, ``L :'b Label set``, ``u: 'b Action``, ``D' :('a, 'b) CCS``]
-	 (REWRITE_RULE [CCS_distinct', CCS_11, Action_distinct, Action_11]
-	     (SPECL [``restr (L :'b Label set) D``, ``u :'b Action``, ``D' :('a, 'b) CCS``]
-		    TRANS_cases)));
+    Q_GENL [`D'`, `u`, `L`, `D`]
+	   (REWRITE_RULE [CCS_distinct', CCS_11, Action_distinct, Action_11]
+			 (Q.SPECL [`restr L D`, `u`, `D'`] TRANS_cases)));
 
 val RESTR_cases = save_thm ("RESTR_cases", EQ_IMP_LR RESTR_cases_EQ);
 

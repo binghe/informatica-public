@@ -8,6 +8,8 @@ sig
   include Abbrev
 
   val PAT_X_ASSUM		: term -> thm_tactic -> tactic
+  val qpat_x_assum		: term quotation -> thm_tactic -> tactic
+  val Q_GENL			: Q.tmquote list -> thm -> thm
   val fix			: Q.tmquote list -> tactic
   val set			: Q.tmquote list -> tactic
   val take			: Q.tmquote list -> tactic

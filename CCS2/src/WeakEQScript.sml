@@ -91,7 +91,7 @@ val EPS_INDUCT = store_thm ((* new *)
 		       (!E E1 E'. P E E1 /\ P E1 E' ==> P E E') ==>
 		   !x y. EPS x y ==> P x y``,
     GEN_TAC >> STRIP_TAC
- >> HO_MATCH_MP_TAC EPS_strongind
+ >> HO_MATCH_MP_TAC EPS_ind
  >> REPEAT STRIP_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       ASM_REWRITE_TAC [],
@@ -109,7 +109,7 @@ val EPS_cases = store_thm ((* new *)
  >| [ (* goal 1 (of 2) *)
       Q.SPEC_TAC (`E'`, `E'`) \\
       Q.SPEC_TAC (`E`, `E`) \\
-      HO_MATCH_MP_TAC EPS_strongind \\
+      HO_MATCH_MP_TAC EPS_strongind (* must be strong *) \\
       REPEAT STRIP_TAC >- RW_TAC std_ss [] \\ (* 4 sub-goals here, first is easy *)
       NTAC 2 DISJ2_TAC \\ (* then the rest 3 goals share the same tacticals *)
       Q.EXISTS_TAC `E'` \\
@@ -120,6 +120,12 @@ val EPS_cases = store_thm ((* new *)
       [ IMP_RES_TAC ONE_TAU,
         ASM_REWRITE_TAC [EPS_REFL],
         IMP_RES_TAC EPS_TRANS ] ]);
+
+(******************************************************************************)
+(*                                                                            *)
+(*                             Weak transition                                *)
+(*                                                                            *)
+(******************************************************************************)
 
 (* Define the weak transition relation (double arrow transition). *)
 val WEAK_TRANS = new_definition ("WEAK_TRANS",
@@ -166,7 +172,7 @@ val WEAK_TRANS_TAU_IMP_TRANS_TAU = store_thm ((* NEW *)
  >> NTAC 3 (POP_ASSUM MP_TAC)
  >> Q.SPEC_TAC (`E1`, `E1`)
  >> Q.SPEC_TAC (`E`, `E`)
- >> HO_MATCH_MP_TAC EPS_strongind
+ >> HO_MATCH_MP_TAC EPS_strongind (* must be strong *)
  >> REPEAT STRIP_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
@@ -188,6 +194,70 @@ val EPS_AND_WEAK = store_thm ("EPS_AND_WEAK",
 		 (CONJ (ASSUME ``EPS E E1``) (ASSUME ``EPS E1 E1'``)),
 	MATCH_MP EPS_TRANS
 		 (CONJ (ASSUME ``EPS E2' E2``) (ASSUME ``EPS E2 E'``))]);
+
+(* the two possible cases for the 1st step in WEAK_TRANS *)
+val WEAK_TRANS_cases1 = store_thm ((* NEW *)
+   "WEAK_TRANS_cases1",
+  ``!E u E1. WEAK_TRANS E u E1 ==> (?E'. TRANS E tau E' /\ WEAK_TRANS E' u E1) \/
+				   (?E'. TRANS E u E' /\ EPS E' E1)``,
+    REPEAT STRIP_TAC
+ >> POP_ASSUM (STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS]))
+ >> PAT_X_ASSUM ``TRANS E1' u E2`` MP_TAC
+ >> PAT_X_ASSUM ``EPS E E1'`` MP_TAC
+ >> Q.SPEC_TAC (`E1'`, `E1'`)
+ >> Q.SPEC_TAC (`E`, `E`)
+ >> HO_MATCH_MP_TAC EPS_strongind (* must be strong *)
+ >> REPEAT STRIP_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      DISJ2_TAC \\
+      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
+      (* goal 2 (of 2) *)
+      DISJ1_TAC \\
+      Q.EXISTS_TAC `E'` >> ASM_REWRITE_TAC [] \\
+      REWRITE_TAC [WEAK_TRANS] \\
+      take [`E1'`, `E2`] >> ASM_REWRITE_TAC [] ]);
+
+(* the weak version of SUM1 *)
+val WEAK_SUM1 = store_thm ((* NEW *)
+   "WEAK_SUM1", ``!E u E1 E'. WEAK_TRANS E u E1 ==> WEAK_TRANS (sum E E') u E1``,
+    REPEAT STRIP_TAC
+ >> IMP_RES_TAC WEAK_TRANS_cases1 (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      IMP_RES_TAC SUM1 \\
+      POP_ASSUM (ASSUME_TAC o (Q.SPEC `E'`)) \\
+      POP_ASSUM (ASSUME_TAC o (MATCH_MP ONE_TAU)) \\
+      ASSUME_TAC (Q.SPEC `E1` EPS_REFL) \\
+      IMP_RES_TAC EPS_AND_WEAK,
+      (* goal 2 (of 2) *)
+      IMP_RES_TAC SUM1 \\
+      POP_ASSUM (ASSUME_TAC o (Q.SPEC `E'`)) \\
+      REWRITE_TAC [WEAK_TRANS] \\
+      take [`E + E'`, `E''`] \\
+      ASM_REWRITE_TAC [EPS_REFL] ]);
+
+(* the weak version of SUM2 *)
+val WEAK_SUM2 = store_thm ((* NEW *)
+   "WEAK_SUM2", ``!E u E1 E'. WEAK_TRANS E u E1 ==> WEAK_TRANS (sum E' E) u E1``,
+    REPEAT STRIP_TAC
+ >> IMP_RES_TAC WEAK_TRANS_cases1 (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      IMP_RES_TAC SUM2 \\
+      POP_ASSUM (ASSUME_TAC o (Q.SPEC `E'`)) \\
+      POP_ASSUM (ASSUME_TAC o (MATCH_MP ONE_TAU)) \\
+      ASSUME_TAC (Q.SPEC `E1` EPS_REFL) \\
+      IMP_RES_TAC EPS_AND_WEAK,
+      (* goal 2 (of 2) *)
+      IMP_RES_TAC SUM2 \\
+      POP_ASSUM (ASSUME_TAC o (Q.SPEC `E'`)) \\
+      REWRITE_TAC [WEAK_TRANS] \\
+      take [`E' + E`, `E''`] \\
+      ASM_REWRITE_TAC [EPS_REFL] ]);
+
+(******************************************************************************)
+(*                                                                            *)
+(*                       Weak bisimulation relation                           *)
+(*                                                                            *)
+(******************************************************************************)
 
 (* Define the weak bisimulation relation over CCS agent expressions. *)
 val WEAK_BISIM = new_definition ("WEAK_BISIM",
@@ -312,24 +382,21 @@ val WEAK_TRANS_AUX = store_thm (
  >> STRIP_ASSUME_TAC (REWRITE_RULE [WEAK_TRANS]
 			 (ASSUME ``WEAK_TRANS E (label l) E1``))
  >> STRIP_ASSUME_TAC
-       (MATCH_MP
-	(MATCH_MP EPS_TRANS_AUX (ASSUME ``EPS E E1'``))
-	(CONJ (ASSUME ``WEAK_BISIM Wbsm``)
-	      (ASSUME ``(Wbsm: ('a, 'b) simulation) E E'``)))
+       (MATCH_MP (MATCH_MP EPS_TRANS_AUX (ASSUME ``EPS E E1'``))
+		 (CONJ (ASSUME ``WEAK_BISIM Wbsm``)
+		       (ASSUME ``(Wbsm: ('a, 'b) simulation) E E'``)))
  >> IMP_RES_TAC
-       (MATCH_MP
-	(EQ_MP (SPEC_ALL WEAK_BISIM) (ASSUME ``WEAK_BISIM Wbsm``))
-	(ASSUME ``(Wbsm: ('a, 'b) simulation) E1' E2'``))
+       (MATCH_MP (EQ_MP (SPEC_ALL WEAK_BISIM) (ASSUME ``WEAK_BISIM Wbsm``))
+		 (ASSUME ``(Wbsm: ('a, 'b) simulation) E1' E2'``))
  >> STRIP_ASSUME_TAC
-       (MATCH_MP
-	(MATCH_MP EPS_TRANS_AUX (ASSUME ``EPS E2 E1``))
-	(CONJ (ASSUME ``WEAK_BISIM Wbsm``)
-	      (ASSUME ``(Wbsm: ('a, 'b) simulation) E2 E2''``)))
+       (MATCH_MP (MATCH_MP EPS_TRANS_AUX (ASSUME ``EPS E2 E1``))
+		 (CONJ (ASSUME ``WEAK_BISIM Wbsm``)
+		       (ASSUME ``(Wbsm: ('a, 'b) simulation) E2 E2''``)))
  >> ASSUME_TAC
        (MATCH_MP EPS_AND_WEAK
-	(LIST_CONJ [ASSUME ``EPS E' E2'``,
-		    ASSUME ``WEAK_TRANS E2' (label l) E2''``,
-		    ASSUME ``EPS E2'' E2'''``]))
+		 (LIST_CONJ [ASSUME ``EPS E' E2'``,
+			     ASSUME ``WEAK_TRANS E2' (label l) E2''``,
+			     ASSUME ``EPS E2'' E2'''``]))
  >> EXISTS_TAC ``E2''' :('a, 'b) CCS``
  >> ASM_REWRITE_TAC []);
 
@@ -364,24 +431,22 @@ val COMP_WEAK_BISIM = store_thm (
  >| [ (* goal 1 (of 4) *)
       IMP_RES_TAC TRANS_IMP_WEAK_TRANS \\
       STRIP_ASSUME_TAC
-	(MATCH_MP
-	 (MATCH_MP WEAK_TRANS_AUX (ASSUME ``WEAK_TRANS E (label l) E1``))
-	 (CONJ (ASSUME ``WEAK_BISIM Wbsm1``)
-	       (ASSUME ``(Wbsm1: ('a, 'b) simulation) E y``))) \\
+	(MATCH_MP (MATCH_MP WEAK_TRANS_AUX (ASSUME ``WEAK_TRANS E (label l) E1``))
+		  (CONJ (ASSUME ``WEAK_BISIM Wbsm1``)
+			(ASSUME ``(Wbsm1: ('a, 'b) simulation) E y``))) \\
       STRIP_ASSUME_TAC
-	(MATCH_MP
-	 (MATCH_MP WEAK_TRANS_AUX (ASSUME ``WEAK_TRANS y (label l) E2``))
-	 (CONJ (ASSUME ``WEAK_BISIM Wbsm2``)
-	       (ASSUME ``(Wbsm2: ('a, 'b) simulation) y E'``))) \\
+	(MATCH_MP (MATCH_MP WEAK_TRANS_AUX (ASSUME ``WEAK_TRANS y (label l) E2``))
+		  (CONJ (ASSUME ``WEAK_BISIM Wbsm2``)
+			(ASSUME ``(Wbsm2: ('a, 'b) simulation) y E'``))) \\
       Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [] \\
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
       (* goal 2 (of 4) *)
       IMP_RES_TAC TRANS_IMP_WEAK_TRANS \\ 
       STRIP_ASSUME_TAC
-	(MATCH_MP
-	 (MATCH_MP WEAK_TRANS_AUX_SYM (ASSUME ``WEAK_TRANS E' (label l) E2``))
-	 (CONJ (ASSUME ``WEAK_BISIM Wbsm2``)
-	       (ASSUME ``(Wbsm2: ('a, 'b) simulation) y E'``))) \\
+	(MATCH_MP (MATCH_MP WEAK_TRANS_AUX_SYM
+			    (ASSUME ``WEAK_TRANS E' (label l) E2``))
+		  (CONJ (ASSUME ``WEAK_BISIM Wbsm2``)
+			(ASSUME ``(Wbsm2: ('a, 'b) simulation) y E'``))) \\
       STRIP_ASSUME_TAC
 	(MATCH_MP
 	 (MATCH_MP WEAK_TRANS_AUX_SYM (ASSUME ``WEAK_TRANS y (label l) E2'``))
@@ -574,6 +639,11 @@ val OBS_EQUIV_SUBST_PREFIX = store_thm (
 val STABLE = new_definition ("STABLE",
   ``STABLE E = (!u E'. TRANS E u E' ==> ~(u = tau))``);
 
+(* Every process is either stable or not *)
+val STABLE_cases = store_thm (
+   "STABLE_cases", ``!E. STABLE E \/ ~(STABLE E)``,
+    PROVE_TAC [STABLE]);
+
 (* Properties of stable agents with respect to the epsilon and weak transition
    relations. *)
 val EPS_STABLE = store_thm ("EPS_STABLE",
@@ -593,6 +663,10 @@ val EPS_STABLE = store_thm ("EPS_STABLE",
 	[MATCH_MP (REWRITE_RULE [ASSUME ``E1 = E: ('a, 'b) CCS``]
 				(ASSUME ``STABLE E1 ==> (E' = E1)``))
 		  (ASSUME ``STABLE E``)] ]); 
+
+val EPS_STABLE' = store_thm (
+   "EPS_STABLE'", ``!E E'. EPS E E' /\ STABLE E ==> (E' = E)``,
+    PROVE_TAC [EPS_STABLE]);
 
 val WEAK_TRANS_STABLE = store_thm (
    "WEAK_TRANS_STABLE",
@@ -801,8 +875,8 @@ val EPS_PAR = store_thm ("EPS_PAR",
 
 val EPS_PAR_PAR = store_thm (
    "EPS_PAR_PAR",
-      ``!E1 E2 F1 F2.
-	 EPS E1 E2 /\ EPS F1 F2 ==> EPS (par E1 F1) (par E2 F2)``,
+  ``!E1 E2 F1 F2.
+	EPS E1 E2 /\ EPS F1 F2 ==> EPS (par E1 F1) (par E2 F2)``,
     REPEAT STRIP_TAC
  >> MATCH_MP_TAC EPS_TRANS
  >> EXISTS_TAC ``par E2 F1``
@@ -811,7 +885,7 @@ val EPS_PAR_PAR = store_thm (
 
 (* The relation WEAK_TRANS is preserved by the parallel operator. *)
 val WEAK_PAR = store_thm ("WEAK_PAR",
-      ``!E u E'.
+  ``!E u E'.
 	 WEAK_TRANS E u E' ==>
 	 !E''. WEAK_TRANS (par E E'') u (par E' E'') /\
 	       WEAK_TRANS (par E'' E) u (par E'' E')``,
@@ -834,9 +908,9 @@ val WEAK_PAR = store_thm ("WEAK_PAR",
 (* Observation equivalence is preserved by parallel operator. *)
 val OBS_EQUIV_PRESD_BY_PAR = store_thm (
    "OBS_EQUIV_PRESD_BY_PAR",
-      ``!E1 E1' E2 E2'.
-	 OBS_EQUIV E1 E1' /\ OBS_EQUIV E2 E2' ==>
-	 OBS_EQUIV (par E1 E2) (par E1' E2')``,
+  ``!E1 E1' E2 E2'.
+	OBS_EQUIV E1 E1' /\ OBS_EQUIV E2 E2' ==>
+	OBS_EQUIV (par E1 E2) (par E1' E2')``,
     REPEAT STRIP_TAC
  >> PURE_ONCE_REWRITE_TAC [OBS_EQUIV]
  >> EXISTS_TAC ``\x y.
@@ -1039,7 +1113,7 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
  *)
 val OBS_EQUIV_SUBST_PAR_R = save_thm (
    "OBS_EQUIV_SUBST_PAR_R",
-    Q.GENL [`E'`, `E`]
+    Q_GENL [`E`, `E'`]
       (DISCH ``OBS_EQUIV E E'``
 	(Q.GEN `E''`
 	   (MATCH_MP OBS_EQUIV_PRESD_BY_PAR
@@ -1051,7 +1125,7 @@ val OBS_EQUIV_SUBST_PAR_R = save_thm (
  *)
 val OBS_EQUIV_SUBST_PAR_L = save_thm (
    "OBS_EQUIV_SUBST_PAR_L",
-    Q.GENL [`E'`, `E`]
+    Q_GENL [`E`, `E'`]
       (DISCH ``OBS_EQUIV E E'``
 	(Q.GEN `E''`
 	   (MATCH_MP OBS_EQUIV_PRESD_BY_PAR
@@ -1116,8 +1190,7 @@ val WEAK_RESTR_tau = store_thm (
 (* Observation equivalence is substitutive under restriction operator. *)
 val OBS_EQUIV_SUBST_RESTR = store_thm (
    "OBS_EQUIV_SUBST_RESTR",
-      ``!E E'.
-	 OBS_EQUIV E E' ==> !L. OBS_EQUIV (restr L E) (restr L E')``,
+  ``!E E'. OBS_EQUIV E E' ==> !L. OBS_EQUIV (restr L E) (restr L E')``,
     REPEAT STRIP_TAC
  >> PURE_ONCE_REWRITE_TAC [OBS_EQUIV]
  >> EXISTS_TAC ``\x y. ?E1 E2 L'. (x = restr L' E1) /\ (y = restr L' E2) /\
@@ -1246,7 +1319,7 @@ val EPS_RELAB_rf = store_thm (
 
 (* The relation WEAK_TRANS is preserved by the relabelling operator. *)
 val WEAK_RELAB = store_thm ("WEAK_RELAB",
-  ``!E (u :'b Action) E'.
+  ``!E u E'.
        WEAK_TRANS E u E' ==>
 	!(labl :('b Label # 'b Label) list).
 	  WEAK_TRANS (relab E (RELAB labl))
@@ -1264,7 +1337,7 @@ val WEAK_RELAB = store_thm ("WEAK_RELAB",
 
 val WEAK_RELAB_rf = store_thm (
    "WEAK_RELAB_rf",
-  ``!E (u :'b Action) E'.
+  ``!E u E'.
        WEAK_TRANS E u E' ==>
 	!(rf :'b Relabeling). WEAK_TRANS (relab E rf) (relabel rf u) (relab E' rf)``,
     REPEAT GEN_TAC
@@ -1402,7 +1475,7 @@ val STRONG_IMP_WEAK_BISIM = store_thm (
 (* Prove that strong equivalence implies weak/observation equivalence. *) 
 val STRONG_IMP_OBS_EQUIV = store_thm (
    "STRONG_IMP_OBS_EQUIV",
- ``!E E'. STRONG_EQUIV E E' ==> OBS_EQUIV E E'``,
+  ``!E E'. STRONG_EQUIV E E' ==> OBS_EQUIV E E'``,
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_EQUIV, WEAK_EQUIV]
  >> STRIP_TAC

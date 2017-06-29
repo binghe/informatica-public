@@ -17,9 +17,12 @@ endif
 
 all: $(TARGETS) munge.exe
 
-munge.exe: CCSTheory.sig StrongEQTheory.sig StrongLawsTheory.sig WeakEQTheory.sig ObsCongrTheory.sig
+munge.exe: CCSTheory.sig StrongEQTheory.sig StrongLawsTheory.sig WeakEQTheory.sig \
+		WeakLawsTheory.sig ObsCongrTheory.sig ObsCongrLawsTheory.sig \
+		CoarsestTheory.sig
 	$(HOLDIR)/bin/mkmunge.exe CCSTheory StrongEQTheory StrongLawsTheory \
-		WeakEQTheory ObsCongrTheory
+		WeakEQTheory WeakLawsTheory ObsCongrTheory ObsCongrLawsTheory \
+		CoarsestTheory
 
 #ifeq ($(KERNELID),otknl)
 #all: $(patsubst %Script.sml,%.ot.art,$(wildcard *Script.sml))

@@ -7,9 +7,9 @@ structure StrongEQLib :> StrongEQLib =
 struct
 
 open HolKernel Parse boolLib bossLib;
-open stringLib PFset_conv IndDefRules;
-open CCSLib CCSTheory CCSSyntax
-open StrongEQTheory;
+
+open IndDefRules;
+open CCSLib CCSTheory CCSSyntax StrongEQTheory;
 
 infixr 0 S_THENC S_ORELSEC;
 
@@ -34,7 +34,7 @@ fun S_TRANS thm1 thm2 =
 
 (* When applied to a term "t: CCS", the conversion S_ALL_CONV returns the
    theorem: |- STRONG_EQUIV t t *)
-fun S_ALL_CONV t = SPEC t STRONG_EQUIV_REFL;
+fun S_ALL_CONV t = ISPEC t STRONG_EQUIV_REFL;
 
 fun op S_THENC ((c1, c2) :conv * conv) :conv =
   fn t => let
@@ -60,7 +60,7 @@ fun S_LHS_CONV_TAC (c :conv) :tactic =
 	      val (t1', t') = args_thm thm (* t1' = t1 *)
 	  in
 	      if (t' = t2) then
-		  ([], fn [] => S_TRANS thm (SPEC t' STRONG_EQUIV_REFL))
+		  ([], fn [] => S_TRANS thm (ISPEC t' STRONG_EQUIV_REFL))
 	      else
 		  ([(asl, ``STRONG_EQUIV ^t' ^t2``)],
 		   fn [thm'] => S_TRANS thm thm')
@@ -89,7 +89,8 @@ fun S_RHS_CONV_TAC (c :conv) :tactic =
 
 (******************************************************************************)
 (*									      *)
-(* Basic conversions and tactics for applying the laws for strong equivalence *)
+(*          Basic conversions and tactics for applying the laws for	      *)
+(*                strong equivalence					      *)
 (*									      *)
 (******************************************************************************)
 
@@ -98,7 +99,7 @@ fun S_SUB_CONV (c :conv) tm =
       let val (u, P) = args_prefix tm;
 	  val thm = c P
       in
-	  SPEC u (MATCH_MP STRONG_EQUIV_SUBST_PREFIX thm)
+	  ISPEC u (MATCH_MP STRONG_EQUIV_SUBST_PREFIX thm)
       end
   else if is_sum tm then
       let val (t1, t2) = args_sum tm;
@@ -118,13 +119,13 @@ fun S_SUB_CONV (c :conv) tm =
       let val (P, L) = args_restr tm;
 	  val thm = c P
       in
-	  SPEC L (MATCH_MP STRONG_EQUIV_SUBST_RESTR thm)
+	  ISPEC L (MATCH_MP STRONG_EQUIV_SUBST_RESTR thm)
       end
   else if is_relab tm then
       let val (P, rf) = args_relab tm;
 	  val thm = c P
       in
-	  SPEC rf (MATCH_MP STRONG_EQUIV_SUBST_RELAB thm)
+	  ISPEC rf (MATCH_MP STRONG_EQUIV_SUBST_RELAB thm)
       end
   else
       S_ALL_CONV tm;
@@ -147,7 +148,7 @@ in
 	let val (u, t) = args_prefix tm;
 	    val thm1 = S_SUBST thm t
 	in
-	    SPEC u (MATCH_MP STRONG_EQUIV_SUBST_PREFIX thm1)
+	    ISPEC u (MATCH_MP STRONG_EQUIV_SUBST_PREFIX thm1)
 	end
     else if is_sum tm then
 	let val (t1, t2) = args_sum tm;
@@ -167,13 +168,13 @@ in
 	let val (t, L) = args_restr tm;
 	    val thm1 = S_SUBST thm t
 	in
-	    SPEC L (MATCH_MP STRONG_EQUIV_SUBST_RESTR thm1)
+	    ISPEC L (MATCH_MP STRONG_EQUIV_SUBST_RESTR thm1)
 	end
     else if is_relab tm then
 	let val (t, rf) = args_relab tm;
 	    val thm1 = S_SUBST thm t
 	in
-	    SPEC rf (MATCH_MP STRONG_EQUIV_SUBST_RELAB thm1)
+	    ISPEC rf (MATCH_MP STRONG_EQUIV_SUBST_RELAB thm1)
 	end
     else
 	S_ALL_CONV tm
@@ -190,9 +191,10 @@ fun S_LHS_SUBST1_TAC thm :tactic =
 	      val (t1', t') = args_thm thm' (* t1' = t1 *)
 	  in
 	      if (t' = t2) then
-		  ([], fn [] => S_TRANS thm' (SPEC t' STRONG_EQUIV_REFL))
+		  ([], fn [] => S_TRANS thm' (ISPEC t' STRONG_EQUIV_REFL))
 	      else
-		  ([(asl, ``STRONG_EQUIV ^t' ^t2``)], fn [thm''] => S_TRANS thm' thm'')
+		  ([(asl, ``STRONG_EQUIV ^t' ^t2``)],
+		   fn [thm''] => S_TRANS thm' thm'')
 	  end
       else
 	  failwith "the goal is not a STRONG_EQUIV relation"

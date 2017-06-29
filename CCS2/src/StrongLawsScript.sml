@@ -1181,7 +1181,7 @@ val STRONG_PREF_REC_EQUIV = store_thm (
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_EQUIV]
  >> EXISTS_TAC 
-       ``\x y. 
+     ``\x y. 
 	(?u' v' s'.  
 	  (x = prefix u' (rec s' (prefix v' (prefix u' (var s'))))) /\ 
 	  (y = rec s' (prefix u' (prefix v' (var s')))) \/ 
@@ -1204,14 +1204,15 @@ val STRONG_PREF_REC_EQUIV = store_thm (
 	CONJ_TAC >| (* 2 sub-goals here *)
 	[ (* goal 2.1.1 (of 2) *)
 	  ASM_REWRITE_TAC [] \\
-	  MATCH_MP_TAC REC >> REWRITE_TAC [CCS_Subst_def, PREFIX],
+	  MATCH_MP_TAC REC \\
+	  REWRITE_TAC [CCS_Subst_def, PREFIX],
 	  (* goal 2.1.2 (of 2) *)
 	  take [`u'`, `v'`, `s'`] >> ASM_REWRITE_TAC [] ],
 	(* goal 2.2 (of 4) *)
 	ASSUME_TAC (REWRITE_RULE
 		     [ASSUME ``E' = rec s' (prefix u' (prefix v' (var s')))``,
 		      TRANS_REC_EQ, CCS_Subst_def]
-			    (ASSUME ``TRANS E' u E2``)) \\
+		     (ASSUME ``TRANS E' u E2``)) \\
 	IMP_RES_TAC TRANS_PREFIX \\
 	EXISTS_TAC ``rec s' (prefix v' (prefix u (var s')))`` \\
 	CONJ_TAC >| (* 2 sub-goals here, first one is easy *)
@@ -1226,7 +1227,7 @@ val STRONG_PREF_REC_EQUIV = store_thm (
 	ASSUME_TAC (REWRITE_RULE
 		     [ASSUME ``E = rec s' (prefix v' (prefix u' (var s')))``,
 		      TRANS_REC_EQ, CCS_Subst_def]
-			    (ASSUME ``TRANS E u E1``)) \\
+		     (ASSUME ``TRANS E u E1``)) \\
 	IMP_RES_TAC TRANS_PREFIX \\
 	EXISTS_TAC ``rec s' (prefix u' (prefix v' (var s')))`` \\
 	CONJ_TAC >| (* 2 sub-goals here, first one is easy *)
@@ -1236,10 +1237,11 @@ val STRONG_PREF_REC_EQUIV = store_thm (
 	  take [`u'`, `v'`, `s'`] >> ASM_REWRITE_TAC [] ],
 	(* goal 2.4 (of 4) *)
 	ASSUME_TAC (REWRITE_RULE
-	     [ASSUME ``E' = prefix v' (rec s' (prefix u' (prefix v' (var s'))))``]
-				 (ASSUME ``TRANS E' u E2``)) \\
+		     [ASSUME ``E' = prefix v' (rec s' (prefix u' (prefix v' (var s'))))``]
+		     (ASSUME ``TRANS E' u E2``)) \\
 	IMP_RES_TAC TRANS_PREFIX \\
-	EXISTS_TAC ``prefix (u' :'b Action) (rec s' (prefix v' (prefix u' (var s'))))`` \\
+	EXISTS_TAC ``prefix (u' :'b Action)
+			    (rec s' (prefix v' (prefix u' (var s'))))`` \\
 	CONJ_TAC >| (* 2 sub-goals here *)
 	[ (* goal 2.4.1 (of 2) *)
 	  ASM_REWRITE_TAC [] \\
@@ -1259,7 +1261,7 @@ val STRONG_REC_ACT2 = store_thm (
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_EQUIV]
  >> EXISTS_TAC
-       ``\x y.
+      ``\x y.
 	 (?s' u'.
 	  (x = rec s' (prefix u' (prefix u' (var s')))) /\
 	  (y = rec s' (prefix u' (var s'))) \/
@@ -1275,9 +1277,10 @@ val STRONG_REC_ACT2 = store_thm (
       BETA_TAC \\
       REPEAT STRIP_TAC >| (* 4 sub-goals *)
       [ (* goal 2.1 (of 4) *)
-	ASSUME_TAC (REWRITE_RULE [ASSUME ``E = rec s' (prefix u' (prefix u' (var s')))``,
-				  TRANS_REC_EQ, CCS_Subst_def]
-				 (ASSUME ``TRANS E u E1``)) \\
+	ASSUME_TAC
+	  (REWRITE_RULE [ASSUME ``E = rec s' (prefix u' (prefix u' (var s')))``,
+			 TRANS_REC_EQ, CCS_Subst_def]
+			(ASSUME ``TRANS E u E1``)) \\
 	IMP_RES_TAC TRANS_PREFIX >> EXISTS_TAC ``E' :('a, 'b) CCS`` \\
 	CONJ_TAC >| (* 2 sub-goals here *)
 	[ (* goal 2.1.1 (of 2) *)
@@ -1301,14 +1304,16 @@ val STRONG_REC_ACT2 = store_thm (
 	  EXISTS_TAC ``u': 'b Action`` \\
 	  ASM_REWRITE_TAC [] ],
 	(* goal 2.3 (of 4) *)
-	ASSUME_TAC (REWRITE_RULE
-			[ASSUME ``E = prefix u' (rec s' (prefix u' (prefix u' (var s'))))``]
-			(ASSUME ``TRANS E u E1``)) \\
+	ASSUME_TAC
+	  (REWRITE_RULE
+	       [ASSUME ``E = prefix u' (rec s' (prefix u' (prefix u' (var s'))))``]
+	       (ASSUME ``TRANS E u E1``)) \\
 	IMP_RES_TAC TRANS_PREFIX >> EXISTS_TAC ``E' :('a, 'b) CCS`` \\
 	CONJ_TAC >| (* 2 sub-goals here *)
 	[ (* goal 2.3.1 (of 2) *)
 	  ASM_REWRITE_TAC [] \\
-	  MATCH_MP_TAC REC >> REWRITE_TAC [CCS_Subst_def, PREFIX],
+	  MATCH_MP_TAC REC \\
+	  REWRITE_TAC [CCS_Subst_def, PREFIX],
 	  (* goal 2.3.2 (of 2) *)
 	  EXISTS_TAC ``s': 'a`` \\
 	  EXISTS_TAC ``u': 'b Action`` \\
@@ -1510,7 +1515,7 @@ val SIGMA_TRANS_THM_EQ = store_thm (
 	  (* goal 2.2.2 (of 2) *)
 	  DISJ2_TAC \\
 	  REWRITE_TAC [REWRITE_RULE [ASSUME ``k = SUC n``]
-				    (ASSUME ``TRANS ((f: num -> ('a, 'b) CCS) k) u E``)] ] ] ]);
+			(ASSUME ``TRANS ((f: num -> ('a, 'b) CCS) k) u E``)] ] ] ]);
 
 (* SIGMA_TRANS_THM =
  |- ∀u n f E. SIGMA f n --u-> E ⇒ ∃k. k ≤ n ∧ f k --u-> E
@@ -1533,7 +1538,8 @@ val SYNC_TRANS_THM_EQ = store_thm (
 	REWRITE_TAC [NIL_NO_TRANS] \\
 	STRIP_TAC \\
 	DISJ_CASES_TAC
-	  (ASSUME ``((u :'b Action) = tau) \/ (PREF_ACT ((f: num -> ('a, 'b) CCS) 0) = tau)``)
+	  (ASSUME ``((u :'b Action) = tau) \/
+		    (PREF_ACT ((f: num -> ('a, 'b) CCS) 0) = tau)``)
 	>| (* 2 sub-goals here *)
 	[ (* goal 1.1.1 (of 2) *)
 	  ASSUME_TAC (REWRITE_RULE [ASSUME ``(u :'b Action) = tau``]
@@ -1541,15 +1547,16 @@ val SYNC_TRANS_THM_EQ = store_thm (
 	  IMP_RES_TAC Action_distinct,
 	  (* goal 1.1.2 (of 2) *)
 	  CHECK_ASSUME_TAC
-		(REWRITE_RULE [ASSUME ``j = (0 :num)``,
-			       ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) 0) = tau``,
-			       Action_distinct]
-			(ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) j) = label (COMPL l)``)) ],
+	    (REWRITE_RULE [ASSUME ``j = (0 :num)``,
+			   ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) 0) = tau``,
+			   Action_distinct]
+		(ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) j) = label (COMPL l)``)) ],
 	(* goal 1.2 (of 2) *)
 	STRIP_ASSUME_TAC
 	 (REWRITE_RULE [DE_MORGAN_THM]
-	  (ASSUME ``~(((u :'b Action) = tau) \/ (PREF_ACT ((f: num -> ('a, 'b) CCS) 0) = tau))``)) \\
-	IMP_RES_TAC Action_not_tau_is_Label \\
+		       (ASSUME ``~(((u :'b Action) = tau) \/
+				 (PREF_ACT ((f: num -> ('a, 'b) CCS) 0) = tau))``)) \\
+	IMP_RES_TAC Action_no_tau_is_Label \\
 	ASM_REWRITE_TAC [LABEL_def] \\
 	COND_CASES_TAC >| (* 2 sub-goals here *)
 	[ (* goal 1.2.1 (of 2) *)
@@ -1566,9 +1573,10 @@ val SYNC_TRANS_THM_EQ = store_thm (
 	  (* goal 1.2.2 (of 2) *)
 	  REWRITE_TAC [NIL_NO_TRANS] \\
 	  STRIP_TAC \\ 
-	  ASSUME_TAC (REWRITE_RULE [ASSUME ``j = (0 :num)``,
-				    ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) 0) = label L``]
-			(ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) j) = label (COMPL l)``)) \\
+	  ASSUME_TAC
+	    (REWRITE_RULE [ASSUME ``j = (0 :num)``,
+			   ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) 0) = label L``]
+		(ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) j) = label (COMPL l)``)) \\
 	  IMP_RES_TAC Action_11 \\
 	  CHECK_ASSUME_TAC 
 		(REWRITE_RULE [ ASSUME ``L = COMPL (l :'b Label)``, COMPL_COMPL_LAB,
@@ -1613,16 +1621,17 @@ val SYNC_TRANS_THM_EQ = store_thm (
 	      ASM_REWRITE_TAC [],
 	      (* goal 2.1.2.2.2 (of 2) *)
 	      CHECK_ASSUME_TAC
-		(REWRITE_RULE [ASSUME ``j = SUC m``,
-			       ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) (SUC m)) = tau``,
-			       Action_distinct]
-			(ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) j) = label (COMPL l)``)) ] ] ],
+		(REWRITE_RULE
+		    [ASSUME ``j = SUC m``,
+		     ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) (SUC m)) = tau``,
+		     Action_distinct]
+		  (ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) j) = label (COMPL l)``)) ]]],
 	(* goal 2.2 (of 2) *)
-	STRIP_ASSUME_TAC 
-	 (REWRITE_RULE [DE_MORGAN_THM]
-	   (ASSUME ``~(((u :'b Action) = tau) \/
-		       (PREF_ACT ((f : num -> ('a, 'b) CCS) (SUC m)) = tau))``)) \\
-	IMP_RES_TAC Action_not_tau_is_Label \\
+	STRIP_ASSUME_TAC
+	    (REWRITE_RULE [DE_MORGAN_THM]
+		(ASSUME ``~(((u :'b Action) = tau) \/
+			    (PREF_ACT ((f : num -> ('a, 'b) CCS) (SUC m)) = tau))``)) \\
+	IMP_RES_TAC Action_no_tau_is_Label \\
 	ASM_REWRITE_TAC [LABEL_def] \\
 	COND_CASES_TAC >| (* 2 sub-goals here *)
 	[ (* goal 2.2.1 (of 2) *)
@@ -1659,9 +1668,9 @@ val SYNC_TRANS_THM_EQ = store_thm (
 	      (* goal 2.2.1.2.2 (of 2) *)
 	      MATCH_MP_TAC SUM1 \\
 	      ASM_REWRITE_TAC
-		[ REWRITE_RULE [ASSUME ``j = SUC m``]
-			       (ASSUME ``Q = par P (PREF_PROC ((f: num -> ('a, 'b) CCS) j))``),
-		  PREFIX ] ] ],
+		[REWRITE_RULE [ASSUME ``j = SUC m``]
+		   (ASSUME ``Q = par P (PREF_PROC ((f: num -> ('a, 'b) CCS) j))``),
+		 PREFIX] ] ],
 	  (* goal 2.2.2 (of 2) *)
 	  ASM_REWRITE_TAC [] \\
 	  EQ_TAC >| (* 2 sub-goals here *)
@@ -1679,9 +1688,10 @@ val SYNC_TRANS_THM_EQ = store_thm (
 	      ASM_REWRITE_TAC [],
 	      (* goal 2.2.2.2.2 (of 2) *)
 	      ASSUME_TAC
-		(REWRITE_RULE [ASSUME ``j = SUC m``,
-			       ASSUME ``PREF_ACT ((f :num -> ('a, 'b) CCS) (SUC m)) = label L``]
-			      (ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) j) = label (COMPL l)``)) \\
+		(REWRITE_RULE
+		  [ASSUME ``j = SUC m``,
+		   ASSUME ``PREF_ACT ((f :num -> ('a, 'b) CCS) (SUC m)) = label L``]
+		  (ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) j) = label (COMPL l)``)) \\
 	      IMP_RES_TAC Action_11 \\
 	      CHECK_ASSUME_TAC
 		(REWRITE_RULE [ASSUME ``L = COMPL (l :'b Label)``, COMPL_COMPL_LAB,
@@ -1700,13 +1710,14 @@ val SYNC_TRANS_THM = save_thm (
 
 val ALL_SYNC_TRANS_THM_EQ = store_thm (
    "ALL_SYNC_TRANS_THM_EQ",
-      ``!n m f f' u E.
+  ``!n m f f' u E.
 	 TRANS (ALL_SYNC f n f' m) u E =
 	 (?k k' l.
 	   k <= n /\ k' <= m /\
 	   (PREF_ACT (f k) = label l) /\ 
 	   (PREF_ACT (f' k') = label (COMPL l)) /\
-	   (u = tau) /\ (E = par (PREF_PROC (f k)) (PREF_PROC (f' k'))))``, 
+	   (u = tau) /\
+	   (E = par (PREF_PROC (f k)) (PREF_PROC (f' k'))))``, 
     Induct_on `n` (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       REPEAT GEN_TAC \\
@@ -1718,11 +1729,13 @@ val ALL_SYNC_TRANS_THM_EQ = store_thm (
 	ASM_REWRITE_TAC [],
 	(* goal 1.2 (of 2) *)
 	STRIP_TAC \\
-	ASSUME_TAC (REWRITE_RULE [ASSUME ``k = (0 :num)``]
-				 (ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) k) = label l``)) \\
-	ASSUME_TAC (REWRITE_RULE [ASSUME ``k = (0 :num)``]
-				 (ASSUME ``E = par (PREF_PROC ((f: num -> ('a, 'b) CCS) k))
-						   (PREF_PROC ((f': num -> ('a, 'b) CCS) k'))``)) \\
+	ASSUME_TAC
+	  (REWRITE_RULE [ASSUME ``k = (0 :num)``]
+		(ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) k) = label l``)) \\
+	ASSUME_TAC
+	  (REWRITE_RULE [ASSUME ``k = (0 :num)``]
+		(ASSUME ``E = par (PREF_PROC ((f: num -> ('a, 'b) CCS) k))
+				  (PREF_PROC ((f': num -> ('a, 'b) CCS) k'))``)) \\
 	take [`k'`, `l`] \\
 	ASM_REWRITE_TAC [] ],
       (* goal 2 (of 2), inductive case *)
@@ -1745,15 +1758,14 @@ val ALL_SYNC_TRANS_THM_EQ = store_thm (
 			(E = par (PREF_PROC (f k)) (PREF_PROC (f' k'))))``))
 	     (ASSUME ``TRANS (ALL_SYNC f n f' m) u E``)) \\  
 	  IMP_RES_TAC LESS_EQ_LESS_EQ_SUC \\
-	  take [`k`, `k'`, `l`] \\
-	  ASM_REWRITE_TAC [],
+	  take [`k`, `k'`, `l`] >> ASM_REWRITE_TAC [],
 	  (* goal 2.1.2 (of 2) *)
 	  IMP_RES_TAC SYNC_TRANS_THM \\
 	  take [`SUC n`, `j`, `l`] \\
 	  ASM_REWRITE_TAC [LESS_EQ_REFL] ],
 	(* goal 2.2 (of 2) *)
 	STRIP_TAC \\
-	IMP_RES_TAC (SPECL [``k: num``, ``SUC n``] LESS_OR_EQ) >| (* 2 sub-goals here *)
+	IMP_RES_TAC (Q.SPECL [`k`, `SUC n`] LESS_OR_EQ) >| (* 2 sub-goals here *)
 	[ (* goal 2.2.1 (of 2) *)
 	  DISJ1_TAC \\
 	  PURE_ONCE_ASM_REWRITE_TAC [] \\
@@ -1763,11 +1775,13 @@ val ALL_SYNC_TRANS_THM_EQ = store_thm (
 	  (* goal 2.2.2 (of 2) *)
 	  DISJ2_TAC \\
 	  ASM_REWRITE_TAC [SYNC_TRANS_THM_EQ] \\
-	  ASSUME_TAC (REWRITE_RULE [ASSUME ``k = SUC n``]
-				   (ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) k) = label l``)) \\
-	  ASSUME_TAC (REWRITE_RULE [ASSUME ``k = SUC n``]
-				   (ASSUME ``E = par (PREF_PROC ((f: num -> ('a, 'b) CCS) k))
-						     (PREF_PROC ((f': num -> ('a, 'b) CCS) k'))``)) \\
+	  ASSUME_TAC
+	    (REWRITE_RULE [ASSUME ``k = SUC n``]
+		(ASSUME ``PREF_ACT ((f: num -> ('a, 'b) CCS) k) = label l``)) \\
+	  ASSUME_TAC
+	    (REWRITE_RULE [ASSUME ``k = SUC n``]
+		(ASSUME ``E = par (PREF_PROC ((f: num -> ('a, 'b) CCS) k))
+				  (PREF_PROC ((f': num -> ('a, 'b) CCS) k'))``)) \\
 	  take [`k'`, `l`] \\
 	  ASM_REWRITE_TAC [] ] ] ]);
 
@@ -1792,8 +1806,8 @@ val ALL_SYNC_TRANS_THM = save_thm (
      SIGMA (λj. PREF_ACT (f' j)..(SIGMA f n || PREF_PROC (f' j))) m +
      ALL_SYNC f n f' m:
  *)
-val STRONG_PAR_LAW = store_thm (
-   "STRONG_PAR_LAW",
+val STRONG_EXPANSION_LAW = store_thm (
+   "STRONG_EXPANSION_LAW",
       ``!f n f' m.
 	 (!i. i <= n ==> Is_Prefix (f i)) /\ (!j. j <= m ==> Is_Prefix (f' j)) ==>
 	 STRONG_EQUIV
@@ -1854,12 +1868,12 @@ val STRONG_PAR_LAW = store_thm (
 	  IMP_RES_TAC SIGMA_TRANS_THM \\
 	  EXISTS_TAC ``k: num`` \\ 
 	  STRIP_ASSUME_TAC
-	   (REWRITE_RULE [Is_Prefix_def]
-	     (MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> Is_Prefix (f1 i)``) 
-		       (ASSUME ``(k: num) <= n1``))) \\
+	    (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> Is_Prefix (f1 i)``) 
+			  (ASSUME ``(k: num) <= n1``))) \\
 	  ASSUME_TAC
-	   (REWRITE_RULE [ASSUME ``(f1: num -> ('a, 'b) CCS) k = prefix u' E''``]
-			 (ASSUME ``TRANS ((f1: num -> ('a, 'b) CCS) k) u E1'``)) \\
+	    (REWRITE_RULE [ASSUME ``(f1: num -> ('a, 'b) CCS) k = prefix u' E''``]
+			  (ASSUME ``TRANS ((f1: num -> ('a, 'b) CCS) k) u E1'``)) \\
 	  IMP_RES_TAC TRANS_PREFIX \\ 
 	  ASM_REWRITE_TAC [PREF_ACT_def, PREF_PROC_def, PREFIX],
 	  (* goal 3.2 (of 3) *)
@@ -1870,12 +1884,12 @@ val STRONG_PAR_LAW = store_thm (
 	  IMP_RES_TAC SIGMA_TRANS_THM \\
 	  EXISTS_TAC ``k: num`` \\ 
 	  STRIP_ASSUME_TAC
-	   (REWRITE_RULE [Is_Prefix_def]
-	     (MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
-		       (ASSUME ``(k :num) <= m2``))) \\
+	    (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
+			  (ASSUME ``(k :num) <= m2``))) \\
 	  ASSUME_TAC
-	   (REWRITE_RULE [ASSUME ``(f2: num -> ('a, 'b) CCS) k = prefix u' E''``]
-			 (ASSUME ``TRANS ((f2: num -> ('a, 'b) CCS) k) u E1'``)) \\
+	    (REWRITE_RULE [ASSUME ``(f2: num -> ('a, 'b) CCS) k = prefix u' E''``]
+		(ASSUME ``TRANS ((f2: num -> ('a, 'b) CCS) k) u E1'``)) \\
 	  IMP_RES_TAC TRANS_PREFIX \\
 	  ASM_REWRITE_TAC [PREF_ACT_def, PREF_PROC_def, PREFIX],
 	  (* goal 3.3 (of 3) *)
@@ -1883,19 +1897,19 @@ val STRONG_PAR_LAW = store_thm (
 	  ASM_REWRITE_TAC [ALL_SYNC_TRANS_THM_EQ] \\
 	  IMP_RES_TAC SIGMA_TRANS_THM \\
 	  STRIP_ASSUME_TAC
-	   (REWRITE_RULE [Is_Prefix_def]
-	     (MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
-		       (ASSUME ``(k :num) <= m2``))) \\
+	    (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
+				    (ASSUME ``(k :num) <= m2``))) \\
 	  STRIP_ASSUME_TAC
-	   (REWRITE_RULE [Is_Prefix_def]
-	     (MATCH_MP (ASSUME ``!(i :num). i <= n1 ==> Is_Prefix (f1 i)``)
-		       (ASSUME ``(k' :num) <= n1``))) \\
+	    (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(i :num). i <= n1 ==> Is_Prefix (f1 i)``)
+			  (ASSUME ``(k' :num) <= n1``))) \\
 	  ASSUME_TAC
-	   (REWRITE_RULE [ASSUME ``(f2: num -> ('a, 'b) CCS) k = prefix u' E''``]
-	     (ASSUME ``TRANS ((f2: num -> ('a, 'b) CCS) k) (label (COMPL l)) E2``)) \\
+	    (REWRITE_RULE [ASSUME ``(f2: num -> ('a, 'b) CCS) k = prefix u' E''``]
+		(ASSUME ``TRANS ((f2: num -> ('a, 'b) CCS) k) (label (COMPL l)) E2``)) \\
 	  ASSUME_TAC
-	   (REWRITE_RULE [ASSUME ``(f1: num -> ('a, 'b) CCS) k' = prefix u'' E'''``]
-	     (ASSUME ``TRANS ((f1: num -> ('a, 'b) CCS) k') (label l) E1'``)) \\
+	    (REWRITE_RULE [ASSUME ``(f1: num -> ('a, 'b) CCS) k' = prefix u'' E'''``]
+		(ASSUME ``TRANS ((f1: num -> ('a, 'b) CCS) k') (label l) E1'``)) \\
 	  IMP_RES_TAC TRANS_PREFIX \\
 	  take [`k'`, `k`, `l`] \\
 	  ASM_REWRITE_TAC [PREF_ACT_def, PREF_PROC_def] ],
@@ -1926,12 +1940,13 @@ val STRONG_PAR_LAW = store_thm (
 	    ASSUME_TAC
 	     (BETA_RULE
 	       (ASSUME ``TRANS ((\i: num. prefix (PREF_ACT (f1 i))
-					    (par (PREF_PROC (f1 i)) (SIGMA f2 m2))) k) u E2``)) \\
+					    (par (PREF_PROC (f1 i)) (SIGMA f2 m2))) k)
+			       u E2``)) \\
 	    IMP_RES_TAC TRANS_PREFIX \\
 	    STRIP_ASSUME_TAC
 	     (REWRITE_RULE [Is_Prefix_def]
-			   (MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> Is_Prefix (f1 i)``) 
-				     (ASSUME ``(k: num) <= n1``))) \\
+		(MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> Is_Prefix (f1 i)``) 
+			  (ASSUME ``(k: num) <= n1``))) \\
 	    ASM_REWRITE_TAC [] \\
 	    MATCH_MP_TAC PAR1 \\
 	    REWRITE_TAC [SIGMA_TRANS_THM_EQ] \\
@@ -1942,12 +1957,13 @@ val STRONG_PAR_LAW = store_thm (
 	    ASSUME_TAC
 	     (BETA_RULE
 	       (ASSUME ``TRANS ((\j: num. prefix (PREF_ACT (f2 j))
-					    (par (SIGMA f1 n1) (PREF_PROC (f2 j)))) k) u E2``)) \\
+					    (par (SIGMA f1 n1) (PREF_PROC (f2 j)))) k)
+			       u E2``)) \\
 	    IMP_RES_TAC TRANS_PREFIX \\
 	    STRIP_ASSUME_TAC
 	     (REWRITE_RULE [Is_Prefix_def]
-			   (MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
-				     (ASSUME ``(k :num) <= m2``))) \\
+		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
+			  (ASSUME ``(k :num) <= m2``))) \\
 	    ASM_REWRITE_TAC [] \\
 	    MATCH_MP_TAC PAR2 \\
 	    REWRITE_TAC [SIGMA_TRANS_THM_EQ] \\
@@ -1967,8 +1983,9 @@ val STRONG_PAR_LAW = store_thm (
 		(MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> Is_Prefix (f1 i)``)
 			  (ASSUME ``(k :num) <= n1``))) \\
 	    ASSUME_TAC
-	     (REWRITE_RULE [ASSUME ``(f1: num -> ('a, 'b) CCS) k = prefix u' E''``, PREF_ACT_def]
-			   (ASSUME ``PREF_ACT ((f1: num -> ('a, 'b) CCS) k) = label l``)) \\
+	     (REWRITE_RULE [ASSUME ``(f1: num -> ('a, 'b) CCS) k = prefix u' E''``,
+			    PREF_ACT_def]
+		(ASSUME ``PREF_ACT ((f1: num -> ('a, 'b) CCS) k) = label l``)) \\
 	    ASM_REWRITE_TAC [PREF_PROC_def, PREFIX],
 	    (* goal 4.2.2 (of 2) *)
 	    EXISTS_TAC ``k': num`` \\
@@ -1977,8 +1994,9 @@ val STRONG_PAR_LAW = store_thm (
 		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
 			  (ASSUME ``(k' :num) <= m2``))) \\
 	    ASSUME_TAC
-	     (REWRITE_RULE [ASSUME ``(f2: num -> ('a, 'b) CCS) k' = prefix u' E''``, PREF_ACT_def]
-			   (ASSUME ``PREF_ACT ((f2: num -> ('a, 'b) CCS) k') = label (COMPL l)``)) \\
+	     (REWRITE_RULE [ASSUME ``(f2: num -> ('a, 'b) CCS) k' = prefix u' E''``,
+			    PREF_ACT_def]
+		(ASSUME ``PREF_ACT ((f2: num -> ('a, 'b) CCS) k') = label (COMPL l)``)) \\
 	    ASM_REWRITE_TAC [PREF_PROC_def, PREFIX] ] ] ] ]);
 
 val _ = export_theory ();
