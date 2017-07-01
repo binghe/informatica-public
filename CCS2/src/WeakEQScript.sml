@@ -163,6 +163,12 @@ val WEAK_TRANS_TAU = store_thm (
  >> MATCH_MP_TAC ONE_TAU
  >> ASM_REWRITE_TAC []);
 
+val TRANS_TAU_IMP_EPS = store_thm ((* NEW *)
+   "TRANS_TAU_IMP_EPS", ``!E E'. TRANS E tau E' ==> EPS E E'``,
+    REPEAT STRIP_TAC
+ >> IMP_RES_TAC TRANS_IMP_WEAK_TRANS
+ >> IMP_RES_TAC WEAK_TRANS_TAU);
+
 (* A weak transition on tau implies at least one transition on tau *)
 val WEAK_TRANS_TAU_IMP_TRANS_TAU = store_thm ((* NEW *)
    "WEAK_TRANS_TAU_IMP_TRANS_TAU",
@@ -181,6 +187,30 @@ val WEAK_TRANS_TAU_IMP_TRANS_TAU = store_thm ((* NEW *)
       IMP_RES_TAC ONE_TAU \\
       IMP_RES_TAC EPS_TRANS ]);
 
+val TAU_PREFIX_EPS = store_thm ((* NEW *)
+   "TAU_PREFIX_EPS", ``!E E'. EPS E E' ==> EPS (prefix tau E) E'``,
+    REPEAT STRIP_TAC
+ >> ONCE_REWRITE_TAC [EPS_cases1]
+ >> DISJ2_TAC
+ >> Q.EXISTS_TAC `E`
+ >> ASM_REWRITE_TAC [PREFIX]);
+
+val TAU_PREFIX_WEAK_TRANS = store_thm ((* NEW *)
+   "TAU_PREFIX_WEAK_TRANS",
+  ``!E u E'. WEAK_TRANS E u E' ==> WEAK_TRANS (prefix tau E) u E'``,
+    REPEAT STRIP_TAC
+ >> Cases_on `u` (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      IMP_RES_TAC WEAK_TRANS_TAU \\
+      REWRITE_TAC [WEAK_TRANS] \\
+      take [`prefix tau E`, `E`] \\
+      ASM_REWRITE_TAC [EPS_REFL, PREFIX],
+      (* goal 2 (of 2) *)
+      POP_ASSUM (STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS])) \\
+      REWRITE_TAC [WEAK_TRANS] \\
+      take [`E1`, `E2`] >> ASM_REWRITE_TAC [] \\
+      IMP_RES_TAC TAU_PREFIX_EPS ]);
+
 val EPS_AND_WEAK = store_thm ("EPS_AND_WEAK",
   ``!E E1 u E2 E'.
 	 EPS E E1 /\ WEAK_TRANS E1 u E2 /\ EPS E2 E' ==> WEAK_TRANS E u E'``,
@@ -194,6 +224,30 @@ val EPS_AND_WEAK = store_thm ("EPS_AND_WEAK",
 		 (CONJ (ASSUME ``EPS E E1``) (ASSUME ``EPS E1 E1'``)),
 	MATCH_MP EPS_TRANS
 		 (CONJ (ASSUME ``EPS E2' E2``) (ASSUME ``EPS E2 E'``))]);
+
+val TRANS_TAU_AND_WEAK = store_thm ((* NEW *)
+   "TRANS_TAU_AND_WEAK",
+  ``!E E1 u E'. TRANS E tau E1 /\ WEAK_TRANS E1 u E' ==> WEAK_TRANS E u E'``,
+    REPEAT STRIP_TAC
+ >> IMP_RES_TAC TRANS_IMP_WEAK_TRANS
+ >> IMP_RES_TAC WEAK_TRANS_TAU
+ >> MATCH_MP_TAC EPS_AND_WEAK
+ >> take [`E1`, `E'`]
+ >> ASM_REWRITE_TAC [EPS_REFL]);
+
+val EPS_IMP_WEAK_TRANS = store_thm (
+   "EPS_IMP_WEAK_TRANS",
+  ``!E E'. EPS E E' ==> (E = E') \/ WEAK_TRANS E tau E'``,
+    REPEAT GEN_TAC
+ >> ONCE_REWRITE_TAC [EPS_cases1]
+ >> REPEAT STRIP_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      DISJ1_TAC >> ASM_REWRITE_TAC [],
+      (* goal 2 (of 2) *)
+      DISJ2_TAC \\
+      REWRITE_TAC [WEAK_TRANS] \\
+      take [`E`, `u`] \\
+      ASM_REWRITE_TAC [EPS_REFL] ]);
 
 (* the two possible cases for the 1st step in WEAK_TRANS *)
 val WEAK_TRANS_cases1 = store_thm ((* NEW *)
