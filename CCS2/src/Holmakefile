@@ -1,12 +1,13 @@
-INCLUDES = 
+INCLUDES = $(dprot $(HOLDIR)/examples/set-theory/hol_sets)
 OPTIONS = QUIT_ON_FAILURE
+EXTRA_CLEANS = heap munge.exe
 
 THYFILES = $(patsubst %Script.sml,%Theory.uo,$(wildcard *.sml))
 TARGETS = $(patsubst %.sml,%.uo,$(THYFILES))
 
 ifdef POLY
 HOLHEAP = heap
-OBJNAMES = pairTheory relationTheory pred_setTheory listTheory
+OBJNAMES = pairTheory relationTheory pred_setTheory listTheory arithmeticTheory
 DEPS = $(patsubst %,$(dprot $(SIGOBJ)/%.uo),$(OBJNAMES))
 
 all: $(HOLHEAP)
@@ -19,10 +20,10 @@ all: $(TARGETS) munge.exe
 
 munge.exe: CCSTheory.sig StrongEQTheory.sig StrongLawsTheory.sig WeakEQTheory.sig \
 		WeakLawsTheory.sig ObsCongrTheory.sig ObsCongrLawsTheory.sig \
-		CoarsestTheory.sig
+		CoarsestCongrTheory.sig
 	$(HOLDIR)/bin/mkmunge.exe CCSTheory StrongEQTheory StrongLawsTheory \
 		WeakEQTheory WeakLawsTheory ObsCongrTheory ObsCongrLawsTheory \
-		CoarsestTheory
+		CoarsestCongrTheory
 
 #ifeq ($(KERNELID),otknl)
 #all: $(patsubst %Script.sml,%.ot.art,$(wildcard *Script.sml))

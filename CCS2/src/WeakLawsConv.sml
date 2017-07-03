@@ -50,7 +50,7 @@ val OE_EXP_THM_TAC :tactic =
     fn (asl, w) => let
 	val (opt, t1, t2) = args_equiv w
     in
-	if (opt = ``OBS_EQUIV``) then
+	if opt = mk_const ("OBS_EQUIV", type_of opt) then
 	    let val thm = MATCH_MP STRONG_IMP_OBS_EQUIV (STRONG_EXP_THM_CONV t1);
 		val (t1', t') = args_thm thm (* t1' = t1 *)
 	    in
@@ -76,7 +76,8 @@ fun STABLE_CONV tm = let
     val f = (fn c => map (snd o dest_eq) (strip_conj c));
     val thm = CCS_TRANS_CONV tm;
     val lp = map (list2_pair o f) (strip_disj (rconcl thm));
-    val taul = filter (fn (act, _) => is_tau act) lp
+    val taul = filter (fn (act, _) => is_tau act) lp;
+    val ccs_typ = type_of tm
 in 
     if (null taul) then 
 	prove (``STABLE ^tm``,
@@ -220,7 +221,7 @@ fun OE_LHS_SUBST1_TAC thm :tactic =
   fn (asl, w) => let
       val (opt, t1, t2) = args_equiv w
   in
-      if (opt = ``OBS_EQUIV``) then
+      if opt = mk_const ("OBS_EQUIV", type_of opt) then
 	  let val thm' = OE_SUBST thm t1;
 	      val (t1', t') = args_thm thm' (* t1' = t1 *)
 	  in

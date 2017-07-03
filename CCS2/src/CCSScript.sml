@@ -786,7 +786,7 @@ val epsilon_def = Define `epsilon = []`;
 
 val _ = Unicode.unicode_version { u = UTF8.chr 0x03B5, tmnm = "epsilon"};
 val _ = TeX_notation { hol = UTF8.chr 0x03B5,
-		       TeX = ("\\HOLepsilon", 1) };
+		       TeX = ("\\ensuremath{\\epsilon}", 1) };
 
 val _ = type_abbrev ("trace", ``:'b Label list``);
 

@@ -154,7 +154,7 @@ val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
 
 val _ = Unicode.unicode_version { u = UTF8.chr 0x223C, tmnm = "STRONG_EQUIV"};
 val _ = TeX_notation { hol = UTF8.chr 0x223C,
-		       TeX = ("\\HOLTokenStrongEquiv", 1) }
+		       TeX = ("\\ensuremath{\\sim}", 1) }
 
 val STRONG_EQUIV_IS_STRONG_BISIM = store_thm (
    "STRONG_EQUIV_IS_STRONG_BISIM",
@@ -215,6 +215,19 @@ val STRONG_EQUIV_TRANS = store_thm (
       EXISTS_TAC ``E':('a, 'b) CCS`` \\
       ASM_REWRITE_TAC [], 
       IMP_RES_TAC COMP_STRONG_BISIM ]);
+
+val STRONG_EQUIV_equivalence = store_thm ((* NEW *)
+   "STRONG_EQUIV_equivalence", ``equivalence STRONG_EQUIV``,
+    REWRITE_TAC [equivalence_def]
+ >> REPEAT STRIP_TAC (* 3 sub-goals here *)
+ >| [ (* goal 1 (of 3) *)
+      REWRITE_TAC [reflexive_def, STRONG_EQUIV_REFL],
+      (* goal 2 (of 3) *)
+      REWRITE_TAC [symmetric_def] \\
+      REPEAT GEN_TAC \\
+      EQ_TAC >> REWRITE_TAC [STRONG_EQUIV_SYM],
+      (* goal 3 (of 3) *)
+      REWRITE_TAC [transitive_def, STRONG_EQUIV_TRANS] ]);
 
 (* Syntactic equivalence implies strong equivalence. *)
 val EQUAL_IMP_STRONG_EQUIV = store_thm (

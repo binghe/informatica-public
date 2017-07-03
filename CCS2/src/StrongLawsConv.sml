@@ -276,9 +276,9 @@ fun PREFIX_EXTRACT tm = let
     val (opr, opd) = dest_comb tm;
     val (act, proc) = args_prefix opd
 in 
-    if (opr = ``PREF_ACT``) then
+    if opr = mk_const ("PREF_ACT", type_of opr) then
 	ISPECL [act, proc] PREF_ACT_def
-    else if (opr = ``PREF_PROC``) then
+    else if opr = mk_const ("PREF_PROC", type_of opr) then
 	ISPECL [act, proc] PREF_PROC_def
     else
 	failwith "PREFIX_EXTRACT"

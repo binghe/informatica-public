@@ -34,7 +34,7 @@ val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
 val _ = Unicode.unicode_version { u = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3,
 				  tmnm = "OBS_CONGR" };
 val _ = TeX_notation { hol = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3, (* ~~ ^ r *)
-		       TeX = ("\\HOLTokenObsCongr", 1) };
+		       TeX = ("\\ensuremath{\\approx^c}", 1) };
 
 (* Prove that observation congruence implies observation equivalence. *)
 val OBS_CONGR_IMP_OBS_EQUIV = store_thm (
@@ -238,6 +238,25 @@ val OBS_CONGR_TRANS = store_thm ((* NEW *)
       Q.EXISTS_TAC `E2''` >> ASM_REWRITE_TAC [] \\
       MATCH_MP_TAC OBS_EQUIV_SYM \\
       IMP_RES_TAC OBS_EQUIV_TRANS ]);
+
+val OBS_CONGR_equivalence = store_thm ((* NEW *)
+   "OBS_CONGR_equivalence", ``equivalence OBS_CONGR``,
+    REWRITE_TAC [equivalence_def]
+ >> REPEAT STRIP_TAC (* 3 sub-goals here *)
+ >| [ (* goal 1 (of 3) *)
+      REWRITE_TAC [reflexive_def, OBS_CONGR_REFL],
+      (* goal 2 (of 3) *)
+      REWRITE_TAC [symmetric_def] \\
+      REPEAT GEN_TAC \\
+      EQ_TAC >> REWRITE_TAC [OBS_CONGR_SYM],
+      (* goal 3 (of 3) *)
+      REWRITE_TAC [transitive_def, OBS_CONGR_TRANS] ]);
+
+(******************************************************************************)
+(*                                                                            *)
+(*            Substitutive properties of observation congruence               *)
+(*                                                                            *)
+(******************************************************************************)
 
 (* Proposition 6 (Milner's book, page 154). *)
 val PROP6 = store_thm ("PROP6",

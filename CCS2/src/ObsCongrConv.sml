@@ -170,7 +170,7 @@ fun OC_SUBST_TAC thmlist =
 
 (* Conversion for the application of the tau-law TAU1:
    |- !u E. OBS_CONGR (prefix u (prefix tau E)) (prefix u E) *)
-fun OC_TAU1_CONV tm =
+fun TAU1_CONV tm =
   if is_prefix tm then
       let val (u, t) = args_prefix tm
       in
@@ -180,31 +180,66 @@ fun OC_TAU1_CONV tm =
 		  if is_tau u' then
 		      ISPECL [u, t'] TAU1
 		  else
-		      failwith "OC_TAU1_CONV"
+		      failwith "TAU1_CONV"
 	      end
 	  else
-	      failwith "OC_TAU1_CONV"
+	      failwith "TAU1_CONV"
       end
   else 
-      failwith "OC_TAU1_CONV";
+      failwith "TAU1_CONV";
 
-(*
-% --------------------------------------------------------------------------- %
-% Conversion for the application of the tau-law TAU2:                         %
-%    |- !E. OBS_CONGR(sum E(prefix tau E))(prefix tau E)                      %
-% --------------------------------------------------------------------------- %
-%let TAU2_CONV tm = 
-% 
+(* Conversion for the application of the tau-law TAU2:
+   |- !E. OBS_CONGR (sum E (prefix tau E)) (prefix tau E)
+ *)
+fun TAU2_CONV tm =
+  if is_sum tm then
+      let val (tm1, tm2) = args_sum tm
+      in
+	  if is_prefix tm2 then
+	      let val (u, t) = args_prefix tm2
+	      in
+		  if is_tau u andalso tm1 = t then
+		      ISPEC t TAU2
+		  else failwith "TAU2_CONV"
+	      end
+	  else failwith "TAU2_CONV"
+      end
+  else failwith "TAU2_CONV";
 
-% --------------------------------------------------------------------------- %
-% Conversion for the application of the tau-law TAU3:                         %
-%    |- !u E E'.                                                              %
-%        OBS_CONGR (sum(prefix u(sum E(prefix tau E')))(prefix u E'))         %
-%                  (prefix u(sum E(prefix tau E')))                           %
-% --------------------------------------------------------------------------- %
-%let TAU3_CONV tm = 
-% 
-*)
+(* Conversion for the application of the tau-law TAU3:
+   |- !u E E'.
+       OBS_CONGR (sum (prefix u (sum E (prefix tau E'))) (prefix u E'))
+                 (prefix u (sum E (prefix tau E')))
+ *)
+fun TAU3_CONV tm =
+  if is_sum tm then
+      let val (tm1, tm2) = args_sum tm
+      in
+	  if is_prefix tm2 then
+	      let val (u, t2) = args_prefix tm2
+	      in
+		  if is_prefix tm1 then
+		      let val (u', tm3) = args_prefix tm1
+		      in
+			  if u = u' andalso is_sum tm3 then
+			      let val (t1, tm4) = args_sum tm3
+			      in
+				  if is_prefix tm4 then
+				      let val (u'', tm5) = args_prefix tm4
+				      in
+					  if is_tau u'' andalso tm5 = t2 then
+					      ISPECL [u, t1, t2] TAU3
+					  else failwith "TAU3_CONV"
+				      end
+				  else failwith "TAU3_CONV"
+			      end
+			  else failwith "TAU3_CONV"
+		      end
+		  else failwith "TAU3_CONV"
+	      end
+	  else failwith "TAU3_CONV"
+      end
+  else failwith "TAU3_CONV";
 
 (******************************************************************************)
 (*                                                                            *)
@@ -228,11 +263,12 @@ val [OC_SUM_IDEMP_CONV, OC_SUM_NIL_CONV,
 
 (* Define the tactics for the application of the laws for OBS_CONGR *)
 val [OC_SUM_IDEMP_TAC, OC_SUM_NIL_TAC, OC_RELAB_ELIM_TAC, OC_RESTR_ELIM_TAC,
-     OC_PAR_ELIM_TAC, OC_REC_UNF_TAC, OC_TAU1_TAC] =
+     OC_PAR_ELIM_TAC, OC_REC_UNF_TAC, TAU1_TAC, TAU2_TAC, TAU3_TAC] =
     map (OC_LHS_CONV_TAC o OC_DEPTH_CONV)
 	[OC_SUM_IDEMP_CONV, OC_SUM_NIL_CONV,
 	 OC_RELAB_ELIM_CONV, OC_RESTR_ELIM_CONV,
-	 OC_PAR_ELIM_CONV, OC_REC_UNF_CONV, OC_TAU1_CONV];
+	 OC_PAR_ELIM_CONV, OC_REC_UNF_CONV,
+	 TAU1_CONV, TAU2_CONV, TAU3_CONV];
 
 val OC_RHS_RELAB_ELIM_TAC =
     (OC_RHS_CONV_TAC o OC_DEPTH_CONV) OC_RELAB_ELIM_CONV;

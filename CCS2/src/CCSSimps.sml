@@ -18,7 +18,6 @@ open CCSLib CCSTheory CCSSyntax;
 
 (* Source Level Debugging in Poly/ML
 
- trace true;
  PolyML.Compiler.debug := true;
  open PolyML.Debug;
  breakIn "CCS_TRANS_CONV";
