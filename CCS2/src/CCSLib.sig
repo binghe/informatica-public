@@ -14,6 +14,8 @@ sig
   val set			: Q.tmquote list -> tactic
   val take			: Q.tmquote list -> tactic
   val //			: tactic -> tactic
+  val Know			: Q.tmquote -> tactic
+  val Suff			: Q.tmquote -> tactic
 
   val add_rules_for_ccs_terms	: unit -> unit
   val remove_rules_for_ccs_terms: unit -> unit

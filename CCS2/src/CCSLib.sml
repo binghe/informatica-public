@@ -31,6 +31,8 @@ in
     fun set  ts = MAP_EVERY Q.ABBREV_TAC ts;	(* from HOL mizar mode *)
     fun take ts = MAP_EVERY Q.EXISTS_TAC ts;	(* from HOL mizar mode *)
     val op // = op REPEAT			(* from Matita *)
+    val Know = Q_TAC KNOW_TAC;			(* from HOL probability *)
+    val Suff = Q_TAC SUFF_TAC;			(* from HOL probability *)
 end;
 
 (******************************************************************************)

@@ -646,6 +646,19 @@ val OBS_EQUIV_SYM = store_thm (
  >> IMP_RES_TAC CONVERSE_WEAK_BISIM
  >> ASM_REWRITE_TAC []);
 
+val OBS_EQUIV_SYM' = store_thm ((* NEW *)
+   "OBS_EQUIV_SYM'",
+  ``!E E'. OBS_EQUIV E E' <=> OBS_EQUIV E' E``,
+    REPEAT STRIP_TAC
+ >> EQ_TAC
+ >> REWRITE_TAC [OBS_EQUIV_SYM]);
+
+(* Syntactic equivalence implies observation equivalence. *)
+val EQUAL_IMP_OBS_EQUIV = store_thm (
+   "EQUAL_IMP_OBS_EQUIV", ``!E E'. (E = E') ==> OBS_EQUIV E E'``,
+    REPEAT STRIP_TAC
+ >> PURE_ASM_REWRITE_TAC [OBS_EQUIV_REFL]);
+
 (* Observation equivalence is a transitive relation. *)
 val OBS_EQUIV_TRANS = store_thm (
    "OBS_EQUIV_TRANS",

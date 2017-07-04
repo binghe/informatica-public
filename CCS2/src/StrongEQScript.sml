@@ -200,6 +200,12 @@ val STRONG_EQUIV_SYM = store_thm (
  >> IMP_RES_TAC CONVERSE_STRONG_BISIM
  >> ASM_REWRITE_TAC [] );
 
+(* Syntactic equivalence implies strong equivalence. *)
+val EQUAL_IMP_STRONG_EQUIV = store_thm (
+   "EQUAL_IMP_STRONG_EQUIV", ``!E E'. (E = E') ==> STRONG_EQUIV E E'``,
+    REPEAT STRIP_TAC
+ >> PURE_ASM_REWRITE_TAC [STRONG_EQUIV_REFL]);
+
 (* Strong equivalence is a transitive relation. *)
 val STRONG_EQUIV_TRANS = store_thm (
    "STRONG_EQUIV_TRANS",
