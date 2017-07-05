@@ -540,7 +540,7 @@ val SELF_NODES = store_thm (
  >> REWRITE_TAC [Reachable_self]);
 
 val MORE_NODES = store_thm (
-   "MODE_NODES", ``!p q q'. q IN (NODES p) /\ Reachable q q' ==> q' IN (NODES p)``,
+   "MORE_NODES", ``!p q q'. q IN (NODES p) /\ Reachable q q' ==> q' IN (NODES p)``,
     REPEAT GEN_TAC
  >> SRW_TAC [] [NODES_def]
  >> IMP_RES_TAC Reachable_trans);
@@ -754,17 +754,6 @@ val KLOP_PROP2_WEAK = store_thm ((* NEW *)
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [KLOP_PROP1_WEAK]))
  >> PROVE_TAC []);
 
-val KLOP_PROP2_WEAK' = store_thm ((* NEW *)
-   "KLOP_PROP2_WEAK'",
-  ``!(a :'b Label) n m. m <> n ==> ~(WEAK_EQUIV (KLOP a m) (KLOP a n))``,
-    REPEAT STRIP_TAC
- >> `m < n \/ n < m` by PROVE_TAC [LESS_LESS_CASES] (* 2 sub-goals here *)
- >| [ (* goal 1 (of 2) *)
-      IMP_RES_TAC KLOP_PROP2_WEAK,
-      (* goal 2 (of 2) *)
-      IMP_RES_TAC KLOP_PROP2_WEAK \\
-      PROVE_TAC [OBS_EQUIV_SYM] ]);
-
 (* Klop function is ONE-ONE *)
 val KLOP_PROP3 = store_thm ((* NEW *)
    "KLOP_PROP3",
@@ -959,10 +948,81 @@ val PROP3_COMMON = store_thm ((* NEW *)
  6. For all n in nodes, we prove that n =~ k can't hold. Because if it holds,
     (y = map n) by definition has two cases:
 
-   a) y =~ n, in this case we have y =~ k, two equivalent elements in klops ?!
-   b) there's no `y` equivalent with n in klops, but we know x =~ n ?!
+   a) y =~ n, in this case we have y =~ k, two equivalent elements in klops
+   b) there's no `y` equivalent with n in klops, but we know there is x
 
  *)
+
+(* The pure Math part in the proof of KLOP_LEMMA_FINITE *)
+val lemma = prove ((* NEW *)
+  ``!R nodes klops. equivalence (R :'a -> 'a -> bool) ==>
+         FINITE (nodes :'a -> bool) /\ INFINITE (klops :'a -> bool) /\
+         (!x y. x IN klops /\ y IN klops /\ x <> y ==> ~(R x y)) ==>
+       ?k. k IN klops /\ (!n. n IN nodes ==> ~(R n k))``,
+    REPEAT GEN_TAC
+ >> REWRITE_TAC [equivalence_def]
+ >> REPEAT STRIP_TAC
+
+ >> Q.ABBREV_TAC `map = (\x. if (?y. y IN klops /\ R x y) then
+				(@y. y IN klops /\ R x y) else (CHOICE klops))`
+ >> POP_ASSUM (ASSUME_TAC o (* GSYM o *)
+	       SIMP_RULE bool_ss [FUN_EQ_THM, markerTheory.Abbrev_def])
+ >> Know `!x. map x IN klops`
+ >- ( GEN_TAC >> ASM_REWRITE_TAC [] \\
+      RW_TAC std_ss [IN_DEF] >| (* 2 sub-goals here *)
+      [ (* goal 1 (of 2) *)
+        MATCH_MP_TAC SELECT_ELIM_THM \\ (* eliminated `Q (@P)` here !! *)
+        RW_TAC std_ss [] \\
+        Q.EXISTS_TAC `y` >> ASM_REWRITE_TAC [],
+        (* goal 2 (of 2) *)
+        ONCE_REWRITE_TAC [GSYM IN_APP] \\
+        MATCH_MP_TAC CHOICE_DEF \\
+        PROVE_TAC [FINITE_EMPTY] ] )
+ >> DISCH_TAC
+
+ >> Q.ABBREV_TAC `klops0 = IMAGE map nodes`
+ >> `FINITE klops0` by PROVE_TAC [IMAGE_FINITE]
+ >> Know `klops0 SUBSET klops`
+ >- ( REWRITE_TAC [SUBSET_DEF] \\
+      REPEAT STRIP_TAC \\
+      `x IN (IMAGE map nodes)` by PROVE_TAC [] \\
+      POP_ASSUM MP_TAC \\
+      REWRITE_TAC [IN_IMAGE] >> PROVE_TAC [] )
+ >> DISCH_TAC
+
+ >> `?k. k IN klops /\ k NOTIN klops0`
+	by PROVE_TAC [Q.SPECL [`klops`, `klops0`] IN_INFINITE_NOT_FINITE]
+ >> Q.EXISTS_TAC `k`
+ >> `!n. n IN nodes ==> map n IN klops0` by PROVE_TAC [IN_IMAGE]
+
+ >> Know `!n. n IN nodes ==> R n (map n) \/ (~?x. x IN klops /\ R n x)`
+ >- ( REPEAT STRIP_TAC \\
+      PAT_X_ASSUM ``!x. map x = P`` (ASSUME_TAC o (Q.SPEC `n`)) \\
+      Cases_on `?y. y IN klops /\ R n y` >| (* 2 sub-goals here *)
+      [ (* goal 1 (of 2) *)
+        FULL_SIMP_TAC std_ss [] \\
+        DISJ1_TAC \\
+	METIS_TAC [], (* PROVE_TAC doesn't work here *)
+        (* goal 2 (of 2) *)
+        FULL_SIMP_TAC std_ss [] ] )
+ >> DISCH_TAC
+
+ >> Know `!n. n IN nodes ==> ~(R n k)`
+ >- ( REPEAT STRIP_TAC \\
+      `map n IN klops0` by PROVE_TAC [IMAGE_IN] \\
+      Q.ABBREV_TAC `y = map n` \\
+      RES_TAC >| (* 2 sub-goals here *)
+      [ (* goal 1 (of 2) *)
+        `y IN klops` by PROVE_TAC [SUBSET_DEF] \\
+        `R k y` by PROVE_TAC [transitive_def, symmetric_def] \\
+        Cases_on `k = y` >- PROVE_TAC [] \\
+        `~(R k y)` by PROVE_TAC [],
+        (* goal 2 (of 2) *)
+        `klops k /\ R n k` by PROVE_TAC [IN_DEF] \\
+        RES_TAC ] )
+ >> DISCH_TAC
+ >> ASM_REWRITE_TAC []);
+
 val KLOP_LEMMA_FINITE = store_thm ((* NEW *)
    "KLOP_LEMMA_FINITE",
   ``!g h. FINITE_STATE g /\ FINITE_STATE h ==>
@@ -1009,94 +1069,23 @@ val KLOP_LEMMA_FINITE = store_thm ((* NEW *)
         (* goal 3 (of 3) *)
         PROVE_TAC [KLOP_PROP2_WEAK] ] )
  >> DISCH_TAC
+ (* Part 4: assert the existence of k *)
+ >> ASSUME_TAC WEAK_EQUIV_equivalence
+ >> POP_ASSUM (MP_TAC o (MATCH_MP (ISPECL [``WEAK_EQUIV :('a, 'b) simulation``,
+					   ``nodes :('a, 'b) CCS -> bool``,
+					   ``klops :('a, 'b) CCS -> bool``] lemma)))
+ >> RW_TAC std_ss []
 (*
   9.  ∀x y. x ∈ klops ∧ y ∈ klops ∧ x ≠ y ⇒ ¬(x ≈ y)
+  10.  k ∈ klops
+  11.  ∀n. n ∈ nodes ⇒ ¬(n ≈ k)
  *)
- (* Part 4: assert a map from nodes to klops *)
- >> Q.ABBREV_TAC `map = (\x. if (?y. y IN klops /\ WEAK_EQUIV x y) then
-				(@y. y IN klops /\ WEAK_EQUIV x y) else (CHOICE klops))`
- >> POP_ASSUM (ASSUME_TAC o (* GSYM o *)
-	       SIMP_RULE bool_ss [FUN_EQ_THM, markerTheory.Abbrev_def])
- >> Know `!x. map x IN klops`
- >- ( GEN_TAC >> ASM_REWRITE_TAC [] \\
-      RW_TAC std_ss [IN_DEF] >| (* 2 sub-goals here *)
-      [ (* goal 1 (of 2) *)
-        MATCH_MP_TAC SELECT_ELIM_THM \\ (* eliminated `Q (@P)` here !! *)
-        RW_TAC std_ss [] \\
-        Q.EXISTS_TAC `y` >> ASM_REWRITE_TAC [],
-        (* goal 2 (of 2) *)
-        ONCE_REWRITE_TAC [GSYM IN_APP] \\
-        MATCH_MP_TAC CHOICE_DEF \\
-        PROVE_TAC [FINITE_EMPTY] ] )
- >> DISCH_TAC
-(*
-  10.  ∀x.
-         map x =
-         if ∃y. y ∈ klops ∧ x ≈ y then @y. y ∈ klops ∧ x ≈ y
-         else CHOICE klops
-  11.  ∀x. map x ∈ klops
- *)
- (* Part 5: assert a finite subset of klops by the map *)
- >> Q.ABBREV_TAC `klops0 = IMAGE map nodes`
- >> `FINITE klops0` by PROVE_TAC [IMAGE_FINITE]
- >> Know `klops0 SUBSET klops`
- >- ( REWRITE_TAC [SUBSET_DEF] \\
-      REPEAT STRIP_TAC \\
-      `x IN (IMAGE map nodes)` by PROVE_TAC [] \\
-      POP_ASSUM MP_TAC \\
-      REWRITE_TAC [IN_IMAGE] >> PROVE_TAC [] )
- >> DISCH_TAC
-(*
-  12.  Abbrev (klops0 = IMAGE map nodes)
-  13.  FINITE klops0
-  14.  klops0 ⊆ klops
- *)
- (* Part 6: pick an element from the rest of klops *)
- >> `?k. k IN klops /\ k NOTIN klops0`
-	by PROVE_TAC [ISPECL [``klops  :('a, 'b) CCS -> bool``,
-			      ``klops0 :('a, 'b) CCS -> bool``] IN_INFINITE_NOT_FINITE]
-(*
-  15.  k ∈ klops
-  16.  k ∉ klops0
- *)
- (* Part 7: two cases for (map n) *)
- >> `!n. n IN nodes ==> map n IN klops0` by PROVE_TAC [IN_IMAGE]
- >> Know `!n. n IN nodes ==> WEAK_EQUIV n (map n) \/ (~?x. x IN klops /\ WEAK_EQUIV n x)`
- >- ( REPEAT STRIP_TAC \\
-      PAT_X_ASSUM ``!x. map x = P`` (ASSUME_TAC o (Q.SPEC `n`)) \\
-      Cases_on `?y. y IN klops /\ WEAK_EQUIV n y` >| (* 2 sub-goals here *)
-      [ (* goal 1 (of 2) *)
-        FULL_SIMP_TAC std_ss [] \\
-        DISJ1_TAC \\
-	METIS_TAC [], (* PROVE_TAC doesn't work here *)
-        (* goal 2 (of 2) *)
-        FULL_SIMP_TAC std_ss [] ] )
- >> DISCH_TAC
-(*
-  17.  ∀n. n ∈ nodes ⇒ map n ∈ klops0
-  18.  ∀n. n ∈ nodes ⇒ n ≈ map n ∨ ¬∃x. x ∈ klops ∧ n ≈ x
- *)
- (* Part 8: k is STABLE *)
- >> Q.EXISTS_TAC `k` >> CONJ_TAC (* 2 sub-goals here *)
+ >> Q.EXISTS_TAC `k`
+ >> CONJ_TAC (* 2 sub-goals here *)
  >- ( `k IN IMAGE f UNIV` by PROVE_TAC [] \\
       POP_ASSUM (STRIP_ASSUME_TAC o (REWRITE_RULE [IN_IMAGE])) \\
       PROVE_TAC [KLOP_PROP0] )
- (* Part 8: k is distinct with any node n *)
- >> Know `!n. n IN nodes ==> ~(WEAK_EQUIV n k)`
- >- ( REPEAT STRIP_TAC \\
-      `map n IN klops0` by PROVE_TAC [IMAGE_IN] \\
-      Q.ABBREV_TAC `y = map n` \\
-      RES_TAC >| (* 2 sub-goals here *)
-      [ (* goal 1 (of 2) *)
-        `y IN klops` by PROVE_TAC [SUBSET_DEF] \\
-        `WEAK_EQUIV k y` by PROVE_TAC [OBS_EQUIV_TRANS, OBS_EQUIV_SYM] \\
-        Cases_on `k = y` >- PROVE_TAC [] \\
-        `~(WEAK_EQUIV k y)` by PROVE_TAC [],
-        (* goal 2 (of 2) *)
-        `klops k /\ WEAK_EQUIV n k` by PROVE_TAC [IN_DEF] \\
-        RES_TAC ] )
- >> DISCH_TAC
- (* Part 9: final check *)
+ (* Part 5: final check *)
  >> `!n. n IN (NODES g) ==> ~(WEAK_EQUIV n k)` by PROVE_TAC [IN_UNION]
  >> `!n. n IN (NODES h) ==> ~(WEAK_EQUIV n k)` by PROVE_TAC [IN_UNION]
  >> CONJ_TAC (* 2 sub-goals here *)
@@ -1109,9 +1098,9 @@ val KLOP_LEMMA_FINITE = store_thm ((* NEW *)
       IMP_RES_TAC WEAK_TRANS_IN_NODES \\
       PROVE_TAC [] ]);
 
-(* The finite version of PROP3 *)
-val PROP3_FINITE = store_thm ((* NEW *)
-   "PROP3_FINITE",
+(* The finite version of COARSEST_CONGR_THM (PROP3) *)
+val COARSEST_CONGR_FINITE = store_thm ((* NEW *)
+   "COARSEST_CONGR_FINITE",
   ``!g h. FINITE_STATE g /\ FINITE_STATE h ==>
 	  (OBS_CONGR g h = (!r. WEAK_EQUIV (sum g r) (sum h r)))``,
     REPEAT STRIP_TAC
@@ -1119,8 +1108,7 @@ val PROP3_FINITE = store_thm ((* NEW *)
  >> MP_TAC (Q.SPECL [`g`, `h`] KLOP_LEMMA_FINITE)
  >> RW_TAC std_ss [PROP3_COMMON]);
 
-(* The full version of Klop's Lemma, unprovable in current CCS setting.
-
+(* The full version of Klop's Lemma, unprovable in current CCS setting:
 val KLOP_LEMMA = store_thm ((* NEW *)
    "KLOP_LEMMA",
   ``!g h. ?k. STABLE k /\
@@ -1135,8 +1123,9 @@ val KLOP_LEMMA = store_thm ((* NEW *)
    at least one instance, so there's always at least one action a IN Act - {tau},
    no matter what Act type 'b is there.
 
-val PROP3 = store_thm ((* NEW *)
-   "PROP3", ``!g h. OBS_CONGR g h = (!r. WEAK_EQUIV (sum g r) (sum h r))``,
+val COARSEST_CONGR_FULL = store_thm ((* NEW *)
+   "COARSEST_CONGR_FULL",
+  ``!g h. OBS_CONGR g h = (!r. WEAK_EQUIV (sum g r) (sum h r))``,
     REPEAT STRIP_TAC
  >> EQ_TAC >- REWRITE_TAC [COARSEST_CONGR_LR]
  >> MP_TAC (Q.SPECL [`g`, `h`] KLOP_LEMMA)

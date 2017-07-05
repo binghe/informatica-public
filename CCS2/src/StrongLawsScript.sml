@@ -1813,7 +1813,7 @@ val STRONG_EXPANSION_LAW = store_thm (
 	 STRONG_EQUIV
 	 (par (SIGMA f n) (SIGMA f' m))
 	 (sum
-	  (sum 
+	  (sum
 	   (SIGMA (\i. prefix (PREF_ACT (f i))
 			      (par (PREF_PROC (f i)) (SIGMA f' m))) n)
 	   (SIGMA (\j. prefix (PREF_ACT (f' j))
@@ -1822,12 +1822,12 @@ val STRONG_EXPANSION_LAW = store_thm (
     REPEAT STRIP_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_EQUIV]
  >> EXISTS_TAC
-      ``\x y. 
-	(x = y) \/ 
-	(?f1 n1 f2 m2. 
-	 (!i. i <= n1 ==> Is_Prefix(f1 i)) /\ 
-	 (!j. j <= m2 ==> Is_Prefix(f2 j)) /\ 
-	 (x = par (SIGMA f1 n1) (SIGMA f2 m2)) /\  
+      ``\x y.
+	(x = y) \/
+	(?f1 n1 f2 m2.
+	 (!i. i <= n1 ==> Is_Prefix(f1 i)) /\
+	 (!j. j <= m2 ==> Is_Prefix(f2 j)) /\
+	 (x = par (SIGMA f1 n1) (SIGMA f2 m2)) /\
 	 (y = sum
 	      (sum
 	       (SIGMA (\i. prefix (PREF_ACT (f1 i))

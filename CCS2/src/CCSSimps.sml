@@ -85,7 +85,7 @@ fun CCS_TRANS_CONV tm =
   else if is_prefix tm then
       let val (u, P) = args_prefix tm
       in
-	  SPECL [u, P] TRANS_PREFIX_EQ
+	  ISPECL [u, P] TRANS_PREFIX_EQ
       end
 
 (* case 3: sum *)
@@ -94,7 +94,7 @@ fun CCS_TRANS_CONV tm =
 	  val thm1 = CCS_TRANS_CONV P1
 	  and thm2 = CCS_TRANS_CONV P2
       in
-	  REWRITE_RULE [thm1, thm2] (SPECL [P1, P2] TRANS_SUM_EQ')
+	  REWRITE_RULE [thm1, thm2] (ISPECL [P1, P2] TRANS_SUM_EQ')
       end
 
 (* case 4: restr *)
@@ -142,7 +142,8 @@ fun CCS_TRANS_CONV tm =
 	  else
 	      let val dl = strip_disj (rconcl thm);
 		  val actl = map (snd o dest_eq o hd o strip_conj o hd o strip_disj) dl;
-		  val actl_not = extr_acts actl L
+		  val actl_not = extr_acts actl L;
+		  val tau = mk_const ("tau", type_of (hd actl));
 	      in
 		  if (null actl_not) then
 		      prove (``!u E. TRANS ^tm u E = F``,
@@ -155,7 +156,7 @@ fun CCS_TRANS_CONV tm =
 	IMP_RES_TAC thm >|
 	(list_apply_tac
 	  (fn a => CHECK_ASSUME_TAC
-		     (REWRITE_RULE [ASSUME ``u = tau``, Action_distinct]
+		     (REWRITE_RULE [ASSUME ``u = ^tau``, Action_distinct]
 				   (ASSUME ``u = ^a``))) actl),
 	(* goal 1.2 *)
 	IMP_RES_TAC thm >|
@@ -190,7 +191,9 @@ fun CCS_TRANS_CONV tm =
 						   mem ((snd o dest_eq o hd o strip_conj
 								       o hd o strip_disj) c)
 						       actl_not) dl);
-			  val dsjt = build_disj lp L
+			  val dsjt = build_disj lp L;
+			  val (u, p) = hd lp;
+			  val tau = mk_const ("tau", type_of u);
 		      in
 			  prove (``!u E. TRANS ^tm u E = ^dsjt``,
 (** PROOF BEGIN ***************************************************************)
@@ -200,7 +203,7 @@ fun CCS_TRANS_CONV tm =
       [ (* goal 1.1 *)
 	IMP_RES_TAC thm >|
 	(list_apply_tac
-	  (fn a => CHECK_ASSUME_TAC (REWRITE_RULE [ASSUME ``u = tau``, Action_distinct]
+	  (fn a => CHECK_ASSUME_TAC (REWRITE_RULE [ASSUME ``u = ^tau``, Action_distinct]
 						  (ASSUME ``u = ^a``)) \\
 		   ASM_REWRITE_TAC []) actl),
 	(* goal 1.2 *)	
@@ -345,9 +348,10 @@ fun CCS_TRANS_CONV tm =
 	    end;
 	  fun build_disj_tau _ [] = ``F``
 	    | build_disj_tau  p syncl = let
-		val (_, p') = hd syncl
+		val (u, p') = hd syncl;
+		val tau = mk_const ("tau", type_of u);
 	    in
-		mk_disj (mk_conj (``u = tau``, ``E = ^(mk_par (p, p'))``),
+		mk_disj (mk_conj (``u = ^tau``, ``E = ^(mk_par (p, p'))``),
 			 build_disj_tau p (tl syncl))
 	    end;
 	  fun act_sync [] _ = []
