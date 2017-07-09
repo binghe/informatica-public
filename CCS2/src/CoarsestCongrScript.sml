@@ -6,8 +6,7 @@
 open HolKernel Parse boolLib bossLib;
 
 open pred_setTheory relationTheory pairTheory listTheory;
-open prim_recTheory arithmeticTheory;
-open ordinalTheory;
+open prim_recTheory arithmeticTheory; (* ordinalTheory; *)
 
 open CCSLib CCSTheory StrongEQTheory StrongLawsTheory WeakEQTheory WeakLawsTheory;
 open ObsCongrTheory ObsCongrLib ObsCongrLawsTheory ObsCongrConv;

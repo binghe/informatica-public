@@ -10,7 +10,7 @@ open HolKernel Parse boolLib bossLib;
 
 (******************************************************************************)
 (*									      *)
-(*	    Backward compatibility and utility tactic/tacticals		      *)
+(*      Backward compatibility and utility tactic/tacticals (20170707)        *)
 (*									      *)
 (******************************************************************************)
 
@@ -22,18 +22,38 @@ in
     (* Backward compatibility with Kananaskis 11 *)
     val PAT_X_ASSUM = PAT_X_ASSUM;
     val qpat_x_assum = qpat_x_assum;
-
-    (* Q.GENL generalises in wrong order #428, fixed on June 27, 2017 *)
-    fun Q_GENL qs th = List.foldr (fn (q, th) => Q.GEN q th) th qs;
-
-    (* Tacticals for better expressivity *)
-    fun fix  ts = MAP_EVERY Q.X_GEN_TAC ts;	(* from HOL Light *)
-    fun set  ts = MAP_EVERY Q.ABBREV_TAC ts;	(* from HOL mizar mode *)
-    fun take ts = MAP_EVERY Q.EXISTS_TAC ts;	(* from HOL mizar mode *)
-    val op // = op REPEAT			(* from Matita *)
-    val Know = Q_TAC KNOW_TAC;			(* from HOL probability *)
-    val Suff = Q_TAC SUFF_TAC;			(* from HOL probability *)
 end;
+
+(** Q.GENL generalises in wrong order #428, fixed on June 27, 2017 *)
+fun Q_GENL qs th = List.foldr (fn (q, th) => Q.GEN q th) th qs;
+
+(* Tacticals for better expressivity *)
+fun fix  ts = MAP_EVERY Q.X_GEN_TAC ts;		(* from HOL Light *)
+fun set  ts = MAP_EVERY Q.ABBREV_TAC ts;	(* from HOL mizar mode *)
+fun take ts = MAP_EVERY Q.EXISTS_TAC ts;	(* from HOL mizar mode *)
+val op // = op REPEAT				(* from Matita *)
+val Know = Q_TAC KNOW_TAC;			(* from util_prob *)
+val Suff = Q_TAC SUFF_TAC;			(* from util_prob *)
+fun K_TAC _ = ALL_TAC;				(* from util_prob *)
+val KILL_TAC = POP_ASSUM_LIST K_TAC;		(* from util_prob *)
+fun wrap a = [a];
+
+(* signatures:
+
+  val PAT_X_ASSUM		: term -> thm_tactic -> tactic
+  val qpat_x_assum		: term quotation -> thm_tactic -> tactic
+  val Q_GENL			: Q.tmquote list -> thm -> thm
+  val fix			: Q.tmquote list -> tactic
+  val set			: Q.tmquote list -> tactic
+  val take			: Q.tmquote list -> tactic
+  val //			: tactic -> tactic
+  val Know			: Q.tmquote -> tactic
+  val Suff			: Q.tmquote -> tactic
+  val K_TAC			: 'a -> tactic
+  val KILL_TAC			: tactic
+  val wrap			: 'a -> 'a list
+
+   end of signatures *)
 
 (******************************************************************************)
 (*									      *)

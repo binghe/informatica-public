@@ -16,6 +16,9 @@ sig
   val //			: tactic -> tactic
   val Know			: Q.tmquote -> tactic
   val Suff			: Q.tmquote -> tactic
+  val K_TAC			: 'a -> tactic
+  val KILL_TAC			: tactic
+  val wrap			: 'a -> 'a list
 
   val add_rules_for_ccs_terms	: unit -> unit
   val remove_rules_for_ccs_terms: unit -> unit

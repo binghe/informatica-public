@@ -308,22 +308,9 @@ val CCS_Subst_def = Define `
    (CCS_Subst (rec Y E)    E' X = if (Y = X) then (rec Y E)
 					     else (rec Y (CCS_Subst E E' X)))`;
 
-local
-    val list = CONJ_LIST 8 CCS_Subst_def;
-in
-    val CCS_Subst_var = save_thm (
-       "CCS_Subst_var", List.nth (list, 6));
-
-    val CCS_Subst_rec = save_thm (
-       "CCS_Subst_rec", List.nth (list, 7));
-end;
-
 (* Note that in the rec clause, if Y = X then all occurrences of Y in E are X 
    and bound, so there exist no free variables X in E to be replaced with E'.
    Hence, the term rec Y E is returned. *)
-
-(* Define an arbitrary CCS agent. This finished porting of syntax.ml *)
-val ARB'_def = Define `ARB' = @x:('a, 'b) CCS. T`;
 
 (* |- !t1 t2. ((T => t1 | t2) = t1) /\ ((F => t1 | t2) = t2) *)
 val CCS_COND_CLAUSES = save_thm (
