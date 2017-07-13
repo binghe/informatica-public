@@ -23,14 +23,14 @@ infixr 0 OE_THENC OE_ORELSEC;
 (******************************************************************************)
 
 (* Define the conversions and tactics for the application of the laws for
-   OBS_EQUIV (through the conversions and tactics for strong equivalence). *)
-fun STRONG_TO_OBS_EQUIV_CONV (c: conv) tm =
-    MATCH_MP STRONG_IMP_OBS_EQUIV (c tm);
+   WEAK_EQUIV (through the conversions and tactics for strong equivalence). *)
+fun STRONG_TO_WEAK_EQUIV_CONV (c: conv) tm =
+    MATCH_MP STRONG_IMP_WEAK_EQUIV (c tm);
 
 val [OE_SUM_IDEMP_CONV, OE_SUM_NIL_CONV, OE_RELAB_ELIM_CONV,  
      OE_RESTR_ELIM_CONV, OE_PAR_ELIM_CONV, OE_EXP_THM_CONV, 
      OE_REC_UNF_CONV] = 
-    map STRONG_TO_OBS_EQUIV_CONV 
+    map STRONG_TO_WEAK_EQUIV_CONV 
 	[STRONG_SUM_IDEMP_CONV, STRONG_SUM_NIL_CONV, STRONG_RELAB_ELIM_CONV,
 	 STRONG_RESTR_ELIM_CONV, STRONG_PAR_ELIM_CONV, STRONG_EXP_THM_CONV,
 	 STRONG_REC_UNF_CONV];
@@ -50,17 +50,17 @@ val OE_EXP_THM_TAC :tactic =
     fn (asl, w) => let
 	val (opt, t1, t2) = args_equiv w
     in
-	if opt = mk_const ("OBS_EQUIV", type_of opt) then
-	    let val thm = MATCH_MP STRONG_IMP_OBS_EQUIV (STRONG_EXP_THM_CONV t1);
+	if opt = mk_const ("WEAK_EQUIV", type_of opt) then
+	    let val thm = MATCH_MP STRONG_IMP_WEAK_EQUIV (STRONG_EXP_THM_CONV t1);
 		val (t1', t') = args_thm thm (* t1' = t1 *)
 	    in
 		if (t' = t2) then
-		    ([], fn [] => OE_TRANS thm (ISPEC t' OBS_EQUIV_REFL))
+		    ([], fn [] => OE_TRANS thm (ISPEC t' WEAK_EQUIV_REFL))
 		else
-		    ([(asl, ``OBS_EQUIV ^t' ^t2``)], fn [thm'] => OE_TRANS thm thm')
+		    ([(asl, ``WEAK_EQUIV ^t' ^t2``)], fn [thm'] => OE_TRANS thm thm')
 	    end
 	else
-	    failwith "the goal is not an OBS_EQUIV relation"
+	    failwith "the goal is not an WEAK_EQUIV relation"
     end;
 
 (******************************************************************************)
@@ -102,7 +102,7 @@ fun OE_SUB_CONV (c: conv) tm =
       let val (u, P) = args_prefix tm;
 	  val thm = c P
       in
-	  ISPEC u (MATCH_MP OBS_EQUIV_SUBST_PREFIX thm)
+	  ISPEC u (MATCH_MP WEAK_EQUIV_SUBST_PREFIX thm)
       end
   else if is_sum tm then
       let val (t1, t2) = args_sum tm;
@@ -112,15 +112,15 @@ fun OE_SUB_CONV (c: conv) tm =
 	  and (t2', t2'') = args_thm thm2
       in
 	  if (t1' = t1'') andalso (t2' = t2'') then
-	      ISPEC (mk_sum (t1', t2')) OBS_EQUIV_REFL
+	      ISPEC (mk_sum (t1', t2')) WEAK_EQUIV_REFL
 	  else if (t1' = t1'') then
-	      ISPEC t1' (MATCH_MP OBS_EQUIV_SUBST_SUM_L
+	      ISPEC t1' (MATCH_MP WEAK_EQUIV_SUBST_SUM_L
 				  (LIST_CONJ [thm2, STABLE_CONV t2', STABLE_CONV t2'']))
 	  else if (t2' = t2'') then
-	      ISPEC t2' (MATCH_MP OBS_EQUIV_SUBST_SUM_R
+	      ISPEC t2' (MATCH_MP WEAK_EQUIV_SUBST_SUM_R
 				  (LIST_CONJ [thm1, STABLE_CONV t1', STABLE_CONV t1'']))
 	  else
-	      MATCH_MP OBS_EQUIV_PRESD_BY_SUM
+	      MATCH_MP WEAK_EQUIV_PRESD_BY_SUM
 		       (LIST_CONJ [thm1, STABLE_CONV t1', STABLE_CONV t1'',
 				   thm2, STABLE_CONV t2', STABLE_CONV t2''])
 	      handle HOL_ERR _ => failwith "stable conditions not satisfied"
@@ -130,19 +130,19 @@ fun OE_SUB_CONV (c: conv) tm =
 	  val thm1 = c t1
 	  and thm2 = c t2
       in
-	  MATCH_MP OBS_EQUIV_PRESD_BY_PAR (CONJ thm1 thm2)
+	  MATCH_MP WEAK_EQUIV_PRESD_BY_PAR (CONJ thm1 thm2)
       end
   else if is_restr tm then
       let val (P, L) = args_restr tm;
 	  val thm = c P
       in
-	  ISPEC L (MATCH_MP OBS_EQUIV_SUBST_RESTR thm)
+	  ISPEC L (MATCH_MP WEAK_EQUIV_SUBST_RESTR thm)
       end
   else if is_relab tm then
       let val (P, rf) = args_relab tm;
 	  val thm = c P
       in
-	  ISPEC rf (MATCH_MP OBS_EQUIV_SUBST_RELAB thm)
+	  ISPEC rf (MATCH_MP WEAK_EQUIV_SUBST_RELAB thm)
       end
   else
       OE_ALL_CONV tm;
@@ -158,7 +158,7 @@ fun OE_TOP_DEPTH_CONV (c: conv) t =
     ((c OE_THENC (OE_TOP_DEPTH_CONV c)) OE_ORELSEC OE_ALL_CONV))
    t;
 
-(* Define the function OE_SUBST for substitution in OBS_EQUIV terms. *)
+(* Define the function OE_SUBST for substitution in WEAK_EQUIV terms. *)
 fun OE_SUBST thm tm = let
     val (ti, ti') = args_thm thm
 in
@@ -168,7 +168,7 @@ in
 	let val (u, t) = args_prefix tm;
 	    val thm1 = OE_SUBST thm t
 	in
-	    ISPEC u (MATCH_MP OBS_EQUIV_SUBST_PREFIX thm1)
+	    ISPEC u (MATCH_MP WEAK_EQUIV_SUBST_PREFIX thm1)
 	end
     else if is_sum tm then
 	let val (t1, t2) = args_sum tm;
@@ -178,15 +178,15 @@ in
 	    and (t2', t2'') = args_thm thm2
 	in
 	    if (t1' = t1'') andalso (t2' = t2'') then
-		ISPEC (mk_sum (t1', t2')) OBS_EQUIV_REFL
+		ISPEC (mk_sum (t1', t2')) WEAK_EQUIV_REFL
 	    else if (t1' = t1'') then
-		ISPEC t1' (MATCH_MP OBS_EQUIV_SUBST_SUM_L
+		ISPEC t1' (MATCH_MP WEAK_EQUIV_SUBST_SUM_L
 				    (LIST_CONJ [thm2, STABLE_CONV t2', STABLE_CONV t2'']))
 	    else if (t2' = t2'') then
-		ISPEC t2' (MATCH_MP OBS_EQUIV_SUBST_SUM_R
+		ISPEC t2' (MATCH_MP WEAK_EQUIV_SUBST_SUM_R
 				    (LIST_CONJ [thm1, STABLE_CONV t1', STABLE_CONV t1'']))
 	    else
-		MATCH_MP OBS_EQUIV_PRESD_BY_SUM
+		MATCH_MP WEAK_EQUIV_PRESD_BY_SUM
 			 (LIST_CONJ [thm1, STABLE_CONV t1', STABLE_CONV t1'',
 				     thm2, STABLE_CONV t2', STABLE_CONV t2''])
 		handle HOL_ERR _ =>
@@ -197,19 +197,19 @@ in
 	    val thm1 = OE_SUBST thm t1
 	    and thm2 = OE_SUBST thm t2
 	in
-	    MATCH_MP OBS_EQUIV_PRESD_BY_PAR (CONJ thm1 thm2)
+	    MATCH_MP WEAK_EQUIV_PRESD_BY_PAR (CONJ thm1 thm2)
 	end
     else if is_restr tm then
 	let val (t, L) = args_restr tm;
 	    val thm1 = OE_SUBST thm t
 	in
-	    ISPEC L (MATCH_MP OBS_EQUIV_SUBST_RESTR thm1)
+	    ISPEC L (MATCH_MP WEAK_EQUIV_SUBST_RESTR thm1)
 	end
     else if is_relab tm then
 	let val (t, rf) = args_relab tm;
 	    val thm1 = OE_SUBST thm t
 	in
-	    ISPEC rf (MATCH_MP OBS_EQUIV_SUBST_RELAB thm1)
+	    ISPEC rf (MATCH_MP WEAK_EQUIV_SUBST_RELAB thm1)
 	end
     else
 	OE_ALL_CONV tm
@@ -221,17 +221,17 @@ fun OE_LHS_SUBST1_TAC thm :tactic =
   fn (asl, w) => let
       val (opt, t1, t2) = args_equiv w
   in
-      if opt = mk_const ("OBS_EQUIV", type_of opt) then
+      if opt = mk_const ("WEAK_EQUIV", type_of opt) then
 	  let val thm' = OE_SUBST thm t1;
 	      val (t1', t') = args_thm thm' (* t1' = t1 *)
 	  in
 	      if (t' = t2) then
-		  ([], fn [] => OE_TRANS thm' (ISPEC t' OBS_EQUIV_REFL))
+		  ([], fn [] => OE_TRANS thm' (ISPEC t' WEAK_EQUIV_REFL))
 	      else
-		  ([(asl, ``OBS_EQUIV ^t' ^t2``)], fn [thm''] => OE_TRANS thm' thm'')
+		  ([(asl, ``WEAK_EQUIV ^t' ^t2``)], fn [thm''] => OE_TRANS thm' thm'')
 	  end
       else
-	  failwith "the goal is not an OBS_EQUIV relation"
+	  failwith "the goal is not an WEAK_EQUIV relation"
   end;
 
 (* The tactic OE_LHS_SUBST_TAC substitutes a list of theorems in the left-hand
@@ -242,17 +242,17 @@ fun OE_LHS_SUBST_TAC thmlist = EVERY (map OE_LHS_SUBST1_TAC thmlist);
    of an observation equivalence. *)
 fun OE_RHS_SUBST1_TAC thm =
     REPEAT GEN_TAC
- >> RULE_TAC OBS_EQUIV_SYM
+ >> RULE_TAC WEAK_EQUIV_SYM
  >> OE_LHS_SUBST1_TAC thm
- >> RULE_TAC OBS_EQUIV_SYM;
+ >> RULE_TAC WEAK_EQUIV_SYM;
 
 (* The tactic OE_RHS_SUBST_TAC substitutes a list of theorems in the right-hand
    side of an observation equivalence. *)
 fun OE_RHS_SUBST_TAC thmlist =
     REPEAT GEN_TAC
- >> RULE_TAC OBS_EQUIV_SYM
+ >> RULE_TAC WEAK_EQUIV_SYM
  >> OE_LHS_SUBST_TAC thmlist
- >> RULE_TAC OBS_EQUIV_SYM;
+ >> RULE_TAC WEAK_EQUIV_SYM;
 
 (* The tactic OE_SUBST1_TAC (OE_SUBST_TAC) substitutes a (list of) theorem(s)
    in both sides of an observation equivalence. *)

@@ -18,55 +18,55 @@ val _ = new_theory "WeakLaws";
 (*									      *)
 (******************************************************************************)
 
-(* Prove OBS_SUM_IDENT_R: |- !E. OBS_EQUIV (sum E nil) E *)
+(* Prove OBS_SUM_IDENT_R: |- !E. WEAK_EQUIV (sum E nil) E *)
 val OBS_SUM_IDENT_R = save_thm (
    "OBS_SUM_IDENT_R",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_SUM_IDENT_R);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_SUM_IDENT_R);
 
-(* Prove OBS_SUM_IDENT_L: |- !E. OBS_EQUIV (sum nil E) E *)
+(* Prove OBS_SUM_IDENT_L: |- !E. WEAK_EQUIV (sum nil E) E *)
 val OBS_SUM_IDENT_L = save_thm (
    "OBS_SUM_IDENT_L",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_SUM_IDENT_L);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_SUM_IDENT_L);
 
-(* Prove OBS_SUM_IDEMP: |- !E. OBS_EQUIV (sum E E) E *)
+(* Prove OBS_SUM_IDEMP: |- !E. WEAK_EQUIV (sum E E) E *)
 val OBS_SUM_IDEMP = save_thm (
    "OBS_SUM_IDEMP",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_SUM_IDEMP);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_SUM_IDEMP);
 
-(* Prove OBS_SUM_COMM: |- !E E'. OBS_EQUIV (sum E E') (sum E' E) *)
+(* Prove OBS_SUM_COMM: |- !E E'. WEAK_EQUIV (sum E E') (sum E' E) *)
 val OBS_SUM_COMM = save_thm (
    "OBS_SUM_COMM",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_SUM_COMM);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_SUM_COMM);
 
 (* Observation equivalence of stable agents is substitutive under the binary
    summation operator on the left:
-   |- !E E'. OBS_EQUIV E E' /\ STABLE E /\ STABLE E' ==>
-	     (!E''. OBS_EQUIV (sum E'' E) (sum E'' E'))
+   |- !E E'. WEAK_EQUIV E E' /\ STABLE E /\ STABLE E' ==>
+	     (!E''. WEAK_EQUIV (sum E'' E) (sum E'' E'))
  *)
-val OBS_EQUIV_SUBST_SUM_L = save_thm (
-   "OBS_EQUIV_SUBST_SUM_L",
+val WEAK_EQUIV_SUBST_SUM_L = save_thm (
+   "WEAK_EQUIV_SUBST_SUM_L",
     Q_GENL [`E`, `E'`]
      (DISCH_ALL
       (Q.GEN `E''`
        (OE_TRANS
 	 (Q.SPECL [`E''`, `E`] OBS_SUM_COMM)
 	 (OE_TRANS
-	   (SPEC_ALL (UNDISCH (SPEC_ALL OBS_EQUIV_SUBST_SUM_R)))
+	   (SPEC_ALL (UNDISCH (SPEC_ALL WEAK_EQUIV_SUBST_SUM_R)))
 	   (Q.SPECL [`E'`, `E''`] OBS_SUM_COMM))))));
 
 (* Prove OBS_SUM_ASSOC_R:
-   |- !E E' E''. OBS_EQUIV (sum (sum E E') E'') (sum E (sum E' E''))
+   |- !E E' E''. WEAK_EQUIV (sum (sum E E') E'') (sum E (sum E' E''))
  *)
 val OBS_SUM_ASSOC_R = save_thm (
    "OBS_SUM_ASSOC_R",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_SUM_ASSOC_R);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_SUM_ASSOC_R);
 
 (* Prove OBS_SUM_ASSOC_L:
-   |- !E E' E''. OBS_EQUIV (sum E (sum E' E'')) (sum (sum E E') E'')
+   |- !E E' E''. WEAK_EQUIV (sum E (sum E' E'')) (sum (sum E E') E'')
  *)
 val OBS_SUM_ASSOC_L = save_thm (
    "OBS_SUM_ASSOC_L",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_SUM_ASSOC_L);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_SUM_ASSOC_L);
 
 (******************************************************************************)
 (*									      *)
@@ -75,54 +75,54 @@ val OBS_SUM_ASSOC_L = save_thm (
 (*									      *)
 (******************************************************************************)
 
-(* Prove OBS_PAR_IDENT_R: |- !E. OBS_EQUIV (par E nil) E
+(* Prove OBS_PAR_IDENT_R: |- !E. WEAK_EQUIV (par E nil) E
  *)
 val OBS_PAR_IDENT_R = save_thm (
    "OBS_PAR_IDENT_R",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_PAR_IDENT_R);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_PAR_IDENT_R);
 
-(* Prove OBS_PAR_IDENT_L: |- !E. OBS_EQUIV (par nil E) E
+(* Prove OBS_PAR_IDENT_L: |- !E. WEAK_EQUIV (par nil E) E
  *)
 val OBS_PAR_IDENT_L = save_thm (
    "OBS_PAR_IDENT_L",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_PAR_IDENT_L);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_PAR_IDENT_L);
 
-(* Prove OBS_PAR_COMM: |- !E E'. OBS_EQUIV (par E E') (par E' E)
+(* Prove OBS_PAR_COMM: |- !E E'. WEAK_EQUIV (par E E') (par E' E)
  *)
 val OBS_PAR_COMM = save_thm (
    "OBS_PAR_COMM",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_PAR_COMM);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_PAR_COMM);
 
 (* Prove OBS_PAR_ASSOC:
-   |- !E E' E''. OBS_EQUIV (par (par E E') E'') (par E (par E' E''))
+   |- !E E' E''. WEAK_EQUIV (par (par E E') E'') (par E (par E' E''))
  *)
 val OBS_PAR_ASSOC = save_thm (
    "OBS_PAR_ASSOC",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_PAR_ASSOC);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_PAR_ASSOC);
 
 (* Prove OBS_PAR_PREF_TAU:
    |- !u E E'.
-       OBS_EQUIV (par (prefix u E) (prefix tau E'))
+       WEAK_EQUIV (par (prefix u E) (prefix tau E'))
 		 (sum (prefix u (par E (prefix tau E')))
 		      (prefix tau (par (prefix u E) E')))
  *)
 val OBS_PAR_PREF_TAU = save_thm (
    "OBS_PAR_PREF_TAU",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_PAR_PREF_TAU);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_PAR_PREF_TAU);
 
 (* Prove OBS_PAR_TAU_PREF:
    |- !E u E'.
-       OBS_EQUIV (par (prefix tau E) (prefix u E'))
+       WEAK_EQUIV (par (prefix tau E) (prefix u E'))
 		 (sum (prefix tau (par E (prefix u E')))
 		      (prefix u (par (prefix tau E) E')))
  *)
 val OBS_PAR_TAU_PREF = save_thm (
    "OBS_PAR_TAU_PREF",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_PAR_TAU_PREF);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_PAR_TAU_PREF);
 
 (* Prove OBS_PAR_TAU_TAU:
    |- !E E'.
-       OBS_EQUIV (par (prefix tau E) (prefix tau E'))
+       WEAK_EQUIV (par (prefix tau E) (prefix tau E'))
 		 (sum (prefix tau (par E (prefix tau E')))
 		      (prefix tau (par (prefix tau E) E')))
  *)
@@ -133,14 +133,14 @@ val OBS_PAR_TAU_TAU = save_thm (
    |- !l l'.
        ~(l = COMPL l') ==>
        (!E E'.
-	 OBS_EQUIV (par (prefix (label l) E) (prefix (label l') E'))
+	 WEAK_EQUIV (par (prefix (label l) E) (prefix (label l') E'))
 		   (sum (prefix (label l) (par E (prefix (label l') E')))
 			(prefix (label l') (par (prefix (label l) E) E'))))
  *)
 val OBS_PAR_PREF_NO_SYNCR = save_thm (
    "OBS_PAR_PREF_NO_SYNCR",
     STRIP_FORALL_RULE ((DISCH ``~((l :'b Label) = COMPL l')``) o
-		       (STRONG_IMP_OBS_EQUIV_RULE) o
+		       (STRONG_IMP_WEAK_EQUIV_RULE) o
 		       UNDISCH)
 		      STRONG_PAR_PREF_NO_SYNCR);
 
@@ -148,7 +148,7 @@ val OBS_PAR_PREF_NO_SYNCR = save_thm (
    |- !l l'.
        (l = COMPL l') ==>
        (!E E'.
-	 OBS_EQUIV (par (prefix (label l) E) (prefix (label l') E'))
+	 WEAK_EQUIV (par (prefix (label l) E) (prefix (label l') E'))
 		   (sum
 		    (sum (prefix (label l) (par E (prefix (label l') E')))
 			 (prefix (label l') (par (prefix (label l) E) E')))
@@ -157,7 +157,7 @@ val OBS_PAR_PREF_NO_SYNCR = save_thm (
 val OBS_PAR_PREF_SYNCR = save_thm (
    "OBS_PAR_PREF_SYNCR",
     STRIP_FORALL_RULE ((DISCH ``((l :'b Label) = COMPL l')``) o
-		       (STRONG_IMP_OBS_EQUIV_RULE) o
+		       (STRONG_IMP_WEAK_EQUIV_RULE) o
 		       UNDISCH)
 		      STRONG_PAR_PREF_SYNCR);
 
@@ -165,7 +165,7 @@ val OBS_PAR_PREF_SYNCR = save_thm (
   |- !f n f' m.
       (!i. i <= n ==> Is_Prefix (f i)) /\ (!j. j <= m ==> Is_Prefix (f' j))
    ==>
-      OBS_EQUIV
+      WEAK_EQUIV
       (par (SIGMA f n) (SIGMA f' m))
       (sum
        (sum
@@ -175,7 +175,7 @@ val OBS_PAR_PREF_SYNCR = save_thm (
  *)
 val WEAK_EXPANSION_LAW = save_thm (
    "WEAK_EXPANSION_LAW",
-    STRIP_FORALL_RULE (DISCH_ALL o (MATCH_MP STRONG_IMP_OBS_EQUIV) o UNDISCH)
+    STRIP_FORALL_RULE (DISCH_ALL o (MATCH_MP STRONG_IMP_WEAK_EQUIV) o UNDISCH)
 		      STRONG_EXPANSION_LAW);
 
 (******************************************************************************)
@@ -185,28 +185,28 @@ val WEAK_EXPANSION_LAW = save_thm (
 (*									      *)
 (******************************************************************************)
 
-(* Prove OBS_RESTR_NIL: |- !L. OBS_EQUIV (restr nil L) nil *)
+(* Prove OBS_RESTR_NIL: |- !L. WEAK_EQUIV (restr nil L) nil *)
 val OBS_RESTR_NIL = save_thm (
    "OBS_RESTR_NIL",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_RESTR_NIL);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_RESTR_NIL);
 
 (* Prove OBS_RESTR_SUM:
-   |- !E E' L. OBS_EQUIV (restr (sum E E') L) (sum (restr E L) (restr E' L))
+   |- !E E' L. WEAK_EQUIV (restr (sum E E') L) (sum (restr E L) (restr E' L))
  *)
 val OBS_RESTR_SUM = save_thm (
    "OBS_RESTR_SUM",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_RESTR_SUM);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_RESTR_SUM);
 
 (* Prove OBS_RESTR_PREFIX_TAU:
-   |- !E L. OBS_EQUIV (restr (prefix tau E) L) (prefix tau (restr E L))
+   |- !E L. WEAK_EQUIV (restr (prefix tau E) L) (prefix tau (restr E L))
  *)
 val OBS_RESTR_PREFIX_TAU = save_thm (
    "OBS_RESTR_PREFIX_TAU",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_RESTR_PREFIX_TAU);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_RESTR_PREFIX_TAU);
 
 (* Prove OBS_RESTR_PR_LAB_NIL:
    |- !l L. l IN L \/ (COMPL l) IN L ==>
-	    (!E. OBS_EQUIV (restr (prefix (label l) E) L) nil)
+	    (!E. WEAK_EQUIV (restr (prefix (label l) E) L) nil)
  *)
 val OBS_RESTR_PR_LAB_NIL = save_thm (
    "OBS_RESTR_PR_LAB_NIL",
@@ -220,12 +220,12 @@ val OBS_RESTR_PR_LAB_NIL = save_thm (
 	     (UNDISCH
 	      (Q.SPECL [`l`, `L`] STRONG_RESTR_PR_LAB_NIL))))
 	   (SPECL [``restr (L :'b Label set) (prefix (label l) E)``, ``nil``]
-		    STRONG_IMP_OBS_EQUIV))))));
+		    STRONG_IMP_WEAK_EQUIV))))));
 
 (* Prove OBS_RESTR_PREFIX_LABEL:
    |- !l L.
        ~l IN L /\ ~(COMPL l) IN L ==>
-       (!E. OBS_EQUIV (restr (prefix (label l) E) L) (prefix (label l) (restr E L)))
+       (!E. WEAK_EQUIV (restr (prefix (label l) E) L) (prefix (label l) (restr E L)))
  *)
 val OBS_RESTR_PREFIX_LABEL = save_thm (
    "OBS_RESTR_PREFIX_LABEL",
@@ -240,7 +240,7 @@ val OBS_RESTR_PREFIX_LABEL = save_thm (
 	      (Q.SPECL [`l`, `L`] STRONG_RESTR_PREFIX_LABEL))))
 	   (SPECL [``restr (L :'b Label set) (prefix (label l) E)``,
 		   ``prefix (label (l :'b Label)) (restr L E)``]
-		  STRONG_IMP_OBS_EQUIV))))));
+		  STRONG_IMP_WEAK_EQUIV))))));
 
 (******************************************************************************)
 (*									      *)
@@ -249,26 +249,26 @@ val OBS_RESTR_PREFIX_LABEL = save_thm (
 (*									      *)
 (******************************************************************************)
 
-(* Prove OBS_RELAB_NIL: |- !rf. OBS_EQUIV (relab nil rf) nil *)
+(* Prove OBS_RELAB_NIL: |- !rf. WEAK_EQUIV (relab nil rf) nil *)
 val OBS_RELAB_NIL = save_thm (
    "OBS_RELAB_NIL",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_RELAB_NIL);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_RELAB_NIL);
 
 (* Prove OBS_RELAB_SUM:
-   |- !E E' rf. OBS_EQUIV (relab (sum E E') rf) (sum (relab E rf) (relab E' rf))
+   |- !E E' rf. WEAK_EQUIV (relab (sum E E') rf) (sum (relab E rf) (relab E' rf))
  *)
 val OBS_RELAB_SUM = save_thm (
    "OBS_RELAB_SUM",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_RELAB_SUM);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_RELAB_SUM);
 
 (* Prove OBS_RELAB_PREFIX:
    |- !u E labl.
-       OBS_EQUIV (relab (prefix u E) (RELAB labl))
+       WEAK_EQUIV (relab (prefix u E) (RELAB labl))
 		 (prefix (relabel (Apply_Relab labl) u) (relab E (RELAB labl)))
  *)
 val OBS_RELAB_PREFIX = save_thm (
    "OBS_RELAB_PREFIX",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_RELAB_PREFIX);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_RELAB_PREFIX);
 
 (******************************************************************************)
 (*									      *)
@@ -278,21 +278,21 @@ val OBS_RELAB_PREFIX = save_thm (
 (******************************************************************************)
 
 (* The unfolding law:
-   OBS_UNFOLDING: |- !X E. OBS_EQUIV (rec X E) (CCS_Subst E (rec X E) X)
+   OBS_UNFOLDING: |- !X E. WEAK_EQUIV (rec X E) (CCS_Subst E (rec X E) X)
  *)
 val OBS_UNFOLDING = save_thm (
    "OBS_UNFOLDING",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_UNFOLDING);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_UNFOLDING);
 
 (* Prove the theorem OBS_PREF_REC_EQUIV:
    |- !u s v.
-       OBS_EQUIV
+       WEAK_EQUIV
        (prefix u (rec s (prefix v (prefix u (var s)))))
        (rec s (prefix u (prefix v (var s))))
  *)
 val OBS_PREF_REC_EQUIV = save_thm (
    "OBS_PREF_REC_EQUIV",
-    STRONG_IMP_OBS_EQUIV_RULE STRONG_PREF_REC_EQUIV);
+    STRONG_IMP_WEAK_EQUIV_RULE STRONG_PREF_REC_EQUIV);
 
 (******************************************************************************)
 (*									      *)
@@ -300,9 +300,9 @@ val OBS_PREF_REC_EQUIV = save_thm (
 (*									      *)
 (******************************************************************************)
 
-(* Prove TAU_WEAK:  |- !E. OBS_EQUIV (prefix tau E) E *)
+(* Prove TAU_WEAK:  |- !E. WEAK_EQUIV (prefix tau E) E *)
 val TAU_WEAK = store_thm ("TAU_WEAK",
-  ``!E. OBS_EQUIV (prefix tau E) E``,
+  ``!E. WEAK_EQUIV (prefix tau E) E``,
     GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [OBS_PROPERTY_STAR]
  >> REPEAT STRIP_TAC (* 4 sub-goals here *)
@@ -311,7 +311,7 @@ val TAU_WEAK = store_thm ("TAU_WEAK",
       IMP_RES_TAC Action_distinct_label,
       (* goal 2 (of 4) *)
       Q.EXISTS_TAC `E2` \\
-      REWRITE_TAC [WEAK_TRANS, OBS_EQUIV_REFL] \\
+      REWRITE_TAC [WEAK_TRANS, WEAK_EQUIV_REFL] \\
       take [`E`, `E2`] \\
       ASM_REWRITE_TAC [EPS_REFL] \\
       MATCH_MP_TAC ONE_TAU \\
@@ -319,10 +319,10 @@ val TAU_WEAK = store_thm ("TAU_WEAK",
       (* goal 3 (of 4) *)
       IMP_RES_TAC TRANS_PREFIX \\
       Q.EXISTS_TAC `E1` \\
-      ASM_REWRITE_TAC [EPS_REFL, OBS_EQUIV_REFL],
+      ASM_REWRITE_TAC [EPS_REFL, WEAK_EQUIV_REFL],
       (* goal 4 (of 4) *)
       Q.EXISTS_TAC `E2` \\
-      REWRITE_TAC [OBS_EQUIV_REFL] \\
+      REWRITE_TAC [WEAK_EQUIV_REFL] \\
       MATCH_MP_TAC EPS_TRANS \\
       Q.EXISTS_TAC `E` \\
       IMP_RES_TAC ONE_TAU >> ASM_REWRITE_TAC [] \\

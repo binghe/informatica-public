@@ -308,10 +308,10 @@ val TAU1 = store_thm ("TAU1",
       ASM_REWRITE_TAC [EPS_REFL, PREFIX] ]);
 
 (* Prove TAU1_EQUIV:
-   |- !u E. OBS_EQUIV (prefix u (prefix tau E)) (prefix u E)
+   |- !u E. WEAK_EQUIV (prefix u (prefix tau E)) (prefix u E)
  *)
 val TAU1_EQUIV = save_thm ("TAU1_EQUIV",
-    OBS_CONGR_IMP_OBS_EQUIV_RULE TAU1);
+    OBS_CONGR_IMP_WEAK_EQUIV_RULE TAU1);
 
 (* Prove TAU2:
    |- !E. OBS_CONGR (sum E (prefix tau E)) (prefix tau E)
@@ -325,7 +325,7 @@ val TAU2 = store_thm ("TAU2",
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 1.1 (of 2) *)
         Q.EXISTS_TAC `E1` \\
-        REWRITE_TAC [WEAK_TRANS, OBS_EQUIV_REFL] \\
+        REWRITE_TAC [WEAK_TRANS, WEAK_EQUIV_REFL] \\
         take [`E`, `E1`] \\
         ASM_REWRITE_TAC [EPS_REFL] \\
         MATCH_MP_TAC ONE_TAU \\
@@ -333,22 +333,22 @@ val TAU2 = store_thm ("TAU2",
         (* goal 1.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         Q.EXISTS_TAC `E1` \\
-        REWRITE_TAC [OBS_EQUIV_REFL] \\
+        REWRITE_TAC [WEAK_EQUIV_REFL] \\
         IMP_RES_TAC TRANS_IMP_WEAK_TRANS ],
       (* goal 2 (of 2) *)
       IMP_RES_TAC TRANS_PREFIX \\
       Q.EXISTS_TAC `E2` \\
-      REWRITE_TAC [WEAK_TRANS, OBS_EQUIV_REFL] \\
+      REWRITE_TAC [WEAK_TRANS, WEAK_EQUIV_REFL] \\
       take [`sum E (prefix tau E)`, `E2`] \\
       REWRITE_TAC [EPS_REFL] \\
       MATCH_MP_TAC SUM2 \\
       PURE_ONCE_ASM_REWRITE_TAC [] ]);
 
 (* Prove TAU2_EQUIV:
-   |- !E. OBS_EQUIV (sum E (prefix tau E)) (prefix tau E)
+   |- !E. WEAK_EQUIV (sum E (prefix tau E)) (prefix tau E)
  *)
 val TAU2_EQUIV = save_thm ("TAU2_EQUIV",
-    OBS_CONGR_IMP_OBS_EQUIV_RULE TAU2);
+    OBS_CONGR_IMP_WEAK_EQUIV_RULE TAU2);
 
 (* Prove TAU3:
    |- !u E E'.
@@ -367,12 +367,12 @@ val TAU3 = store_thm ("TAU3",
       [ (* goal 1.1 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         Q.EXISTS_TAC `E1` \\
-        REWRITE_TAC [OBS_EQUIV_REFL] \\
+        REWRITE_TAC [WEAK_EQUIV_REFL] \\
         IMP_RES_TAC TRANS_IMP_WEAK_TRANS,
         (* goal 1.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         Q.EXISTS_TAC `E1` \\
-        ASM_REWRITE_TAC [WEAK_TRANS, OBS_EQUIV_REFL] \\
+        ASM_REWRITE_TAC [WEAK_TRANS, WEAK_EQUIV_REFL] \\
         take [`prefix (u :'b Action) (sum E (prefix tau E'))`,
 	      `sum E (prefix tau E')`] \\
         REWRITE_TAC [EPS_REFL, PREFIX] \\
@@ -382,7 +382,7 @@ val TAU3 = store_thm ("TAU3",
       (* goal 2 (of 2) *)
       IMP_RES_TAC TRANS_PREFIX \\
       Q.EXISTS_TAC `E2` \\
-      REWRITE_TAC [WEAK_TRANS, OBS_EQUIV_REFL] \\
+      REWRITE_TAC [WEAK_TRANS, WEAK_EQUIV_REFL] \\
       take [`sum (prefix u (sum E (prefix tau E'))) (prefix u E')`, `E2`] \\
       REWRITE_TAC [EPS_REFL] \\
       MATCH_MP_TAC SUM1 \\
@@ -390,11 +390,11 @@ val TAU3 = store_thm ("TAU3",
 
 (* Prove TAU3_EQUIV:
    |- !u E E'.
-       OBS_EQUIV (sum (prefix u (sum E (prefix tau E'))) (prefix u E'))
+       WEAK_EQUIV (sum (prefix u (sum E (prefix tau E'))) (prefix u E'))
                  (prefix u (sum E (prefix tau E')))
  *)
 val TAU3_EQUIV = save_thm ("TAU3_EQUIV",
-    OBS_CONGR_IMP_OBS_EQUIV_RULE TAU3);
+    OBS_CONGR_IMP_WEAK_EQUIV_RULE TAU3);
 
 val _ = export_theory ();
 val _ = DB.html_theory "ObsCongrLaws";

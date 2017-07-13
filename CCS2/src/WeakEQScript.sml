@@ -20,6 +20,11 @@ val _ = new_theory "WeakEQ";
 val EPS_defn = ``\E E'. TRANS E tau E'``;
 val EPS_def = Define `EPS = RTC ^EPS_defn`;
 
+val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
+			    tok = ("=" ^ (UTF8.chr 0x03B5) ^ "=>"), term_name = "EPS" };
+
+val _ = TeX_notation { hol = ("=" ^ (UTF8.chr 0x03B5) ^ "=>"), TeX = ("\\HOLTokenEPS", 1) };
+
 val ONE_TAU = store_thm ((* NEW *)
    "ONE_TAU", ``!E E'. TRANS E tau E' ==> EPS E E'``,
     REWRITE_TAC [EPS_def]
@@ -77,11 +82,6 @@ val EPS_cases1 = save_thm ((* NEW *)
  *)
 val EPS_cases2 = save_thm ((* NEW *)
    "EPS_cases2", trans RTC_CASES2);
-
-(* |- ∀x y. EPS x y ⇔ ∃u. EPS x u ∧ EPS u y
- *)
-val EPS_cases_rtc_twice = save_thm ((* NEW *)
-   "EPS_cases_rtc_twice", trans RTC_CASES_RTC_TWICE);
 
 end; (* local *)
 
@@ -610,24 +610,23 @@ val WEAK_EQUIV = store_thm ((* NEW *)
       PROVE_TAC [WEAK_BISIM] ]);
 
 val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
-			    tok = "=~", term_name = "OBS_EQUIV" };
+			    tok = "=~", term_name = "WEAK_EQUIV" };
 
-val _ = Unicode.unicode_version { u = UTF8.chr 0x2248, tmnm = "OBS_EQUIV"};
+val _ = Unicode.unicode_version { u = UTF8.chr 0x2248, tmnm = "WEAK_EQUIV"};
 val _ = TeX_notation { hol = UTF8.chr 0x2248,
 		       TeX = ("\\ensuremath{\\approx}", 1) };
 
 val _ = overload_on ("=~", ``WEAK_EQUIV``);
-val _ = overload_on ("OBS_EQUIV", ``WEAK_EQUIV``);
 
 (******************************************************************************)
 (*									      *)
-(*	    Observation equivalence is an equivalence relation		      *)
+(*	         Weak equivalence is an equivalence relation		      *)
 (*									      *)
 (******************************************************************************)
 
 (* Observation equivalence is a reflexive relation. *)
-val OBS_EQUIV_REFL = store_thm (
-   "OBS_EQUIV_REFL", ``!E. OBS_EQUIV E E``,
+val WEAK_EQUIV_REFL = store_thm (
+   "WEAK_EQUIV_REFL", ``!E. WEAK_EQUIV E E``,
     GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [WEAK_EQUIV]
  >> EXISTS_TAC ``\x y: ('a, 'b) CCS. x = y``
@@ -635,9 +634,9 @@ val OBS_EQUIV_REFL = store_thm (
  >> REWRITE_TAC [IDENTITY_WEAK_BISIM]);
 
 (* Observation equivalence is a symmetric relation. *)
-val OBS_EQUIV_SYM = store_thm (
-   "OBS_EQUIV_SYM",
-  ``!E E'. OBS_EQUIV E E' ==> OBS_EQUIV E' E``,
+val WEAK_EQUIV_SYM = store_thm (
+   "WEAK_EQUIV_SYM",
+  ``!E E'. WEAK_EQUIV E E' ==> WEAK_EQUIV E' E``,
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [WEAK_EQUIV]
  >> STRIP_TAC
@@ -646,23 +645,23 @@ val OBS_EQUIV_SYM = store_thm (
  >> IMP_RES_TAC CONVERSE_WEAK_BISIM
  >> ASM_REWRITE_TAC []);
 
-val OBS_EQUIV_SYM' = store_thm ((* NEW *)
-   "OBS_EQUIV_SYM'",
-  ``!E E'. OBS_EQUIV E E' <=> OBS_EQUIV E' E``,
+val WEAK_EQUIV_SYM' = store_thm ((* NEW *)
+   "WEAK_EQUIV_SYM'",
+  ``!E E'. WEAK_EQUIV E E' <=> WEAK_EQUIV E' E``,
     REPEAT STRIP_TAC
  >> EQ_TAC
- >> REWRITE_TAC [OBS_EQUIV_SYM]);
+ >> REWRITE_TAC [WEAK_EQUIV_SYM]);
 
 (* Syntactic equivalence implies observation equivalence. *)
-val EQUAL_IMP_OBS_EQUIV = store_thm (
-   "EQUAL_IMP_OBS_EQUIV", ``!E E'. (E = E') ==> OBS_EQUIV E E'``,
+val EQUAL_IMP_WEAK_EQUIV = store_thm (
+   "EQUAL_IMP_WEAK_EQUIV", ``!E E'. (E = E') ==> WEAK_EQUIV E E'``,
     REPEAT STRIP_TAC
- >> PURE_ASM_REWRITE_TAC [OBS_EQUIV_REFL]);
+ >> PURE_ASM_REWRITE_TAC [WEAK_EQUIV_REFL]);
 
 (* Observation equivalence is a transitive relation. *)
-val OBS_EQUIV_TRANS = store_thm (
-   "OBS_EQUIV_TRANS",
-  ``!E E' E''. OBS_EQUIV E E' /\ OBS_EQUIV E' E'' ==> OBS_EQUIV E E''``,
+val WEAK_EQUIV_TRANS = store_thm (
+   "WEAK_EQUIV_TRANS",
+  ``!E E' E''. WEAK_EQUIV E E' /\ WEAK_EQUIV E' E'' ==> WEAK_EQUIV E E''``,
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [WEAK_EQUIV]
  >> STRIP_TAC
@@ -680,13 +679,13 @@ val WEAK_EQUIV_equivalence = store_thm ((* NEW *)
     REWRITE_TAC [equivalence_def]
  >> REPEAT STRIP_TAC (* 3 sub-goals here *)
  >| [ (* goal 1 (of 3) *)
-      REWRITE_TAC [reflexive_def, OBS_EQUIV_REFL],
+      REWRITE_TAC [reflexive_def, WEAK_EQUIV_REFL],
       (* goal 2 (of 3) *)
       REWRITE_TAC [symmetric_def] \\
       REPEAT GEN_TAC \\
-      EQ_TAC >> REWRITE_TAC [OBS_EQUIV_SYM],
+      EQ_TAC >> REWRITE_TAC [WEAK_EQUIV_SYM],
       (* goal 3 (of 3) *)
-      REWRITE_TAC [transitive_def, OBS_EQUIV_TRANS] ]);
+      REWRITE_TAC [transitive_def, WEAK_EQUIV_TRANS] ]);
 
 (* Observation equivalence satisfies the property [*] *)
 val OBS_PROPERTY_STAR = save_thm ((* NEW *)
@@ -696,9 +695,9 @@ val OBS_PROPERTY_STAR_LR = save_thm (
    "OBS_PROPERTY_STAR_LR", EQ_IMP_LR OBS_PROPERTY_STAR);
 
 (* Observation equivalence is substitutive under prefix operator. *)
-val OBS_EQUIV_SUBST_PREFIX = store_thm (
-   "OBS_EQUIV_SUBST_PREFIX",
-  ``!E E'. OBS_EQUIV E E' ==> (!u. OBS_EQUIV (prefix u E) (prefix u E'))``,
+val WEAK_EQUIV_SUBST_PREFIX = store_thm (
+   "WEAK_EQUIV_SUBST_PREFIX",
+  ``!E E'. WEAK_EQUIV E E' ==> (!u. WEAK_EQUIV (prefix u E) (prefix u E'))``,
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [SPECL [``prefix (u :'b Action) E``,
 				  ``prefix (u :'b Action) E'``] OBS_PROPERTY_STAR]
@@ -786,12 +785,12 @@ val STABLE_NO_WEAK_TRANS_TAU = store_thm (
  >> PROVE_TAC []);
 
 (* Observation equivalence of stable agents is preserved by binary summation. *)
-val OBS_EQUIV_PRESD_BY_SUM = store_thm (
-   "OBS_EQUIV_PRESD_BY_SUM",
+val WEAK_EQUIV_PRESD_BY_SUM = store_thm (
+   "WEAK_EQUIV_PRESD_BY_SUM",
   ``!E1 E1' E2 E2'.
-	 OBS_EQUIV E1 E1' /\ STABLE E1 /\ STABLE E1' /\
-	 OBS_EQUIV E2 E2' /\ STABLE E2 /\ STABLE E2' ==>
-	 OBS_EQUIV (sum E1 E2) (sum E1' E2')``,
+	 WEAK_EQUIV E1 E1' /\ STABLE E1 /\ STABLE E1' /\
+	 WEAK_EQUIV E2 E2' /\ STABLE E2 /\ STABLE E2' ==>
+	 WEAK_EQUIV (sum E1 E2) (sum E1' E2')``,
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [OBS_PROPERTY_STAR]
  >> REPEAT STRIP_TAC (* 4 sub-goals here *)
@@ -864,10 +863,10 @@ val OBS_EQUIV_PRESD_BY_SUM = store_thm (
 
 (* Observation equivalence of stable agents is substitutive under binary
    summation on the right. *)
-val OBS_EQUIV_SUBST_SUM_R = store_thm (
-   "OBS_EQUIV_SUBST_SUM_R",
-  ``!E E'. OBS_EQUIV E E' /\ STABLE E /\ STABLE E' ==>
-	!E''. OBS_EQUIV (sum E E'') (sum E' E'')``,
+val WEAK_EQUIV_SUBST_SUM_R = store_thm (
+   "WEAK_EQUIV_SUBST_SUM_R",
+  ``!E E'. WEAK_EQUIV E E' /\ STABLE E /\ STABLE E' ==>
+	!E''. WEAK_EQUIV (sum E E'') (sum E' E'')``,
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [OBS_PROPERTY_STAR]
  >> REPEAT STRIP_TAC (* 4 sub-goals here *)
@@ -886,7 +885,7 @@ val OBS_EQUIV_SUBST_SUM_R = store_thm (
 	MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [],
 	(* goal 1.2 (of 2) *)
 	Q.EXISTS_TAC `E1` \\
-	REWRITE_TAC [OBS_EQUIV_REFL, WEAK_TRANS] \\
+	REWRITE_TAC [WEAK_EQUIV_REFL, WEAK_TRANS] \\
 	EXISTS_TAC ``sum E' E''`` \\
 	Q.EXISTS_TAC `E1` \\
 	REWRITE_TAC [EPS_REFL] \\
@@ -906,7 +905,7 @@ val OBS_EQUIV_SUBST_SUM_R = store_thm (
 	MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [],
 	(* goal 2.2 (of 2) *)
 	Q.EXISTS_TAC `E2` \\
-	REWRITE_TAC [OBS_EQUIV_REFL, WEAK_TRANS] \\
+	REWRITE_TAC [WEAK_EQUIV_REFL, WEAK_TRANS] \\
 	EXISTS_TAC ``sum E E''`` \\
 	Q.EXISTS_TAC `E2` \\
 	REWRITE_TAC [EPS_REFL] \\
@@ -920,7 +919,7 @@ val OBS_EQUIV_SUBST_SUM_R = store_thm (
 		    (ASSUME ``TRANS E tau E1``))),
 	(* goal 3.2 (of 2) *)
 	Q.EXISTS_TAC `E1` \\
-	REWRITE_TAC [OBS_EQUIV_REFL] \\
+	REWRITE_TAC [WEAK_EQUIV_REFL] \\
 	PURE_ONCE_REWRITE_TAC [EPS_cases] \\
 	DISJ1_TAC \\
 	MATCH_MP_TAC SUM2 >> ASM_REWRITE_TAC [] ],
@@ -933,7 +932,7 @@ val OBS_EQUIV_SUBST_SUM_R = store_thm (
 		    (ASSUME ``TRANS E' tau E2``))),
 	(* goal 4.2 (of 2) *)
 	Q.EXISTS_TAC `E2` \\
-	REWRITE_TAC [OBS_EQUIV_REFL] \\
+	REWRITE_TAC [WEAK_EQUIV_REFL] \\
 	PURE_ONCE_REWRITE_TAC [EPS_cases] \\
 	DISJ1_TAC \\
 	MATCH_MP_TAC SUM2 >> ASM_REWRITE_TAC [] ] ]);
@@ -1005,17 +1004,17 @@ val WEAK_PAR = store_thm ("WEAK_PAR",
       MATCH_MP_TAC PAR2 >> ASM_REWRITE_TAC [] ]);
 
 (* Observation equivalence is preserved by parallel operator. *)
-val OBS_EQUIV_PRESD_BY_PAR = store_thm (
-   "OBS_EQUIV_PRESD_BY_PAR",
+val WEAK_EQUIV_PRESD_BY_PAR = store_thm (
+   "WEAK_EQUIV_PRESD_BY_PAR",
   ``!E1 E1' E2 E2'.
-	OBS_EQUIV E1 E1' /\ OBS_EQUIV E2 E2' ==>
-	OBS_EQUIV (par E1 E2) (par E1' E2')``,
+	WEAK_EQUIV E1 E1' /\ WEAK_EQUIV E2 E2' ==>
+	WEAK_EQUIV (par E1 E2) (par E1' E2')``,
     REPEAT STRIP_TAC
  >> PURE_ONCE_REWRITE_TAC [WEAK_EQUIV]
  >> EXISTS_TAC ``\x y.
 		   (?F1 F1' F2 F2'.
 		    (x = par F1 F2) /\ (y = par F1' F2') /\
-		    OBS_EQUIV F1 F1' /\ OBS_EQUIV F2 F2')``
+		    WEAK_EQUIV F1 F1' /\ WEAK_EQUIV F2 F2')``
  >> CONJ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       BETA_TAC \\
@@ -1030,7 +1029,7 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	IMP_RES_TAC TRANS_PAR >| (* 3 sub-goals here *)
 	[ (* goal 1.1 (of 3) *)
 	  IMP_RES_TAC (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR
-					   (ASSUME ``OBS_EQUIV F1 F1'``))) \\
+					   (ASSUME ``WEAK_EQUIV F1 F1'``))) \\
 	  EXISTS_TAC ``par E2'' F2'`` \\
 	  CONJ_TAC >| (* 2 sub-goals here *)
 	  [ (* goal 1.1.1 (of 2) *)
@@ -1041,7 +1040,7 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	    ASM_REWRITE_TAC [] ],
 	  (* goal 1.2 (of 3) *)
 	  IMP_RES_TAC (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR
-					   (ASSUME ``OBS_EQUIV F2 F2'``))) \\
+					   (ASSUME ``WEAK_EQUIV F2 F2'``))) \\
 	  EXISTS_TAC ``par F1' E2''`` \\
 	  CONJ_TAC >| (* 2 sub-goals here *)
 	  [ (* goal 1.2.1 (of 2) *)
@@ -1058,7 +1057,7 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	IMP_RES_TAC TRANS_PAR >| (* 3 sub-goals here *)
 	[ (* goal 2.1 (of 3) *)
 	  IMP_RES_TAC (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR
-					   (ASSUME ``OBS_EQUIV F1 F1'``))) \\
+					   (ASSUME ``WEAK_EQUIV F1 F1'``))) \\
 	  EXISTS_TAC ``par E1''' F2`` \\
 	  CONJ_TAC >| (* 2 sub-goals here *)
 	  [ (* goal 2.1.1 (of 2) *)
@@ -1069,7 +1068,7 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	    ASM_REWRITE_TAC [] ],
 	  (* goal 2.2 (of 3) *)
 	  IMP_RES_TAC (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR
-					   (ASSUME ``OBS_EQUIV F2 F2'``))) \\
+					   (ASSUME ``WEAK_EQUIV F2 F2'``))) \\
 	  EXISTS_TAC ``par F1 E1'''`` \\
 	  CONJ_TAC >| (* 2 sub-goals here *)
 	  [ (* goal 2.2.1 (of 2) *)
@@ -1087,7 +1086,7 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	[ (* goal 3.1 (of 3) *)
 	  IMP_RES_TAC
 	      (CONJUNCT2 (MATCH_MP OBS_PROPERTY_STAR_LR
-				   (ASSUME ``OBS_EQUIV F1 F1'``))) \\
+				   (ASSUME ``WEAK_EQUIV F1 F1'``))) \\
 	  EXISTS_TAC ``par E2'' F2'`` \\
 	  CONJ_TAC >| (* 2 sub-goals here *)
 	  [ (* goal 3.1.1 (of 2) *)
@@ -1099,7 +1098,7 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	  (* goal 3.2 (of 3) *)
 	  IMP_RES_TAC
 	      (CONJUNCT2 (MATCH_MP OBS_PROPERTY_STAR_LR
-				   (ASSUME ``OBS_EQUIV F2 F2'``))) \\
+				   (ASSUME ``WEAK_EQUIV F2 F2'``))) \\
 	  EXISTS_TAC ``par F1' E2''`` \\
 	  CONJ_TAC >| (* 2 sub-goals here *)
 	  [ (* goal 3.2.1 (of 2) *)
@@ -1110,9 +1109,9 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	    ASM_REWRITE_TAC [] ],
 	  (* goal 3.3 (of 3) *)
 	  IMP_RES_TAC (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR
-					   (ASSUME ``OBS_EQUIV F1 F1'``))) \\
+					   (ASSUME ``WEAK_EQUIV F1 F1'``))) \\
 	  IMP_RES_TAC (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR
-					   (ASSUME ``OBS_EQUIV F2 F2'``))) \\
+					   (ASSUME ``WEAK_EQUIV F2 F2'``))) \\
 	  EXISTS_TAC ``par E2''' E2''''`` \\
 	  CONJ_TAC >| (* 2 sub-goals here *)
 	  [ (* goal 3.3.1 (of 2) *)
@@ -1146,7 +1145,7 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	IMP_RES_TAC TRANS_PAR >| (* 3 sub-goals here *)
 	[ (* goal 4.1 (of 3) *)
 	  IMP_RES_TAC (CONJUNCT2 (MATCH_MP OBS_PROPERTY_STAR_LR
-					   (ASSUME ``OBS_EQUIV F1 F1'``))) \\
+					   (ASSUME ``WEAK_EQUIV F1 F1'``))) \\
 	  EXISTS_TAC ``par E1''' F2`` \\
 	  CONJ_TAC >| (* 2 sub-goals here *)
 	  [ (* goal 4.1.1 (of 2) *)
@@ -1156,7 +1155,7 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	    ASM_REWRITE_TAC [] ],
 	  (* goal 4.2 (of 3) *)
 	  IMP_RES_TAC (CONJUNCT2 (MATCH_MP OBS_PROPERTY_STAR_LR
-					   (ASSUME ``OBS_EQUIV F2 F2'``))) \\
+					   (ASSUME ``WEAK_EQUIV F2 F2'``))) \\
 	  EXISTS_TAC ``par F1 E1'''`` \\
 	  CONJ_TAC >| (* 2 sub-goals here *)
 	  [ (* goal 4.2.1 (of 2) *)
@@ -1166,9 +1165,9 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	    ASM_REWRITE_TAC [] ],
 	  (* goal 4.3 (of 3) *)
 	  IMP_RES_TAC (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR
-					   (ASSUME ``OBS_EQUIV F1 F1'``))) \\
+					   (ASSUME ``WEAK_EQUIV F1 F1'``))) \\
 	  IMP_RES_TAC (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR
-					   (ASSUME ``OBS_EQUIV F2 F2'``))) \\
+					   (ASSUME ``WEAK_EQUIV F2 F2'``))) \\
 	  EXISTS_TAC ``par E1''' E1''''`` \\
 	  CONJ_TAC >| (* 2 sub-goals here *)
 	  [ (* goal 4.3.1 (of 2) *)
@@ -1198,28 +1197,28 @@ val OBS_EQUIV_PRESD_BY_PAR = store_thm (
 	    ASM_REWRITE_TAC [] ] ] ] ]);
 
 (* Observation equivalence is substitutive under parallel operator on the right:
-   |- ∀E E'. OBS_EQUIV E E' ⇒ ∀E''. OBS_EQUIV (E || E'') (E' || E'')
+   |- ∀E E'. WEAK_EQUIV E E' ⇒ ∀E''. WEAK_EQUIV (E || E'') (E' || E'')
  *)
-val OBS_EQUIV_SUBST_PAR_R = save_thm (
-   "OBS_EQUIV_SUBST_PAR_R",
+val WEAK_EQUIV_SUBST_PAR_R = save_thm (
+   "WEAK_EQUIV_SUBST_PAR_R",
     Q_GENL [`E`, `E'`]
-      (DISCH ``OBS_EQUIV E E'``
+      (DISCH ``WEAK_EQUIV E E'``
 	(Q.GEN `E''`
-	   (MATCH_MP OBS_EQUIV_PRESD_BY_PAR
-		     (CONJ (ASSUME ``OBS_EQUIV E E'``)
-			   (Q.SPEC `E''` OBS_EQUIV_REFL))))));
+	   (MATCH_MP WEAK_EQUIV_PRESD_BY_PAR
+		     (CONJ (ASSUME ``WEAK_EQUIV E E'``)
+			   (Q.SPEC `E''` WEAK_EQUIV_REFL))))));
 
 (* Observation equivalence is substitutive under parallel operator on the left:k
-   |- ∀E E'. OBS_EQUIV E E' ⇒ ∀E''. OBS_EQUIV (E'' || E) (E'' || E')
+   |- ∀E E'. WEAK_EQUIV E E' ⇒ ∀E''. WEAK_EQUIV (E'' || E) (E'' || E')
  *)
-val OBS_EQUIV_SUBST_PAR_L = save_thm (
-   "OBS_EQUIV_SUBST_PAR_L",
+val WEAK_EQUIV_SUBST_PAR_L = save_thm (
+   "WEAK_EQUIV_SUBST_PAR_L",
     Q_GENL [`E`, `E'`]
-      (DISCH ``OBS_EQUIV E E'``
+      (DISCH ``WEAK_EQUIV E E'``
 	(Q.GEN `E''`
-	   (MATCH_MP OBS_EQUIV_PRESD_BY_PAR
-		     (CONJ (Q.SPEC `E''` OBS_EQUIV_REFL)
-			   (ASSUME ``OBS_EQUIV E E'``))))));
+	   (MATCH_MP WEAK_EQUIV_PRESD_BY_PAR
+		     (CONJ (Q.SPEC `E''` WEAK_EQUIV_REFL)
+			   (ASSUME ``WEAK_EQUIV E E'``))))));
 
 (* The epsilon relation is preserved by the restriction operator. *)
 val EPS_RESTR = store_thm (
@@ -1277,13 +1276,13 @@ val WEAK_RESTR_tau = store_thm (
  >> ASM_REWRITE_TAC []);
 
 (* Observation equivalence is substitutive under restriction operator. *)
-val OBS_EQUIV_SUBST_RESTR = store_thm (
-   "OBS_EQUIV_SUBST_RESTR",
-  ``!E E'. OBS_EQUIV E E' ==> !L. OBS_EQUIV (restr L E) (restr L E')``,
+val WEAK_EQUIV_SUBST_RESTR = store_thm (
+   "WEAK_EQUIV_SUBST_RESTR",
+  ``!E E'. WEAK_EQUIV E E' ==> !L. WEAK_EQUIV (restr L E) (restr L E')``,
     REPEAT STRIP_TAC
  >> PURE_ONCE_REWRITE_TAC [WEAK_EQUIV]
  >> EXISTS_TAC ``\x y. ?E1 E2 L'. (x = restr L' E1) /\ (y = restr L' E2) /\
-				  OBS_EQUIV E1 E2``
+				  WEAK_EQUIV E1 E2``
  >> CONJ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       BETA_TAC \\
@@ -1301,7 +1300,7 @@ val OBS_EQUIV_SUBST_RESTR = store_thm (
 	  (* goal 2.1.2 (of 2) *)
 	  IMP_RES_TAC
 	      (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR 
-				   (ASSUME ``OBS_EQUIV E1 E2``))) \\
+				   (ASSUME ``WEAK_EQUIV E1 E2``))) \\
 	  EXISTS_TAC ``restr (L' :'b Label set) E2'`` \\
 	  ASM_REWRITE_TAC
 	    [MATCH_MP WEAK_RESTR_label
@@ -1319,7 +1318,7 @@ val OBS_EQUIV_SUBST_RESTR = store_thm (
 	  (* goal 2.2.2 (of 2) *)
 	  IMP_RES_TAC
 	      (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR  
-				   (ASSUME ``OBS_EQUIV E1 E2``))) \\
+				   (ASSUME ``WEAK_EQUIV E1 E2``))) \\
 	  EXISTS_TAC ``restr (L' :'b Label set) E1'`` \\
 	  ASM_REWRITE_TAC 
 	    [MATCH_MP WEAK_RESTR_label
@@ -1335,7 +1334,7 @@ val OBS_EQUIV_SUBST_RESTR = store_thm (
 	[ (* goal 2.3.1 (of 2) *)
 	  IMP_RES_TAC
 	      (CONJUNCT2 (MATCH_MP OBS_PROPERTY_STAR_LR   
-				   (ASSUME ``OBS_EQUIV E1 E2``))) \\
+				   (ASSUME ``WEAK_EQUIV E1 E2``))) \\
 	  EXISTS_TAC ``restr (L' :'b Label set) E2'`` \\
 	  IMP_RES_TAC EPS_RESTR >> ASM_REWRITE_TAC [] \\
 	  take [`E''''`, `E2'`, `L'`] >> ASM_REWRITE_TAC [],
@@ -1348,7 +1347,7 @@ val OBS_EQUIV_SUBST_RESTR = store_thm (
 	[ (* goal 2.4.1 (of 2) *)
 	  IMP_RES_TAC
 	      (CONJUNCT2 (MATCH_MP OBS_PROPERTY_STAR_LR  
-				   (ASSUME ``OBS_EQUIV E1 E2``))) \\
+				   (ASSUME ``WEAK_EQUIV E1 E2``))) \\
 	  EXISTS_TAC ``restr (L' :'b Label set) E1'`` \\
 	  IMP_RES_TAC EPS_RESTR >> ASM_REWRITE_TAC [] \\
 	  take [`E1'`, `E''''`, `L'`] >> ASM_REWRITE_TAC [],
@@ -1440,14 +1439,14 @@ val WEAK_RELAB_rf = store_thm (
  >> ASM_REWRITE_TAC []);
 
 (* Observation equivalence is substitutive under relabelling operator. *)
-val OBS_EQUIV_SUBST_RELAB = store_thm (
-   "OBS_EQUIV_SUBST_RELAB",
-  ``!E E'. OBS_EQUIV E E' ==> 
-	 (!rf. OBS_EQUIV (relab E rf) (relab E' rf))``,
+val WEAK_EQUIV_SUBST_RELAB = store_thm (
+   "WEAK_EQUIV_SUBST_RELAB",
+  ``!E E'. WEAK_EQUIV E E' ==> 
+	 (!rf. WEAK_EQUIV (relab E rf) (relab E' rf))``,
     REPEAT STRIP_TAC
  >> PURE_ONCE_REWRITE_TAC [WEAK_EQUIV]
  >> EXISTS_TAC ``\x y. ?E1 E2 rf'. (x = relab E1 rf') /\ (y = relab E2 rf') /\
-				   OBS_EQUIV E1 E2``
+				   WEAK_EQUIV E1 E2``
  >> CONJ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       BETA_TAC \\
@@ -1465,7 +1464,7 @@ val OBS_EQUIV_SUBST_RELAB = store_thm (
 	ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = label l'``]
 				 (ASSUME ``TRANS E1 u' E''''``)) \\
 	IMP_RES_TAC (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR  
-					 (ASSUME ``OBS_EQUIV E1 E2``))) \\
+					 (ASSUME ``WEAK_EQUIV E1 E2``))) \\
 	EXISTS_TAC ``relab E2' rf'`` \\
 	CONJ_TAC >| (* 2 sub-goals here *)
 	[ (* goal 2.1.1 (of 2) *)
@@ -1483,7 +1482,7 @@ val OBS_EQUIV_SUBST_RELAB = store_thm (
 	ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = label l'``]
 				 (ASSUME ``TRANS E2 u' E''''``)) \\
 	IMP_RES_TAC (CONJUNCT1 (MATCH_MP OBS_PROPERTY_STAR_LR 
-					 (ASSUME ``OBS_EQUIV E1 E2``))) \\
+					 (ASSUME ``WEAK_EQUIV E1 E2``))) \\
 	EXISTS_TAC ``relab E1' rf'`` \\
 	CONJ_TAC >| (* 2 sub-goals here *)
 	[ (* goal 2.2.1 (of 2) *)
@@ -1501,7 +1500,7 @@ val OBS_EQUIV_SUBST_RELAB = store_thm (
 	ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = tau``]
 				 (ASSUME ``TRANS E1 u' E''''``)) \\ 
 	IMP_RES_TAC (CONJUNCT2 (MATCH_MP OBS_PROPERTY_STAR_LR
-					 (ASSUME ``OBS_EQUIV E1 E2``))) \\
+					 (ASSUME ``WEAK_EQUIV E1 E2``))) \\
 	EXISTS_TAC ``relab E2' rf'`` \\
 	CONJ_TAC >| (* 2 sub-goals here *)
 	[ (* goal 2.3.1 (of 2) *)
@@ -1519,7 +1518,7 @@ val OBS_EQUIV_SUBST_RELAB = store_thm (
 	ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = tau``]
 				 (ASSUME ``TRANS E2 u' E''''``)) \\
 	IMP_RES_TAC (CONJUNCT2 (MATCH_MP OBS_PROPERTY_STAR_LR
-					 (ASSUME ``OBS_EQUIV E1 E2``))) \\
+					 (ASSUME ``WEAK_EQUIV E1 E2``))) \\
 	EXISTS_TAC ``relab E1' rf'`` \\
 	CONJ_TAC >| (* 2 sub-goals here *)
 	[ (* goal 2.4.1 (of 2) *)
@@ -1562,9 +1561,9 @@ val STRONG_IMP_WEAK_BISIM = store_thm (
  >> ASM_REWRITE_TAC []);
 
 (* Prove that strong equivalence implies weak/observation equivalence. *) 
-val STRONG_IMP_OBS_EQUIV = store_thm (
-   "STRONG_IMP_OBS_EQUIV",
-  ``!E E'. STRONG_EQUIV E E' ==> OBS_EQUIV E E'``,
+val STRONG_IMP_WEAK_EQUIV = store_thm (
+   "STRONG_IMP_WEAK_EQUIV",
+  ``!E E'. STRONG_EQUIV E E' ==> WEAK_EQUIV E E'``,
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_EQUIV, WEAK_EQUIV]
  >> STRIP_TAC

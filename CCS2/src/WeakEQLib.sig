@@ -16,7 +16,7 @@ sig
   val OE_LHS_CONV_TAC			: conv -> tactic
   val OE_RHS_CONV_TAC			: conv -> tactic
 
-  val STRONG_IMP_OBS_EQUIV_RULE		: thm -> thm
+  val STRONG_IMP_WEAK_EQUIV_RULE	: thm -> thm
 end
 
 (* last updated: Jun 24, 2017 *)

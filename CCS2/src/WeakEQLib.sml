@@ -19,23 +19,23 @@ infix 0 OE_THENC OE_ORELSEC;
 (*                                                                            *)
 (******************************************************************************)
 
-(* Define OE_SYM such that, when given a theorem A |- OBS_EQUIV t1 t2,
-   returns the theorem A |- OBS_EQUIV t2 t1. *)
-fun OE_SYM thm = MATCH_MP OBS_EQUIV_SYM thm;
+(* Define OE_SYM such that, when given a theorem A |- WEAK_EQUIV t1 t2,
+   returns the theorem A |- WEAK_EQUIV t2 t1. *)
+fun OE_SYM thm = MATCH_MP WEAK_EQUIV_SYM thm;
 
 (* Define OE_TRANS such that, when given the theorems thm1 and thm2, applies
-   OBS_EQUIV_TRANS on them, if possible.
+   WEAK_EQUIV_TRANS on them, if possible.
  *)
 fun OE_TRANS thm1 thm2 =
     if (rhs_tm thm1 = lhs_tm thm2) then
-	MATCH_MP OBS_EQUIV_TRANS (CONJ thm1 thm2)
+	MATCH_MP WEAK_EQUIV_TRANS (CONJ thm1 thm2)
     else
 	failwith "transitivity of observation equivalence not applicable";
 
 (* When applied to a term "t: CCS", the conversion OE_ALL_CONV returns the
-   theorem: |- OBS_EQUIV t t
+   theorem: |- WEAK_EQUIV t t
  *)
-fun OE_ALL_CONV t = ISPEC t OBS_EQUIV_REFL;
+fun OE_ALL_CONV t = ISPEC t WEAK_EQUIV_REFL;
 
 (* Define the function OE_THENC. *)
 fun op OE_THENC ((c1, c2) :conv * conv) :conv =
@@ -53,46 +53,46 @@ fun OE_REPEATC (c :conv) (t :term) :thm =
   ((c OE_THENC (OE_REPEATC c)) OE_ORELSEC OE_ALL_CONV) t;
 
 (* Convert a conversion for the application of the laws for STRONG_EQUIV to a
-   tactic applying the laws for OBS_EQUIV (i.e. c is a conversion for strong
+   tactic applying the laws for WEAK_EQUIV (i.e. c is a conversion for strong
    equivalence). *)
 fun OE_LHS_CONV_TAC (c :conv) :tactic =
   fn (asl, w) => let
       val (opt, t1, t2) = args_equiv w
   in
-      if (opt = ``OBS_EQUIV``) then
-	  let val thm = MATCH_MP STRONG_IMP_OBS_EQUIV ((S_DEPTH_CONV c) t1);
+      if (opt = ``WEAK_EQUIV``) then
+	  let val thm = MATCH_MP STRONG_IMP_WEAK_EQUIV ((S_DEPTH_CONV c) t1);
 	      val (t1', t') = args_thm thm (* t1' = t1 *)
 	  in
 	      if (t' = t2) then
-		  ([], fn [] => OE_TRANS thm (ISPEC t' OBS_EQUIV_REFL))
+		  ([], fn [] => OE_TRANS thm (ISPEC t' WEAK_EQUIV_REFL))
 	      else
-		  ([(asl, ``OBS_EQUIV ^t' ^t2``)],
+		  ([(asl, ``WEAK_EQUIV ^t' ^t2``)],
 		   fn [thm'] => OE_TRANS thm thm')
 	  end
       else
-	  failwith "the goal is not an OBS_EQUIV relation"
+	  failwith "the goal is not an WEAK_EQUIV relation"
   end;
 
 fun OE_RHS_CONV_TAC (c :conv) :tactic =
   fn (asl,w) => let
       val (opt, t1, t2) = args_equiv w
   in
-      if (opt = ``OBS_EQUIV``) then
-	  let val thm = MATCH_MP STRONG_IMP_OBS_EQUIV ((S_DEPTH_CONV c) t2);
+      if (opt = ``WEAK_EQUIV``) then
+	  let val thm = MATCH_MP STRONG_IMP_WEAK_EQUIV ((S_DEPTH_CONV c) t2);
 	      val (t2', t') = args_thm thm (* t2' = t2 *)
 	  in
 	      if (t' = t1) then
 		  ([], fn [] => OE_SYM thm)
 	      else
-		  ([(asl, ``OBS_EQUIV ^t1 ^t'``)],
+		  ([(asl, ``WEAK_EQUIV ^t1 ^t'``)],
 		   fn [thm'] => OE_TRANS thm' (OE_SYM thm))
 	  end
       else
-	  failwith "the goal is not an OBS_EQUIV relation"
+	  failwith "the goal is not an WEAK_EQUIV relation"
   end;
 
-val STRONG_IMP_OBS_EQUIV_RULE =
-    STRIP_FORALL_RULE (MATCH_MP STRONG_IMP_OBS_EQUIV);
+val STRONG_IMP_WEAK_EQUIV_RULE =
+    STRIP_FORALL_RULE (MATCH_MP STRONG_IMP_WEAK_EQUIV);
 
 end (* struct *)
 

@@ -1,4 +1,4 @@
-# INCLUDES = $(dprot $(HOLDIR)/examples/set-theory/hol_sets)
+INCLUDES = $(HOLDIR)/examples/set-theory/hol_sets
 OPTIONS = QUIT_ON_FAILURE
 EXTRA_CLEANS = heap munge.exe
 

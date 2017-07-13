@@ -7,7 +7,7 @@ signature WeakLawsConv =
 sig
   include Abbrev
 
-  val STRONG_TO_OBS_EQUIV_CONV		: conv -> conv
+  val STRONG_TO_WEAK_EQUIV_CONV		: conv -> conv
 
   val OE_SUM_IDEMP_CONV			: conv
   val OE_SUM_NIL_CONV			: conv
