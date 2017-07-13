@@ -327,10 +327,12 @@ val COARSEST_CONGR_THM = store_thm ((* NEW *)
 (*                                                                            *)
 (******************************************************************************)
 
-val defn = ``(\E E'. ?u. TRANS E u E')``;
-val Reachable_def = Define `Reachable = RTC ^defn`;
-
-val trans = (REWRITE_RULE [GSYM Reachable_def]) o BETA_RULE o (ISPEC defn);
+local
+    val defn = ``(\E E'. ?u. TRANS E u E')``
+in
+  val Reachable_def = Define `Reachable = RTC ^defn`;
+  val trans = (REWRITE_RULE [GSYM Reachable_def]) o BETA_RULE o (ISPEC defn);
+end;
 
 val Reachable_one = store_thm ((* NEW *)
    "Reachable_one", ``!E E'. (?u. TRANS E u E') ==> Reachable E E'``,
@@ -1132,7 +1134,7 @@ val Klop_ONE_ONE = store_thm ((* NEW *)
 (* Not used in the project, but this is a pure math result *)
 val ONE_ONE_IMP_EXISTS = store_thm ((* NEW *)
    "ONE_ONE_IMP_EXISTS",
-  ``!(A :'a set) (f :'a ordinal -> 'a). ONE_ONE f ==> ?n. !x. x IN A ==> x <> f n``,
+  ``!(A :'a set) (f :'a ordinal -> 'a). ONE_ONE f ==> ?n. f n NOTIN A``,
     REPEAT GEN_TAC
  >> MP_TAC univ_ord_greater_cardinal
  >> RW_TAC std_ss [ONE_ONE_DEF, cardleq_def, INJ_DEF, IN_UNIV]
@@ -1144,15 +1146,15 @@ val ONE_ONE_IMP_EXISTS = store_thm ((* NEW *)
  >> Cases_on `x < omega` (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       FULL_SIMP_TAC std_ss [] \\
-      PAT_X_ASSUM ``(@m. &m = x) = @m. &m = y`` MP_TAC \\
+      Q.PAT_X_ASSUM `(@m. &m = x) = P` MP_TAC \\
       REWRITE_TAC [] \\
       NTAC 2 SELECT_ELIM_TAC \\
       REPEAT STRIP_TAC >| (* 3 sub-goals here *)
       [ (* goal 1.1 (of 3) *)
-        PAT_X_ASSUM ``y < omega`` (ASSUME_TAC o (REWRITE_RULE [lt_omega])) \\
+        Q.PAT_X_ASSUM `y < omega` (ASSUME_TAC o (REWRITE_RULE [lt_omega])) \\
         PROVE_TAC [],
         (* goal 1.2 (of 3) *)
-        PAT_X_ASSUM ``x < omega`` (ASSUME_TAC o (REWRITE_RULE [lt_omega])) \\
+        Q.PAT_X_ASSUM `x < omega` (ASSUME_TAC o (REWRITE_RULE [lt_omega])) \\
         PROVE_TAC [],
         (* goal 1.3 (of 3) *)
         FULL_SIMP_TAC std_ss [] ],
@@ -1182,10 +1184,10 @@ val INFINITE_KLOP_EXISTS_LEMMA = store_thm ((* NEW *)
       NTAC 2 SELECT_ELIM_TAC \\
       REPEAT STRIP_TAC >| (* 3 sub-goals here *)
       [ (* goal 1.1 (of 3) *)
-        PAT_X_ASSUM ``y < omega`` (ASSUME_TAC o (REWRITE_RULE [lt_omega])) \\
+        Q.PAT_X_ASSUM `y < omega` (ASSUME_TAC o (REWRITE_RULE [lt_omega])) \\
         PROVE_TAC [],
         (* goal 1.2 (of 3) *)
-        PAT_X_ASSUM ``x < omega`` (ASSUME_TAC o (REWRITE_RULE [lt_omega])) \\
+        Q.PAT_X_ASSUM `x < omega` (ASSUME_TAC o (REWRITE_RULE [lt_omega])) \\
         PROVE_TAC [],
         (* goal 1.3 (of 3) *)
         FULL_SIMP_TAC std_ss [] ],
