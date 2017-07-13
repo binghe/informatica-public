@@ -969,14 +969,14 @@ val Klop_rule2 = store_thm ((* NEW *)
  >> Q.EXISTS_TAC `m`
  >> ASM_REWRITE_TAC []);
 
-val Klop_rules = save_thm ((* NEW *)
-   "Klop_rules", LIST_CONJ [Klop_rule1, Klop_rule2]);
-
 val K0_NO_TRANS' = store_thm ((* NEW *)
    "K0_NO_TRANS'", ``!(a :'b Label) u E. ~(TRANS (Klop a 0) u E)``,
     REPEAT GEN_TAC
  >> REWRITE_TAC [Klop_case0]
  >> REWRITE_TAC [NIL_NO_TRANS]);
+
+val Klop_rules = save_thm ((* NEW *)
+   "Klop_rules", LIST_CONJ [K0_NO_TRANS', Klop_rule1, Klop_rule2]);
 
 val Klop_PROP0 = store_thm ((* NEW *)
    "Klop_PROP0", ``!(a :'b Label) (n :'c ordinal). STABLE (Klop a n)``,
