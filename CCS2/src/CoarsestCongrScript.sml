@@ -930,23 +930,72 @@ val COARSEST_CONGR_FINITE = store_thm ((* NEW *)
 (*                                                                            *)
 (******************************************************************************)
 
-val _ = new_constant ("Klop", ``:'b Label -> 'c ordinal -> ('a, 'b) CCS``);
+val _ = new_constant ("summ", ``:('a, 'b) CCS set -> ('a, 'b) CCS``);
 
-(* Axiomatized definiton of Klop processes (general version) *)
-val Klop_cases = new_axiom ("Klop_cases",
-  ``(!(a :'b Label). Klop a (0: 'c ordinal) = (nil :('a, 'b) CCS)) /\
-    (!(a :'b Label) (n :'c ordinal) (u :'b Action) (E :('a, 'b) CCS).
-      (TRANS :('a, 'b) transition) (Klop a (ordSUC n)) u E =
-	(((u = label a) /\ (E = Klop a n)) \/
-	 (TRANS (Klop a n) u E))) /\
-    (!(a :'b Label) (n :'c ordinal) (u :'b Action) (E :('a, 'b) CCS).
-      islimit n ==>
-      ((TRANS :('a, 'b) transition) (Klop a n) u E =
-       (?m. m < n /\ TRANS (Klop a m) u E)))``);
+val summ_Axiom = new_axiom ((* NEW *)
+   "summ_Axiom", ``!rs u E. TRANS (summ rs) u E = ?r. r IN rs /\ TRANS r u E``);
 
-val [Klop_case0, Klop_case1, Klop_case2] =
-    map save_thm (combine (["Klop_case0", "Klop_case1", "Klop_case2"],
-			   CONJ_LIST 3 Klop_cases));
+val Klop_def = new_specification (
+   "Klop_def", ["Klop"],
+    ord_RECURSION |> INST_TYPE [``:'a`` |-> ``:'c``]
+		  |> ISPEC ``nil :('a, 'b) CCS``		(* z *)
+		  |> Q.SPEC `\x r. sum r (prefix (label a) r)`	(* sf *)
+		  |> Q.SPEC `\x rs. summ rs`			(* lf *)
+		  |> SIMP_RULE (srw_ss()) []
+		  |> Q.GEN `a`
+		  |> CONV_RULE SKOLEM_CONV );
+
+val Klop_case0 = store_thm (
+   "Klop_case0", ``!(a :'b Label). Klop a (0 :'c ordinal) = nil``,
+    GEN_TAC >> REWRITE_TAC [Klop_def]);
+
+val Klop_case1 = store_thm (
+   "Klop_case1",
+  ``!(a :'b Label) (n :'c ordinal) (u :'b Action) (E :('a, 'b) CCS).
+     TRANS (Klop a (ordSUC n)) u E = (((u = label a) /\ (E = Klop a n)) \/
+				      TRANS (Klop a n) u E)``,
+    REPEAT GEN_TAC
+ >> REWRITE_TAC [Klop_def]
+ >> EQ_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      DISCH_TAC \\
+      IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
+      [ (* goal 1.1 (of 2) *)
+        DISJ2_TAC >> ASM_REWRITE_TAC [],
+        (* goal 1.2 (of 2) *)
+        DISJ1_TAC \\
+        IMP_RES_TAC TRANS_PREFIX >> ASM_REWRITE_TAC [] ],
+      (* goal 2 (of 2) *)
+      STRIP_TAC >| (* 2 sub-goals here *)
+      [ (* goal 2.1 (of 2) *)
+        ASM_REWRITE_TAC [] \\
+        MATCH_MP_TAC SUM2 \\
+        REWRITE_TAC [PREFIX],
+        (* goal 2.2 (of 2) *)
+        MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [] ] ]);
+
+val Klop_case2 = store_thm (
+   "Klop_case2",
+  ``!(a :'b Label) (n :'c ordinal) (u :'b Action) (E :('a, 'b) CCS).
+     0 < n /\ islimit n ==> (TRANS (Klop a n) u E = (?m. m < n /\ TRANS (Klop a m) u E))``,
+    REPEAT STRIP_TAC
+ >> RW_TAC std_ss [Klop_def, summ_Axiom]
+ >> EQ_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      REPEAT STRIP_TAC \\
+      NTAC 2 (POP_ASSUM MP_TAC) \\
+      REWRITE_TAC [IN_IMAGE, IN_preds] \\
+      RW_TAC std_ss [] \\
+      Q.EXISTS_TAC `x` \\
+      ASM_REWRITE_TAC [],
+      (* goal 2 (of 2) *)
+      REWRITE_TAC [IN_IMAGE, IN_preds] \\
+      REPEAT STRIP_TAC \\
+      Q.EXISTS_TAC `Klop a m` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `m` >> ASM_REWRITE_TAC [] ]);
+
+val Klop_cases = save_thm ((* NEW *)
+   "Klop_cases", LIST_CONJ [Klop_case0, Klop_case1, Klop_case2]);
 
 val Klop_rule1 = store_thm ((* NEW *)
    "Klop_rule1",
@@ -961,22 +1010,20 @@ val Klop_rule1 = store_thm ((* NEW *)
 val Klop_rule2 = store_thm ((* NEW *)
    "Klop_rule2",
   ``!(a :'b Label) (n :'c ordinal) m u (E :('a, 'b) CCS).
-	islimit n /\ m < n /\ TRANS (Klop a m) u E ==> TRANS (Klop a n) u E``,
+	0 < n /\ islimit n /\ m < n /\ TRANS (Klop a m) u E ==> TRANS (Klop a n) u E``,
     REPEAT STRIP_TAC
- >> PAT_X_ASSUM ``islimit n`` (ASSUME_TAC o (MATCH_MP Klop_case2))
- >> POP_ASSUM (ASSUME_TAC o (SPECL [``a :'b Label``, ``u: 'b Action``, ``E :('a, 'b) CCS``]))
- >> ASM_REWRITE_TAC []
+ >> RW_TAC std_ss [Klop_case2]
  >> Q.EXISTS_TAC `m`
  >> ASM_REWRITE_TAC []);
+
+val Klop_rules = save_thm ((* NEW *)
+   "Klop_rules", LIST_CONJ [Klop_rule1, Klop_rule2]);
 
 val K0_NO_TRANS' = store_thm ((* NEW *)
    "K0_NO_TRANS'", ``!(a :'b Label) u E. ~(TRANS (Klop a 0) u E)``,
     REPEAT GEN_TAC
  >> REWRITE_TAC [Klop_case0]
  >> REWRITE_TAC [NIL_NO_TRANS]);
-
-val Klop_rules = save_thm ((* NEW *)
-   "Klop_rules", LIST_CONJ [K0_NO_TRANS', Klop_rule1, Klop_rule2]);
 
 val Klop_PROP0 = store_thm ((* NEW *)
    "Klop_PROP0", ``!(a :'b Label) (n :'c ordinal). STABLE (Klop a n)``,
@@ -1022,7 +1069,8 @@ val Klop_PROP1_LR = store_thm ((* NEW *)
         `n < ordSUC n` by PROVE_TAC [ordlt_SUC] \\
         IMP_RES_TAC ordlt_TRANS ],
       (* goal 3 (of 3) *)
-      PAT_X_ASSUM ``islimit n`` (ASSUME_TAC o (MATCH_MP Klop_case2)) \\
+      MP_TAC (Q.SPECL [`a`, `n`, `label a`, `E`] Klop_case2) \\
+      RW_TAC std_ss [] \\
       NTAC 2 RES_TAC \\
       Q.EXISTS_TAC `m''` >> ASM_REWRITE_TAC [] \\
       IMP_RES_TAC ordlt_TRANS ]);
@@ -1132,8 +1180,8 @@ val Klop_ONE_ONE = store_thm ((* NEW *)
       PROVE_TAC [STRONG_EQUIV_SYM] ]);
 
 (* Not used in the project, but this is a pure math result *)
-val ONE_ONE_IMP_EXISTS = store_thm ((* NEW *)
-   "ONE_ONE_IMP_EXISTS",
+val ONE_ONE_IMP_NOTIN = store_thm ((* NEW *)
+   "ONE_ONE_IMP_NOTIN",
   ``!(A :'a set) (f :'a ordinal -> 'a). ONE_ONE f ==> ?n. f n NOTIN A``,
     REPEAT GEN_TAC
  >> MP_TAC univ_ord_greater_cardinal
@@ -1162,7 +1210,7 @@ val ONE_ONE_IMP_EXISTS = store_thm ((* NEW *)
       FULL_SIMP_TAC std_ss [EXTENSION, GSPECIFICATION] \\
       PROVE_TAC [] ]);
 
-(* TODO: use ONE_ONE_IMP_EXISTS in this proof *)
+(* TODO: use ONE_ONE_IMP_NOTIN in this proof *)
 val INFINITE_KLOP_EXISTS_LEMMA = store_thm ((* NEW *)
    "INFINITE_KLOP_EXISTS_LEMMA",
   ``!(a :'b Label) (A :('a, 'b) CCS set).

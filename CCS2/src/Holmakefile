@@ -7,7 +7,8 @@ TARGETS = $(patsubst %.sml,%.uo,$(THYFILES))
 
 ifdef POLY
 HOLHEAP = heap
-OBJNAMES = pairTheory relationTheory pred_setTheory listTheory arithmeticTheory
+OBJNAMES = pairTheory sumTheory relationTheory pred_setTheory set_relationTheory \
+	listTheory arithmeticTheory prim_recTheory
 DEPS = $(patsubst %,$(dprot $(SIGOBJ)/%.uo),$(OBJNAMES))
 
 all: $(HOLHEAP)

@@ -5,7 +5,7 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open pred_setTheory pairTheory relationTheory;
+open pred_setTheory set_relationTheory pairTheory relationTheory;
 open CCSLib CCSTheory;
 
 val _ = new_theory "StrongEQ";
@@ -587,6 +587,22 @@ val STRONG_EQUIV_SUBST_RELAB = store_thm (
 	  (* goal 2.2.2 (of 2) *)
 	  take [`E1'`, `E''''`, `rf'`] \\
 	  ASM_REWRITE_TAC [] ] ] ]);
+
+val STRONG_EQUIV_congruence = store_thm (
+   "STRONG_EQUIV_congruence",
+  ``!E E' ctx. CONTEXT ctx ==> STRONG_EQUIV E E' ==> STRONG_EQUIV (ctx E) (ctx E')``,
+    NTAC 2 GEN_TAC
+ >> HO_MATCH_MP_TAC CONTEXT_ind
+ >> BETA_TAC
+ >> REPEAT STRIP_TAC (* 7 sub-goals here *)
+ >> RES_TAC	     (* 6 sub-goals left *)
+ >| [ MATCH_MP_TAC STRONG_EQUIV_SUBST_PREFIX >> ASM_REWRITE_TAC [],
+      MATCH_MP_TAC STRONG_EQUIV_SUBST_SUM_R  >> ASM_REWRITE_TAC [],
+      MATCH_MP_TAC STRONG_EQUIV_SUBST_SUM_L  >> ASM_REWRITE_TAC [],
+      MATCH_MP_TAC STRONG_EQUIV_SUBST_PAR_R  >> ASM_REWRITE_TAC [],
+      MATCH_MP_TAC STRONG_EQUIV_SUBST_PAR_L  >> ASM_REWRITE_TAC [],
+      MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR  >> ASM_REWRITE_TAC [],
+      MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB  >> ASM_REWRITE_TAC [] ]);
 
 (******************************************************************************)
 (*									    *)

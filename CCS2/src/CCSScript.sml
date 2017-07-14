@@ -323,10 +323,9 @@ val CCS_COND_CLAUSES = save_thm (
 (******************************************************************************)
 
 (* Inductive definition of the transition relation TRANS for CCS.
-   TRANS: Action -> CCS -> CCS -> bool
- *)
+   TRANS: CCS -> Action -> CCS -> bool *)
 val (TRANS_rules, TRANS_ind, TRANS_cases) = Hol_reln `
-    (!E u. TRANS (prefix u E) u E) /\					(* PREFIX *)
+    (!E u.                        TRANS (prefix u E) u E) /\		(* PREFIX *)
     (!E u E1 E'. TRANS E u E1 ==> TRANS (sum E E') u E1) /\		(* SUM1 *)
     (!E u E1 E'. TRANS E u E1 ==> TRANS (sum E' E) u E1) /\		(* SUM2 *)
     (!E u E1 E'. TRANS E u E1 ==> TRANS (par E E') u (par E1 E')) /\	(* PAR1 *)
@@ -341,7 +340,7 @@ val (TRANS_rules, TRANS_ind, TRANS_cases) = Hol_reln `
     (!E u E' rf. TRANS E u E'
 	     ==> TRANS (relab E rf) (relabel rf u) (relab E' rf)) /\	(* RELABELING *)
     (!E u X E1.  TRANS (CCS_Subst E (rec X E) X) u E1
-	     ==> TRANS (rec X E) u E1)`;				(* REC (CONS) *)
+	     ==> TRANS (rec X E) u E1) `;				(* REC (CONS) *)
 
 val _ =
     add_rule { term_name = "TRANS", fixity = Infix (NONASSOC, 450),
@@ -357,19 +356,13 @@ val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELING, REC] =
 		   "RELABELING", "REC"],
                   CONJUNCTS TRANS_rules));
 
-(* Tactics for proofs about the transition relation TRANS *)
-val [PREFIX_TAC, SUM1_TAC, SUM2_TAC,
-     PAR1_TAC, PAR2_TAC, PAR3_TAC,
-     RESTR_TAC, RELAB_TAC, REC_TAC] = map RULE_TAC (CONJUNCTS TRANS_rules);
-
 (* The process nil has no transitions.
    |- ∀u E. ¬TRANS nil u E
  *)
 val NIL_NO_TRANS = save_thm ("NIL_NO_TRANS",
-  ((GEN ``u :'b Action``) o
-   (GEN ``E :('a, 'b) CCS``) o
-   (REWRITE_RULE [CCS_distinct]))
-      (SPECL [``nil``, ``u :'b Action``, ``E :('a, 'b) CCS``] TRANS_cases));
+    Q_GENL [`u`, `E`]
+	   (REWRITE_RULE [CCS_distinct]
+			 (SPECL [``nil``, ``u :'b Action``, ``E :('a, 'b) CCS``] TRANS_cases)));
 
 (* |- ∀u E. nil --u-> E ⇔ F *)
 val NIL_NO_TRANS_EQF = save_thm (
@@ -402,11 +395,9 @@ val VAR_NO_TRANS = save_thm ("VAR_NO_TRANS",
 			 (Q.SPECL [`var X`, `u`, `E`] TRANS_cases)));
 
 (* |- !u E u' E'. TRANS (prefix u E) u' E' = (u' = u) /\ (E' = E) *)
-val TRANS_PREFIX_EQ = save_thm ("TRANS_PREFIX_EQ",
-  ((GEN ``u :'b Action``) o
-   (GEN ``E :('a, 'b) CCS``) o
-   (GEN ``u' :'b Action``) o
-   (GEN ``E' :('a, 'b) CCS``) o
+val TRANS_PREFIX_EQ = save_thm (
+   "TRANS_PREFIX_EQ",
+  ((Q_GENL [`u`, `E`, `u'`, `E'`]) o
    (ONCE_REWRITE_RHS_RULE [EQ_SYM_EQ]) o
    SPEC_ALL o
    (REWRITE_RULE [CCS_distinct', CCS_11]))
@@ -414,7 +405,8 @@ val TRANS_PREFIX_EQ = save_thm ("TRANS_PREFIX_EQ",
 	     TRANS_cases));
 
 (* |- ∀u E u' E'. u..E --u'-> E' ⇒ (u' = u) ∧ (E' = E) *)
-val TRANS_PREFIX = save_thm ("TRANS_PREFIX", EQ_IMP_LR TRANS_PREFIX_EQ);
+val TRANS_PREFIX = save_thm (
+   "TRANS_PREFIX", EQ_IMP_LR TRANS_PREFIX_EQ);
 
 (******************************************************************************)
 (*                                                                            *)
@@ -422,13 +414,15 @@ val TRANS_PREFIX = save_thm ("TRANS_PREFIX", EQ_IMP_LR TRANS_PREFIX_EQ);
 (*                                                                            *)
 (******************************************************************************)
 
-val SUM_cases_EQ = save_thm ("SUM_cases_EQ",
+val SUM_cases_EQ = save_thm (
+   "SUM_cases_EQ",
     Q_GENL [`D`, `D'`, `u`, `D''`]
 	 (REWRITE_RULE [CCS_distinct', CCS_11]
 		       (SPECL [``sum D D'``, ``u :'b Action``, ``D'' :('a, 'b) CCS``]
 			      TRANS_cases)));
 
-val SUM_cases = save_thm ("SUM_cases", EQ_IMP_LR SUM_cases_EQ);
+val SUM_cases = save_thm (
+   "SUM_cases", EQ_IMP_LR SUM_cases_EQ);
 
 val TRANS_SUM_EQ = store_thm ("TRANS_SUM_EQ",
   ``!E E' u E''. TRANS (sum E E') u E'' = TRANS E u E'' \/ TRANS E' u E''``, 
@@ -439,8 +433,9 @@ val TRANS_SUM_EQ = store_thm ("TRANS_SUM_EQ",
       IMP_RES_TAC SUM_cases \\
       ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
-      STRIP_TAC >| [SUM1_TAC, SUM2_TAC] \\
-      ASM_REWRITE_TAC [] ]);
+      STRIP_TAC >| (* 2 sub-goals here *)
+      [ MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [],
+        MATCH_MP_TAC SUM2 >> ASM_REWRITE_TAC [] ] ]);
 
 (* for CCS_TRANS_CONV *)
 val TRANS_SUM_EQ' = store_thm (
@@ -448,7 +443,8 @@ val TRANS_SUM_EQ' = store_thm (
   ``!E1 E2 u E. TRANS (sum E1 E2) u E = TRANS E1 u E \/ TRANS E2 u E``, 
     REWRITE_TAC [TRANS_SUM_EQ]);
 
-val TRANS_SUM = save_thm ("TRANS_SUM", EQ_IMP_LR TRANS_SUM_EQ);
+val TRANS_SUM = save_thm (
+   "TRANS_SUM", EQ_IMP_LR TRANS_SUM_EQ);
 
 val TRANS_COMM_EQ = store_thm ("TRANS_COMM_EQ",
   ``!E E' E'' u. TRANS (sum E E') u E'' = TRANS (sum E' E) u E''``,
@@ -457,12 +453,12 @@ val TRANS_COMM_EQ = store_thm ("TRANS_COMM_EQ",
  >| [ (* goal 1 (of 2) *)
       DISCH_TAC \\
       IMP_RES_TAC TRANS_SUM >|
-      [ SUM2_TAC, SUM1_TAC ] \\
+      [ MATCH_MP_TAC SUM2, MATCH_MP_TAC SUM1 ] \\
       ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
       DISCH_TAC \\
       IMP_RES_TAC TRANS_SUM >|
-      [ SUM2_TAC, SUM1_TAC ] \\
+      [ MATCH_MP_TAC SUM2, MATCH_MP_TAC SUM1 ] \\
       ASM_REWRITE_TAC [] ]);
 
 val TRANS_ASSOC_EQ = store_thm ("TRANS_ASSOC_EQ",
@@ -474,24 +470,24 @@ val TRANS_ASSOC_EQ = store_thm ("TRANS_ASSOC_EQ",
       IMP_RES_TAC TRANS_SUM >|
       [ (* goal 1.1 (of 2) *)
 	IMP_RES_TAC TRANS_SUM >| (* 4 sub-goals here *)
-        [ SUM1_TAC,
-	  SUM1_TAC,
-	  SUM2_TAC >> SUM1_TAC,
-	  SUM2_TAC >> SUM1_TAC ] \\
+        [ MATCH_MP_TAC SUM1,
+	  MATCH_MP_TAC SUM1,
+	  MATCH_MP_TAC SUM2 >> MATCH_MP_TAC SUM1,
+	  MATCH_MP_TAC SUM2 >> MATCH_MP_TAC SUM1 ] \\
         ASM_REWRITE_TAC [],
 	(* goal 1.2 (of 2) *)
-        SUM2_TAC >> SUM2_TAC \\
+        MATCH_MP_TAC SUM2 >> MATCH_MP_TAC SUM2 \\
         ASM_REWRITE_TAC [] ],
       (* goal 2 (of 2) *)
       DISCH_TAC \\
       IMP_RES_TAC TRANS_SUM >|
-      [ SUM1_TAC >> SUM1_TAC \\
+      [ MATCH_MP_TAC SUM1 >> MATCH_MP_TAC SUM1 \\
         ASM_REWRITE_TAC [],
         IMP_RES_TAC TRANS_SUM >| (* 4 sub-goals here *)
-        [ SUM1_TAC >> SUM1_TAC,
-	  SUM1_TAC >> SUM2_TAC,
-	  SUM2_TAC,
-	  SUM2_TAC ] \\
+        [ MATCH_MP_TAC SUM1 >> MATCH_MP_TAC SUM1,
+	  MATCH_MP_TAC SUM1 >> MATCH_MP_TAC SUM2,
+	  MATCH_MP_TAC SUM2,
+	  MATCH_MP_TAC SUM2 ] \\
 	ASM_REWRITE_TAC [] ] ]);
 
 val TRANS_ASSOC_RL = save_thm (
@@ -508,7 +504,7 @@ val TRANS_SUM_NIL_EQ = store_thm (
       IMP_RES_TAC NIL_NO_TRANS,
       (* goal 2 (of 2) *)
       DISCH_TAC \\
-      SUM1_TAC >> ASM_REWRITE_TAC [] ]);   
+      MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [] ]);   
 
 (* |- ∀E u E'. E + nil --u-> E' ⇒ E --u-> E' *)
 val TRANS_SUM_NIL = save_thm ("TRANS_SUM_NIL", EQ_IMP_LR TRANS_SUM_NIL_EQ);
@@ -520,7 +516,7 @@ val TRANS_P_SUM_P_EQ = store_thm ("TRANS_P_SUM_P_EQ",
  >| [ DISCH_TAC \\
       IMP_RES_TAC TRANS_SUM,
       DISCH_TAC \\
-      SUM1_TAC >> ASM_REWRITE_TAC [] ]);
+      MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [] ]);
 
 val TRANS_P_SUM_P = save_thm ("TRANS_P_SUM_P", EQ_IMP_LR TRANS_P_SUM_P_EQ);
 
@@ -560,8 +556,10 @@ val TRANS_PAR_EQ = store_thm ("TRANS_PAR_EQ",
       (* case 2 (RL) *)
       STRIP_TAC (* 3 sub-goals here, but they share the first and last steps *)
    >> ASM_REWRITE_TAC []
-   >| [ PAR1_TAC, PAR2_TAC, PAR3_TAC ]
-   >> ASM_REWRITE_TAC [] ]);
+   >| [ MATCH_MP_TAC PAR1 >> ASM_REWRITE_TAC [],
+        MATCH_MP_TAC PAR2 >> ASM_REWRITE_TAC [],
+        MATCH_MP_TAC PAR3 \\
+        Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [] ] ]);
 
 val TRANS_PAR = save_thm ("TRANS_PAR", EQ_IMP_LR TRANS_PAR_EQ);
 
@@ -619,11 +617,12 @@ val TRANS_RESTR_EQ = store_thm ("TRANS_RESTR_EQ",
       STRIP_TAC >|			(* two sub-goals here *)
       [ (* sub-goal 2.1 *)
 	ASM_REWRITE_TAC [] \\
-	RESTR_TAC \\
+	MATCH_MP_TAC RESTR \\
 	ASM_REWRITE_TAC [REWRITE_RULE [a1] a4],
 	(* sub-goal 2.2 *)
 	ASM_REWRITE_TAC [] \\
-	RESTR_TAC \\
+	MATCH_MP_TAC RESTR \\
+        Q.EXISTS_TAC `l` \\
 	ASM_REWRITE_TAC [REWRITE_RULE [a2] a4] ] ]
   end);
 
@@ -714,7 +713,7 @@ val TRANS_RELAB_EQ = store_thm ("TRANS_RELAB_EQ",
       (* goal 2 (of 2) *)
       STRIP_TAC \\
       PURE_ONCE_ASM_REWRITE_TAC [] \\
-      RELAB_TAC \\
+      MATCH_MP_TAC RELABELING \\
       PURE_ONCE_ASM_REWRITE_TAC [] ]);
 
 val TRANS_RELAB = save_thm ("TRANS_RELAB", EQ_IMP_LR TRANS_RELAB_EQ);
@@ -793,6 +792,17 @@ val (WEAK_TRACE_rules, WEAK_TRACE_ind, WEAK_TRACE_cases) = Hol_reln `
     (!E1 E2 E3 l1 l2.
 	      WEAK_TRACE E1 l1 E2 /\
 	      WEAK_TRACE E2 l2 E3 ==> WEAK_TRACE E1 (l1 ++ l2) E3)`;
+
+(* one hole CONTEXT for CCS *)
+val (CONTEXT_rules, CONTEXT_ind, CONTEXT_cases) = Hol_reln `
+    (                     CONTEXT (\x. x)) /\
+    (!a c.  CONTEXT c ==> CONTEXT (\t. prefix a (c t))) /\
+    (!x c.  CONTEXT c ==> CONTEXT (\t. sum (c t) x)) /\
+    (!x c.  CONTEXT c ==> CONTEXT (\t. sum x (c t))) /\
+    (!x c.  CONTEXT c ==> CONTEXT (\t. par (c t) x)) /\
+    (!x c.  CONTEXT c ==> CONTEXT (\t. par x (c t))) /\
+    (!L c.  CONTEXT c ==> CONTEXT (\t. restr L (c t))) /\
+    (!rf c. CONTEXT c ==> CONTEXT (\t. relab (c t) rf)) `;
 
 val _ = export_theory ();
 val _ = DB.html_theory "CCS";
