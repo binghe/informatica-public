@@ -19,6 +19,8 @@ sig
   val K_TAC			: 'a -> tactic
   val KILL_TAC			: tactic
   val wrap			: 'a -> 'a list
+  val PRINT_TAC			: string -> tactic
+  val COUNT_TAC			: tactic -> tactic
 
   val add_rules_for_ccs_terms	: unit -> unit
   val remove_rules_for_ccs_terms: unit -> unit

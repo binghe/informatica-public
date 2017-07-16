@@ -10,7 +10,7 @@ open HolKernel Parse boolLib bossLib;
 
 (******************************************************************************)
 (*									      *)
-(*      Backward compatibility and utility tactic/tacticals (20170707)        *)
+(*      Backward compatibility and utility tactic/tacticals (2017/07/16)      *)
 (*									      *)
 (******************************************************************************)
 
@@ -38,6 +38,14 @@ fun K_TAC _ = ALL_TAC;				(* from util_prob *)
 val KILL_TAC = POP_ASSUM_LIST K_TAC;		(* from util_prob *)
 fun wrap a = [a];
 
+fun PRINT_TAC s gl =				(* from cardinalTheory *)
+  (print ("** " ^ s ^ "\n"); ALL_TAC gl);
+
+fun COUNT_TAC tac g =				(* from Konrad Slind *)
+   let val res as (sg, _) = tac g
+       val _ = print ("subgoals" ^ Int.toString (List.length sg) ^ "\n")
+   in res end;
+
 (* signatures:
 
   val PAT_X_ASSUM		: term -> thm_tactic -> tactic
@@ -52,6 +60,8 @@ fun wrap a = [a];
   val K_TAC			: 'a -> tactic
   val KILL_TAC			: tactic
   val wrap			: 'a -> 'a list
+  val PRINT_TAC			: string -> tactic
+  val COUNT_TAC			: tactic -> tactic
 
    end of signatures *)
 

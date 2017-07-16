@@ -352,14 +352,14 @@ val INFINITE_KLOP_EXISTS_LEMMA = store_thm ((* NEW *)
 (* The full version of Klop's Lemma *)
 val KLOP_LEMMA = store_thm ((* NEW *)
    "KLOP_LEMMA",
-  ``!g h. ?k. STABLE k /\ (!g' u. WEAK_TRANS g u g' ==> ~(WEAK_EQUIV g' k)) /\
-			  (!h' u. WEAK_TRANS h u h' ==> ~(WEAK_EQUIV h' k))``,
+  ``!p q. ?k. STABLE k /\ (!p' u. WEAK_TRANS p u p' ==> ~(WEAK_EQUIV p' k)) /\
+			  (!q' u. WEAK_TRANS q u q' ==> ~(WEAK_EQUIV q' k))``,
     REPEAT STRIP_TAC
- >> Q.ABBREV_TAC `nodes = (NODES g) UNION (NODES h)`
+ >> Q.ABBREV_TAC `nodes = (NODES p) UNION (NODES q)`
  >> Cases_on `FINITE nodes` (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       MATCH_MP_TAC KLOP_LEMMA_FINITE \\
-      `FINITE (NODES g) /\ FINITE (NODES h)` by PROVE_TAC [FINITE_UNION] \\
+      `FINITE (NODES p) /\ FINITE (NODES q)` by PROVE_TAC [FINITE_UNION] \\
       PROVE_TAC [FINITE_STATE_def],
       (* goal 2 (of 2) *)
       Q.ABBREV_TAC `a = (ARB :'b Label)` \\
@@ -369,12 +369,12 @@ val KLOP_LEMMA = store_thm ((* NEW *)
       REWRITE_TAC [Klop_PROP0] \\
       CONJ_TAC >| (* 2 sub-goals here *)
       [ (* goal 2.1 (of 2) *)
-        `!x. x IN (NODES g) ==> ~(WEAK_EQUIV x (Klop a n))` by PROVE_TAC [IN_UNION] \\
+        `!x. x IN (NODES p) ==> ~(WEAK_EQUIV x (Klop a n))` by PROVE_TAC [IN_UNION] \\
         REPEAT STRIP_TAC \\
         IMP_RES_TAC WEAK_TRANS_IN_NODES \\
         PROVE_TAC [],
         (* goal 2.2 (of 2) *)
-        `!x. x IN (NODES h) ==> ~(WEAK_EQUIV x (Klop a n))` by PROVE_TAC [IN_UNION] \\
+        `!x. x IN (NODES q) ==> ~(WEAK_EQUIV x (Klop a n))` by PROVE_TAC [IN_UNION] \\
         REPEAT STRIP_TAC \\
         IMP_RES_TAC WEAK_TRANS_IN_NODES \\
         PROVE_TAC [] ] ]);
@@ -386,14 +386,14 @@ val KLOP_LEMMA = store_thm ((* NEW *)
  *)
 val COARSEST_CONGR_RL_FULL = store_thm ((* NEW *)
    "COARSEST_CONGR_RL_FULL",
-  ``!g h. (!r. WEAK_EQUIV (sum g r) (sum h r)) ==> OBS_CONGR g h``,
+  ``!p q. (!r. WEAK_EQUIV (sum p r) (sum q r)) ==> OBS_CONGR p q``,
     REPEAT STRIP_TAC
- >> MP_TAC (Q.SPECL [`g`, `h`] KLOP_LEMMA)
+ >> MP_TAC (Q.SPECL [`p`, `q`] KLOP_LEMMA)
  >> RW_TAC std_ss [PROP3_COMMON]);
 
 val COARSEST_CONGR_FULL = store_thm ((* NEW *)
    "COARSEST_CONGR_FULL",
-  ``!g h. OBS_CONGR g h = !r. WEAK_EQUIV (sum g r) (sum h r)``,
+  ``!p q. OBS_CONGR p q = !r. WEAK_EQUIV (sum p r) (sum q r)``,
     REPEAT STRIP_TAC
  >> EQ_TAC (* 2 sub-goals here *)
  >- REWRITE_TAC [COARSEST_CONGR_LR]

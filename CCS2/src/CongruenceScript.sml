@@ -592,24 +592,24 @@ val FINITE_STATE_def = Define `
 (* The shared core lemma used in PROP3's proof *)
 val PROP3_COMMON = store_thm ((* NEW *)
    "PROP3_COMMON",
-  ``!g h. (?k. STABLE k /\
-	       (!g' u. WEAK_TRANS g u g' ==> ~(WEAK_EQUIV g' k)) /\
-	       (!h' u. WEAK_TRANS h u h' ==> ~(WEAK_EQUIV h' k))) ==>
-          (!r. WEAK_EQUIV (sum g r) (sum h r)) ==> OBS_CONGR g h``,
+  ``!p q. (?k. STABLE k /\
+	       (!p' u. WEAK_TRANS p u p' ==> ~(WEAK_EQUIV p' k)) /\
+	       (!q' u. WEAK_TRANS q u q' ==> ~(WEAK_EQUIV q' k))) ==>
+          (!r. WEAK_EQUIV (sum p r) (sum q r)) ==> OBS_CONGR p q``,
     REPEAT STRIP_TAC
- >> PAT_X_ASSUM ``!r. WEAK_EQUIV (sum g r) (sum h r)``
+ >> PAT_X_ASSUM ``!r. WEAK_EQUIV (sum p r) (sum q r)``
 		(ASSUME_TAC o (Q.SPEC `prefix (label a) k`))
  >> REWRITE_TAC [OBS_CONGR]
  >> REPEAT STRIP_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       IMP_RES_TAC SUM1 \\
       POP_ASSUM (ASSUME_TAC o (Q.SPEC `prefix (label a) k`)) \\
-      PAT_X_ASSUM ``WEAK_EQUIV (sum g (prefix (label a) k)) (sum h (prefix (label a) k))``
+      PAT_X_ASSUM ``WEAK_EQUIV (sum p (prefix (label a) k)) (sum q (prefix (label a) k))``
 	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [OBS_PROPERTY_STAR])) \\
       Cases_on `u` >| (* 2 sub-goals here *)
       [ (* goal 1.1 (of 2) *)
         RES_TAC \\
-        PAT_X_ASSUM ``EPS (sum h (prefix (label a) k)) E2``
+        PAT_X_ASSUM ``EPS (sum q (prefix (label a) k)) E2``
 	  (STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [EPS_cases1])) >| (* 2 sub-goals here *)
         [ (* goal 1.1.1 (of 2) *)
           `TRANS E2 (label a) k` by PROVE_TAC [PREFIX, SUM2] \\
@@ -619,7 +619,7 @@ val PROP3_COMMON = store_thm ((* NEW *)
           IMP_RES_TAC TRANS_TAU_AND_WEAK \\
           PROVE_TAC [],
           (* goal 1.1.2 (of 2) *)
-          PAT_X_ASSUM ``TRANS (sum h (prefix (label a) k)) tau u``
+          PAT_X_ASSUM ``TRANS (sum q (prefix (label a) k)) tau u``
             (STRIP_ASSUME_TAC o (MATCH_MP TRANS_SUM)) >| (* 2 sub-goals here *)
           [ (* goal 1.1.2.1 (of 2) *)
             Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
@@ -634,7 +634,7 @@ val PROP3_COMMON = store_thm ((* NEW *)
           Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
           IMP_RES_TAC WEAK_TRANS_cases1 >| (* 2 sub-goals here *)
           [ (* goal 1.2.1.1 (of 2) *)
-            PAT_X_ASSUM ``TRANS (sum h (prefix (label a) k)) tau E'``
+            PAT_X_ASSUM ``TRANS (sum q (prefix (label a) k)) tau E'``
 		(STRIP_ASSUME_TAC o (MATCH_MP TRANS_SUM)) >| (* 2 sub-goals here *)
             [ (* goal 1.2.1.1.1 (of 2) *)
               IMP_RES_TAC TRANS_TAU_AND_WEAK,
@@ -642,7 +642,7 @@ val PROP3_COMMON = store_thm ((* NEW *)
               IMP_RES_TAC TRANS_PREFIX \\
               RW_TAC std_ss [Action_distinct] ],
             (* goal 1.2.1.2 (of 2) *)
-            PAT_X_ASSUM ``TRANS (sum h (prefix (label a) k)) (label a) E'``
+            PAT_X_ASSUM ``TRANS (sum q (prefix (label a) k)) (label a) E'``
 		(STRIP_ASSUME_TAC o (MATCH_MP TRANS_SUM)) >| (* 2 sub-goals here *)
             [ (* goal 1.2.1.2.1 (of 2) *)
               IMP_RES_TAC TRANS_AND_EPS,
@@ -656,7 +656,7 @@ val PROP3_COMMON = store_thm ((* NEW *)
           Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
           IMP_RES_TAC WEAK_TRANS_cases1 >| (* 2 sub-goals here *)
           [ (* goal 1.2.2.1 (of 2) *)
-            PAT_X_ASSUM ``TRANS (sum h (prefix (label a) k)) tau E'``
+            PAT_X_ASSUM ``TRANS (sum q (prefix (label a) k)) tau E'``
 		(STRIP_ASSUME_TAC o (MATCH_MP TRANS_SUM)) >| (* 2 sub-goals here *)
             [ (* goal 1.2.2.1.1 (of 2) *)
               IMP_RES_TAC TRANS_TAU_AND_WEAK,
@@ -664,7 +664,7 @@ val PROP3_COMMON = store_thm ((* NEW *)
               IMP_RES_TAC TRANS_PREFIX \\
               RW_TAC std_ss [Action_distinct] ],
             (* goal 1.2.2.2 (of 2) *)
-            PAT_X_ASSUM ``TRANS (sum h (prefix (label a) k)) (label L) E'``
+            PAT_X_ASSUM ``TRANS (sum q (prefix (label a) k)) (label L) E'``
 		(STRIP_ASSUME_TAC o (MATCH_MP TRANS_SUM)) >| (* 2 sub-goals here *)
             [ (* goal 1.2.2.2.1 (of 2) *)
               IMP_RES_TAC TRANS_AND_EPS,
@@ -674,12 +674,12 @@ val PROP3_COMMON = store_thm ((* NEW *)
       (* goal 2 (of 2), almost symmetric with goal 1 *)
       IMP_RES_TAC SUM1 \\
       POP_ASSUM (ASSUME_TAC o (Q.SPEC `prefix (label a) k`)) \\
-      PAT_X_ASSUM ``WEAK_EQUIV (sum g (prefix (label a) k)) (sum h (prefix (label a) k))``
+      PAT_X_ASSUM ``WEAK_EQUIV (sum p (prefix (label a) k)) (sum h (prefix (label a) k))``
 	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [OBS_PROPERTY_STAR])) \\
       Cases_on `u` >| (* 2 sub-goals here *)
       [ (* goal 2.1 (of 2) *)
         RES_TAC \\
-        PAT_X_ASSUM ``EPS (sum g (prefix (label a) k)) E1``
+        PAT_X_ASSUM ``EPS (sum p (prefix (label a) k)) E1``
 	  (STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [EPS_cases1])) >| (* 2 sub-goals here *)
         [ (* goal 2.1.1 (of 2) *)
           `TRANS E1 (label a) k` by PROVE_TAC [PREFIX, SUM2] \\
@@ -690,7 +690,7 @@ val PROP3_COMMON = store_thm ((* NEW *)
           `WEAK_EQUIV E2' k` by PROVE_TAC [WEAK_EQUIV_SYM] \\ (* one extra step *)
           PROVE_TAC [],
           (* goal 2.1.2 (of 2) *)
-          PAT_X_ASSUM ``TRANS (sum g (prefix (label a) k)) tau u``
+          PAT_X_ASSUM ``TRANS (sum p (prefix (label a) k)) tau u``
             (STRIP_ASSUME_TAC o (MATCH_MP TRANS_SUM)) >| (* 2 sub-goals here *)
           [ (* goal 2.1.2.1 (of 2) *)
             Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
@@ -705,7 +705,7 @@ val PROP3_COMMON = store_thm ((* NEW *)
           Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
           IMP_RES_TAC WEAK_TRANS_cases1 >| (* 2 sub-goals here *)
           [ (* goal 2.2.1.1 (of 2) *)
-            PAT_X_ASSUM ``TRANS (sum g (prefix (label a) k)) tau E'``
+            PAT_X_ASSUM ``TRANS (sum p (prefix (label a) k)) tau E'``
 		(STRIP_ASSUME_TAC o (MATCH_MP TRANS_SUM)) >| (* 2 sub-goals here *)
             [ (* goal 2.2.1.1.1 (of 2) *)
               IMP_RES_TAC TRANS_TAU_AND_WEAK,
@@ -713,7 +713,7 @@ val PROP3_COMMON = store_thm ((* NEW *)
               IMP_RES_TAC TRANS_PREFIX \\
               RW_TAC std_ss [Action_distinct] ],
             (* goal 2.2.1.2 (of 2) *)
-            PAT_X_ASSUM ``TRANS (sum g (prefix (label a) k)) (label a) E'``
+            PAT_X_ASSUM ``TRANS (sum p (prefix (label a) k)) (label a) E'``
 		(STRIP_ASSUME_TAC o (MATCH_MP TRANS_SUM)) >| (* 2 sub-goals here *)
             [ (* goal 2.2.1.2.1 (of 2) *)
               IMP_RES_TAC TRANS_AND_EPS,
@@ -727,7 +727,7 @@ val PROP3_COMMON = store_thm ((* NEW *)
           Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
           IMP_RES_TAC WEAK_TRANS_cases1 >| (* 2 sub-goals here *)
           [ (* goal 2.2.2.1 (of 2) *)
-            PAT_X_ASSUM ``TRANS (sum g (prefix (label a) k)) tau E'``
+            PAT_X_ASSUM ``TRANS (sum p (prefix (label a) k)) tau E'``
 		(STRIP_ASSUME_TAC o (MATCH_MP TRANS_SUM)) >| (* 2 sub-goals here *)
             [ (* goal 2.2.2.1.1 (of 2) *)
               IMP_RES_TAC TRANS_TAU_AND_WEAK,
@@ -735,7 +735,7 @@ val PROP3_COMMON = store_thm ((* NEW *)
               IMP_RES_TAC TRANS_PREFIX \\
               RW_TAC std_ss [Action_distinct] ],
             (* goal 2.2.2.2 (of 2) *)
-            PAT_X_ASSUM ``TRANS (sum g (prefix (label a) k)) (label L) E'``
+            PAT_X_ASSUM ``TRANS (sum p (prefix (label a) k)) (label L) E'``
 		(STRIP_ASSUME_TAC o (MATCH_MP TRANS_SUM)) >| (* 2 sub-goals here *)
             [ (* goal 2.2.2.2.1 (of 2) *)
               IMP_RES_TAC TRANS_AND_EPS,
@@ -995,17 +995,17 @@ val KLOP_EXISTS_LEMMA = store_thm ((* NEW *)
 
 val KLOP_LEMMA_FINITE = store_thm ((* NEW *)
    "KLOP_LEMMA_FINITE",
-  ``!g h. FINITE_STATE g /\ FINITE_STATE h ==>
+  ``!p q. FINITE_STATE p /\ FINITE_STATE q ==>
 	  ?k. STABLE k /\
-	      (!g' u. WEAK_TRANS g u g' ==> ~(WEAK_EQUIV g' k)) /\
-	      (!h' u. WEAK_TRANS h u h' ==> ~(WEAK_EQUIV h' k))``,
+	      (!p' u. WEAK_TRANS p u p' ==> ~(WEAK_EQUIV p' k)) /\
+	      (!q' u. WEAK_TRANS q u q' ==> ~(WEAK_EQUIV q' k))``,
     REPEAT STRIP_TAC
  (* Part 1: assert that the union of all nodes in g and h is finite *)
- >> PAT_X_ASSUM ``FINITE_STATE g``
+ >> PAT_X_ASSUM ``FINITE_STATE p``
 	(ASSUME_TAC o (REWRITE_RULE [FINITE_STATE_def]))
- >> PAT_X_ASSUM ``FINITE_STATE h``
+ >> PAT_X_ASSUM ``FINITE_STATE q``
 	(ASSUME_TAC o (REWRITE_RULE [FINITE_STATE_def]))
- >> Q.ABBREV_TAC `nodes = (NODES g) UNION (NODES h)`
+ >> Q.ABBREV_TAC `nodes = (NODES p) UNION (NODES q)`
  >> `FINITE nodes` by PROVE_TAC [FINITE_UNION]
 (*
   0.  FINITE (NODES g)
@@ -1057,8 +1057,8 @@ val KLOP_LEMMA_FINITE = store_thm ((* NEW *)
       POP_ASSUM (STRIP_ASSUME_TAC o (REWRITE_RULE [IN_IMAGE])) \\
       PROVE_TAC [KLOP_PROP0] )
  (* Part 5: final check *)
- >> `!n. n IN (NODES g) ==> ~(WEAK_EQUIV n k)` by PROVE_TAC [IN_UNION]
- >> `!n. n IN (NODES h) ==> ~(WEAK_EQUIV n k)` by PROVE_TAC [IN_UNION]
+ >> `!n. n IN (NODES p) ==> ~(WEAK_EQUIV n k)` by PROVE_TAC [IN_UNION]
+ >> `!n. n IN (NODES q) ==> ~(WEAK_EQUIV n k)` by PROVE_TAC [IN_UNION]
  >> CONJ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       REPEAT STRIP_TAC \\
@@ -1072,11 +1072,11 @@ val KLOP_LEMMA_FINITE = store_thm ((* NEW *)
 (* The finite version of COARSEST_CONGR_THM (PROP3) *)
 val COARSEST_CONGR_FINITE = store_thm ((* NEW *)
    "COARSEST_CONGR_FINITE",
-  ``!g h. FINITE_STATE g /\ FINITE_STATE h ==>
-	  (OBS_CONGR g h = (!r. WEAK_EQUIV (sum g r) (sum h r)))``,
+  ``!p q. FINITE_STATE p /\ FINITE_STATE q ==>
+	  (OBS_CONGR p q = (!r. WEAK_EQUIV (sum p r) (sum q r)))``,
     REPEAT STRIP_TAC
  >> EQ_TAC >- REWRITE_TAC [COARSEST_CONGR_LR]
- >> MP_TAC (Q.SPECL [`g`, `h`] KLOP_LEMMA_FINITE)
+ >> MP_TAC (Q.SPECL [`p`, `q`] KLOP_LEMMA_FINITE)
  >> RW_TAC std_ss [PROP3_COMMON]);
 
 (** Bibliography:
