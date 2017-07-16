@@ -5,7 +5,7 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open pred_setTheory IndDefRules CCSLib;
+open pred_setTheory CCSLib;
 
 val _ = new_theory "CCS";
 
@@ -256,7 +256,7 @@ val _ = Datatype `CCS = nil
 		      | par CCS CCS
 		      | restr (('b Label) set) CCS
 		      | relab CCS ('b Relabeling)
-		      | rec 'a CCS`;
+		      | rec 'a CCS `;
 
 (* compact representation for single-action restriction *)
 val _ = overload_on ("nu", ``\(n :'b) P. restr {name n} P``);
@@ -367,8 +367,7 @@ val NIL_NO_TRANS = save_thm ("NIL_NO_TRANS",
 (* |- ∀u E. nil --u-> E ⇔ F *)
 val NIL_NO_TRANS_EQF = save_thm (
    "NIL_NO_TRANS_EQF",
-  ((GEN ``u :'b Action``) o
-   (GEN ``E :('a, 'b) CCS``) o EQF_INTRO o SPEC_ALL) NIL_NO_TRANS);
+    Q_GENL [`u`, `E`] (EQF_INTRO (SPEC_ALL NIL_NO_TRANS)));
 
 (* Prove that if a process can do an action, then the process is not nil.
    |- ∀E u E'. TRANS E u E' ⇒ E ≠ nil:
@@ -738,9 +737,10 @@ val APPLY_RELAB_THM = save_thm ("APPLY_RELAB_THM",
 		  (Q.SPEC `labl` IS_RELABELING))));
 
 val REC_cases_EQ = save_thm ("REC_cases_EQ",
-    GENL [``X :'a``, ``E :('a, 'b) CCS``, ``u :'b Action``, ``E'' :('a, 'b) CCS``]
-	 (SPECL [``u :'b Action``, ``E'' :('a, 'b) CCS``]
-		(REWRITE_RULE [CCS_distinct', CCS_11] (SPEC ``rec X E`` TRANS_cases))));
+    Q_GENL [`X`, `E`, `u`, `E''`]
+	 (Q.SPECL [`u`, `E''`]
+		  (REWRITE_RULE [CCS_distinct', CCS_11]
+				(SPEC ``rec X E`` TRANS_cases))));
 
 val REC_cases = save_thm ("REC_cases", EQ_IMP_LR REC_cases_EQ);
 
@@ -792,17 +792,6 @@ val (WEAK_TRACE_rules, WEAK_TRACE_ind, WEAK_TRACE_cases) = Hol_reln `
     (!E1 E2 E3 l1 l2.
 	      WEAK_TRACE E1 l1 E2 /\
 	      WEAK_TRACE E2 l2 E3 ==> WEAK_TRACE E1 (l1 ++ l2) E3)`;
-
-(* one hole CONTEXT for CCS *)
-val (CONTEXT_rules, CONTEXT_ind, CONTEXT_cases) = Hol_reln `
-    (                     CONTEXT (\x. x)) /\
-    (!a c.  CONTEXT c ==> CONTEXT (\t. prefix a (c t))) /\
-    (!x c.  CONTEXT c ==> CONTEXT (\t. sum (c t) x)) /\
-    (!x c.  CONTEXT c ==> CONTEXT (\t. sum x (c t))) /\
-    (!x c.  CONTEXT c ==> CONTEXT (\t. par (c t) x)) /\
-    (!x c.  CONTEXT c ==> CONTEXT (\t. par x (c t))) /\
-    (!L c.  CONTEXT c ==> CONTEXT (\t. restr L (c t))) /\
-    (!rf c. CONTEXT c ==> CONTEXT (\t. relab (c t) rf)) `;
 
 val _ = export_theory ();
 val _ = DB.html_theory "CCS";

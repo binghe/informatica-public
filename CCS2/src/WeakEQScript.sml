@@ -7,7 +7,6 @@ open HolKernel Parse boolLib bossLib;
 
 open pred_setTheory relationTheory listTheory IndDefRules;
 open CCSLib CCSTheory StrongEQTheory;
-open cardinalTheory;
 
 val _ = new_theory "WeakEQ";
 
@@ -610,7 +609,11 @@ val WEAK_EQUIV = store_thm ((* NEW *)
       HO_MATCH_MP_TAC WEAK_EQUIV_coind \\ (* co-induction used here! *)
       PROVE_TAC [WEAK_BISIM] ]);
 
-val _ = overload_on ("=~", ``WEAK_EQUIV``); (* from cardinalTheory *)
+local
+    open cardinalTheory;
+in
+    val _ = overload_on ("=~", ``WEAK_EQUIV``);
+end
 
 (******************************************************************************)
 (*									      *)

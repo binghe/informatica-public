@@ -588,22 +588,6 @@ val STRONG_EQUIV_SUBST_RELAB = store_thm (
 	  take [`E1'`, `E''''`, `rf'`] \\
 	  ASM_REWRITE_TAC [] ] ] ]);
 
-val STRONG_EQUIV_congruence = store_thm (
-   "STRONG_EQUIV_congruence",
-  ``!E E' ctx. CONTEXT ctx ==> STRONG_EQUIV E E' ==> STRONG_EQUIV (ctx E) (ctx E')``,
-    NTAC 2 GEN_TAC
- >> HO_MATCH_MP_TAC CONTEXT_ind
- >> BETA_TAC
- >> REPEAT STRIP_TAC (* 7 sub-goals here *)
- >> RES_TAC	     (* 6 sub-goals left *)
- >| [ MATCH_MP_TAC STRONG_EQUIV_SUBST_PREFIX >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC STRONG_EQUIV_SUBST_SUM_R  >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC STRONG_EQUIV_SUBST_SUM_L  >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC STRONG_EQUIV_SUBST_PAR_R  >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC STRONG_EQUIV_SUBST_PAR_L  >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR  >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB  >> ASM_REWRITE_TAC [] ]);
-
 (******************************************************************************)
 (*									    *)
 (*		Additional theorems of STRONG_EQUIV			 *)
@@ -611,13 +595,14 @@ val STRONG_EQUIV_congruence = store_thm (
 (******************************************************************************)
 
 val BIGUNION_BISIM_def = Define (* NEW *) `
-    BIGUNION_BISIM = CURRY (BIGUNION { UNCURRY R | STRONG_BISIM R })`;
+    BIGUNION_BISIM = reln_to_rel (BIGUNION { rel_to_reln R | STRONG_BISIM R })`;
 
 (* STRONG_EQUIV is the union of all STRONG_BISIMs *)
 val STRONG_EQUIV_IS_BIGUNION_BISIM = store_thm ((* NEW *)
    "STRONG_EQUIV_IS_BIGUNION_BISIM",
   ``!E E'. STRONG_EQUIV E E' = BIGUNION_BISIM E E'``,
-    REWRITE_TAC [BIGUNION_BISIM_def]
+    REWRITE_TAC [BIGUNION_BISIM_def,
+		 reln_to_rel_IS_CURRY, rel_to_reln_IS_UNCURRY]
  >> REPEAT GEN_TAC
  >> REWRITE_TAC [CURRY_DEF]
  >> ONCE_REWRITE_RHS_TAC [GSYM SPECIFICATION]
@@ -643,23 +628,6 @@ val STRONG_EQUIV_IS_BIGUNION_BISIM = store_thm ((* NEW *)
       [ PAT_X_ASSUM ``(s :('a, 'b) CCS # ('a, 'b) CCS -> bool) (E, E')`` MP_TAC \\
 	ASM_REWRITE_TAC [UNCURRY],
 	ASM_REWRITE_TAC [] ] ]);
-
-val STRONG_EQUIV_IS_BIGUNION_BISIM' = store_thm ((* NEW *)
-   "STRONG_EQUIV_IS_BIGUNION_BISIM'",
-  ``STRONG_EQUIV = BIGUNION_BISIM``,
-    REWRITE_TAC [FUN_EQ_THM, STRONG_EQUIV_IS_BIGUNION_BISIM]);
-
-(* forward way: |- STRONG_EQUIV = BIGUNION_BISIM *)
-val STRONG_EQUIV_IS_BIGUNION_BISIM'' = save_thm ((* NEW *)
-   "STRONG_EQUIV_IS_BIGUNION_BISIM''",
-    EXT (GEN ``E :('a, 'b) CCS``
-	  (EXT (SPEC ``E :('a, 'b) CCS`` STRONG_EQUIV_IS_BIGUNION_BISIM))));
-
-val STRONG_EQUIV_EQ_BIGUNION_BISIM = store_thm ((* NEW *)
-   "STRONG_EQUIV_EQ_BIGUNION_BISIM",
-  ``STRONG_EQUIV = CURRY (BIGUNION { UNCURRY R | STRONG_BISIM R })``,
-    REWRITE_TAC [STRONG_EQUIV_IS_BIGUNION_BISIM'',
-		 BIGUNION_BISIM_def]);
 
 (* Define the strong bisimulation relation up to STRONG_EQUIV *)
 val STRONG_BISIM_UPTO = new_definition ((* NEW *)

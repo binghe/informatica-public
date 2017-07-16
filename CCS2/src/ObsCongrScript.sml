@@ -34,7 +34,6 @@ val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
 val _ = Unicode.unicode_version { u = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3,
 				  tmnm = "OBS_CONGR" };
 val _ = TeX_notation { hol = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3, (* ~~ ^ r *)
-		       (* \newcommand{\HOLTokenObsCongr}{$\approx^c$} *)
 		       TeX = ("\\HOLTokenObsCongr", 1) };
 
 (* Prove that observation congruence implies observation equivalence. *)
@@ -570,22 +569,6 @@ val OBS_CONGR_SUBST_RELAB = store_thm (
       EXISTS_TAC ``relab E1 rf`` ]
  >> IMP_RES_TAC WEAK_EQUIV_SUBST_RELAB
  >> ASM_REWRITE_TAC []);
-
-val OBS_CONGR_congruence = store_thm (
-   "OBS_CONGR_congruence",
-  ``!E E' ctx. CONTEXT ctx ==> OBS_CONGR E E' ==> OBS_CONGR (ctx E) (ctx E')``,
-    NTAC 2 GEN_TAC
- >> HO_MATCH_MP_TAC CONTEXT_ind
- >> BETA_TAC
- >> REPEAT STRIP_TAC (* 7 sub-goals here *)
- >> RES_TAC	     (* 6 sub-goals left *)
- >| [ MATCH_MP_TAC OBS_CONGR_SUBST_PREFIX >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC OBS_CONGR_SUBST_SUM_R  >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC OBS_CONGR_SUBST_SUM_L  >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC OBS_CONGR_SUBST_PAR_R  >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC OBS_CONGR_SUBST_PAR_L  >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC OBS_CONGR_SUBST_RESTR  >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC OBS_CONGR_SUBST_RELAB  >> ASM_REWRITE_TAC [] ]);
 
 (******************************************************************************)
 (*                                                                            *)
