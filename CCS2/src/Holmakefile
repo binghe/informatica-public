@@ -21,10 +21,10 @@ all: $(TARGETS) munge.exe
 
 munge.exe: CCSTheory.sig StrongEQTheory.sig StrongLawsTheory.sig WeakEQTheory.sig \
 		WeakLawsTheory.sig ObsCongrTheory.sig ObsCongrLawsTheory.sig \
-		CongruenceTheory.sig CoarsestCongrTheory.sig
+		CoarsestCongrTheory.sig CoarsestCongr2Theory.sig
 	$(HOLDIR)/bin/mkmunge.exe CCSTheory StrongEQTheory StrongLawsTheory \
 		WeakEQTheory WeakLawsTheory ObsCongrTheory ObsCongrLawsTheory \
-		CongruenceTheory CoarsestCongrTheory ordinalTheory
+		CoarsestCongrTheory CoarsestCongr2Theory ordinalTheory
 
 #ifeq ($(KERNELID),otknl)
 #all: $(patsubst %Script.sml,%.ot.art,$(wildcard *Script.sml))
