@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<Node>
+	<ChildNodes>
+		<Node Type="Type" Name="Type" Operation="Intersect">
+			<Properties VariableType="Free" />
+		</Node>
+		<Node Type="Conditional" Name="Sets, Calendars, Horizons" Operation="Intersect">
+			<Conditions>
+				<IdentifierTypes>[Set,Calendar,Horizon]</IdentifierTypes>
+			</Conditions>
+		</Node>
+		<Node Type="Conditional" Name="Parameters" Operation="Intersect">
+			<Conditions>
+				<IdentifierTypes>[Parameter,Element Parameter,String Parameter,Unit Parameter]</IdentifierTypes>
+			</Conditions>
+		</Node>
+		<Node Type="Conditional" Name="Variables, Arcs" Operation="Intersect">
+			<Conditions>
+				<IdentifierTypes>[Variable,Element Variable,Complementarity Variable,Arc,Uncertainty variable,Activity]</IdentifierTypes>
+			</Conditions>
+		</Node>
+		<Node Type="Conditional" Name="Contraints, Nodes" Operation="Intersect">
+			<Conditions>
+				<IdentifierTypes>[Resource,Constraint,Node,Uncertainty constraint]</IdentifierTypes>
+			</Conditions>
+		</Node>
+		<Node Type="Conditional" Name="Identifiers with Definition" Operation="Intersect">
+			<Conditions>
+				<Attribute>definition</Attribute>
+				<AttributeMatch>IsNonEmpty</AttributeMatch>
+			</Conditions>
+			<ChildNodes>
+				<DuplicateNode Original="Sets, Calendars, Horizons" />
+				<DuplicateNode Original="Parameters" />
+				<DuplicateNode Original="Variables, Arcs" />
+				<DuplicateNode Original="Contraints, Nodes" />
+			</ChildNodes>
+		</Node>
+		<Node Type="Conditional" Name="Identifiers without Definition" Operation="Intersect">
+			<Conditions>
+				<Attribute>definition</Attribute>
+				<AttributeMatch>IsEmpty</AttributeMatch>
+			</Conditions>
+			<ChildNodes>
+				<DuplicateNode Original="Sets, Calendars, Horizons" />
+				<DuplicateNode Original="Parameters" />
+				<DuplicateNode Original="Variables, Arcs" />
+				<DuplicateNode Original="Contraints, Nodes" />
+			</ChildNodes>
+		</Node>
+		<Node Type="Conditional" Name="Identifiers with Text" Operation="Intersect">
+			<Conditions>
+				<Attribute>text</Attribute>
+				<AttributeMatch>IsNonEmpty</AttributeMatch>
+			</Conditions>
+			<ChildNodes>
+				<DuplicateNode Original="Sets, Calendars, Horizons" />
+				<DuplicateNode Original="Parameters" />
+				<DuplicateNode Original="Variables, Arcs" />
+				<DuplicateNode Original="Contraints, Nodes" />
+			</ChildNodes>
+		</Node>
+		<Node Type="Conditional" Name="Identifiers without Text" Operation="Intersect">
+			<Conditions>
+				<Attribute>text</Attribute>
+				<AttributeMatch>IsEmpty</AttributeMatch>
+			</Conditions>
+			<ChildNodes>
+				<DuplicateNode Original="Sets, Calendars, Horizons" />
+				<DuplicateNode Original="Parameters" />
+				<DuplicateNode Original="Variables, Arcs" />
+				<DuplicateNode Original="Contraints, Nodes" />
+			</ChildNodes>
+		</Node>
+	</ChildNodes>
+</Node>

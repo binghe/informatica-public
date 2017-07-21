@@ -1,0 +1,360 @@
+## ams_version=1.0
+
+Model Main_CP_VRP_Chun {
+    Procedure RandomData {
+        Body: {
+            Empty AllVariables, Xcoord, Ycoord, StartInventory;
+            
+            for i do
+              Xcoord(i) := Uniform(11.28,11.38);
+              Ycoord(i) := Uniform(44.47,44.53);
+              StartInventory(i) := ceil(Uniform(0, 20));
+            endfor;
+            
+            PageRefreshAll;
+        }
+    }
+    Procedure BolognaData {
+        Body: {
+            Empty AllVariables, Xcoord, Ycoord, StartInventory;
+            
+            NrStations := 23;
+            
+            /* Autostazione */
+            Ycoord('s-01') := 44.504197;
+            Xcoord('s-01') := 11.345882;
+            
+            /* Largo Alfredo Trombetti */
+            Ycoord('s-02') := 44.4961895;
+            Xcoord('s-02') := 11.3519957;
+            
+            /* Largo Lercaro */
+            Ycoord('s-03') := 44.4797011;
+            Xcoord('s-03') := 11.3699371;
+            
+            /* Mura di Porta San Felice */
+            Ycoord('s-04') := 44.499049;
+            Xcoord('s-04') := 11.327468;
+            
+            /* Ospedale Maggiore */
+            Ycoord('s-05') := 44.504631;
+            Xcoord('s-05') := 11.315512;
+            
+            /* Ospedale Sant`Orsola */
+            Ycoord('s-06') := 44.49141;
+            Xcoord('s-06') := 11.360846;
+            
+            /* Parcheggio Certosa Nord */
+            Ycoord('s-07') := 44.497577569708;
+            Xcoord('s-07') := 11.304716;
+            
+            /* Parcheggio Ghisello */
+            Ycoord('s-08') := 44.492084;
+            Xcoord('s-08') := 11.303447;
+            
+            /* Parcheggio Staveco */
+            Ycoord('s-09') := 44.4856678;
+            Xcoord('s-09') := 11.3450197;
+            
+            /* Parcheggio Tanari */
+            Ycoord('s-10') := 44.506021;
+            Xcoord('s-10') := 11.329324;
+            
+            /* Piazza di Porta Ravegnana */
+            Ycoord('s-11') := 44.4943316;
+            Xcoord('s-11') := 11.3465504;
+            
+            /* Piazza di Porta San Donato */
+            Ycoord('s-12') := 44.4982667;
+            Xcoord('s-12') := 11.3561362;
+            
+            /* Piazza di Porta San Vitale */
+            Ycoord('s-13') := 44.494006;
+            Xcoord('s-13') := 11.356606;
+            
+            /* Piazza di Porta Santo Stefano */
+            Ycoord('s-14') := 44.484888;
+            Xcoord('s-14') := 11.356124;
+            
+            /* Piazza Liber Paradisus */
+            Ycoord('s-15') := 44.509521;
+            Xcoord('s-15') := 11.340496;
+            
+            /* Piazza Vittorio Puntoni */
+            Ycoord('s-16') := 44.4972324;
+            Xcoord('s-16') := 11.3534553;
+            
+            /* Piazza XX Settembre */
+            Ycoord('s-17') := 44.5042142;
+            Xcoord('s-17') := 11.3443509;
+            
+            /* SFM S. Vitale */
+            Ycoord('s-18') := 44.496388269708;
+            Xcoord('s-18') := 11.357859269709;
+            
+            /* Via Garavaglia */
+            Ycoord('s-19') := 44.5037962;
+            Xcoord('s-19') := 11.3650535;
+            
+            /* Via Giacomo Matteotti */
+            Ycoord('s-20') := 44.507015;
+            Xcoord('s-20') := 11.346034;
+            
+            /* Via IV Novembre */
+            Ycoord('s-21') := 44.493811;
+            Xcoord('s-21') := 11.341295;
+            
+            /* Via Re Filippo */
+            Ycoord('s-22') := 44.4996567;
+            Xcoord('s-22') := 11.3546497;
+            
+            /* Viale Pietro Pietramellara */
+            Ycoord('s-23') := 44.504958;
+            Xcoord('s-23') := 11.345226;
+            
+            for i do
+              StartInventory(i) := ceil(Uniform(0, 20));
+            endfor;
+            
+            PageRefreshAll;
+        }
+    }
+    Parameter NrStations {
+        Range: integer;
+        InitialData: 30;
+    }
+    Parameter NrVehicles {
+        Range: integer;
+        InitialData: 4;
+    }
+    Parameter StartInventory {
+        IndexDomain: (i);
+    }
+    Set Stations {
+        Index: l, i, j;
+        Definition: ElementRange(1, NrStations, 1, "s-");
+    }
+    Parameter StationCapacity {
+        IndexDomain: (i);
+        Text: "S(i)";
+        Definition: 20;
+    }
+    Set Vehicles {
+        Index: v;
+        Definition: ElementRange(1, NrVehicles, 1, "v-");
+    }
+    Parameter VehicleCapacity {
+        IndexDomain: (v);
+        Text: "Q(v)";
+        Definition: 25;
+    }
+    Parameter StartVehicleCapacity {
+        IndexDomain: (v);
+        Text: "Q0(v)";
+        Definition: 0;
+    }
+    Parameter Xcoord {
+        IndexDomain: (l);
+    }
+    Parameter Ycoord {
+        IndexDomain: (l);
+    }
+    Parameter Distance {
+        IndexDomain: (i,j) | i <> j;
+        Definition: abs(Xcoord(i) - Xcoord(j)) + abs(Ycoord(i) - Ycoord(j));
+    }
+    Parameter DistanceInTime {
+        IndexDomain: (i,j);
+        Range: integer;
+        Definition: ceil(1000*Distance(i,j));
+    }
+    Parameter ServiceLevelMin {
+        IndexDomain: (l);
+        Definition: 7;
+    }
+    Parameter ServiceLevelMax {
+        IndexDomain: (l);
+        Definition: 13;
+    }
+    Section CPModel {
+        Parameter MaxTime {
+            Text: "in minutes";
+            Range: nonnegative;
+            Definition: 24*60;
+        }
+        Set ScheduleHorizon {
+            SubsetOf: Integers;
+            Index: t;
+            Definition: ElementRange(1, MaxTime, 1);
+        }
+        Activity Pickup {
+            IndexDomain: (i,v);
+            ScheduleDomain: ScheduleHorizon;
+            Property: Optional;
+            Length: 0;
+        }
+        Activity Delivery {
+            IndexDomain: (i,v);
+            ScheduleDomain: ScheduleHorizon;
+            Property: Optional;
+            Length: 0;
+        }
+        Variable PickupAmount {
+            IndexDomain: (i,v);
+            Text: "y(i,v)-";
+            Range: {
+                {0..VehicleCapacity(v)}
+            }
+        }
+        Variable DeliveryAmount {
+            IndexDomain: (i,v);
+            Text: "y(i,v)+";
+            Range: {
+                {0..VehicleCapacity(v)}
+            }
+        }
+        Resource VehicleTime {
+            Usage: sequential;
+            IndexDomain: (v);
+            ScheduleDomain: ScheduleHorizon;
+            Activities: Pickup(i,v), Delivery(i,v);
+            GroupSet: Stations;
+            GroupDefinition: {
+                Pickup(i, v) : i,
+                Delivery(i, v) : i
+            }
+            GroupTransition: (i, j) : DistanceInTime(i, j);
+        }
+        Resource VehicleInventory {
+            Usage: parallel;
+            IndexDomain: (v);
+            ScheduleDomain: ScheduleHorizon;
+            Activities: Pickup(i,v), Delivery(i, v);
+            LevelRange: {
+                {0..VehicleCapacity(v)}
+            }
+            InitialLevel: StartVehicleCapacity(v);
+            BeginChange: Delivery(i,v) : -DeliveryAmount(i,v);
+            EndChange: Pickup(i,v) : PickupAmount(i,v);
+        }
+        Resource StationInventory {
+            Usage: parallel;
+            IndexDomain: (i);
+            ScheduleDomain: ScheduleHorizon;
+            Activities: Pickup(i,v), Delivery(i, v);
+            LevelRange: {
+                {0..StationCapacity(i)}
+            }
+            InitialLevel: StartInventory(i);
+            BeginChange: Delivery(i,v) : DeliveryAmount(i,v);
+            EndChange: Pickup(i,v) : -PickupAmount(i,v);
+        }
+        Constraint SLAConstraintLow {
+            IndexDomain: (i);
+            Text: "C21";
+            Definition: StartInventory(i) + sum(v, DeliveryAmount(i,v)-PickupAmount(i,v)) >= ServiceLevelMin(i);
+        }
+        Constraint SLAConstraintHigh {
+            IndexDomain: (i);
+            Text: "C22";
+            Definition: StartInventory(i) + sum(v, DeliveryAmount(i,v)-PickupAmount(i,v)) <= ServiceLevelMax(i);
+        }
+        Constraint PickupOrDelivery {
+            IndexDomain: (i);
+            Text: "C23";
+            Definition: sum(v, Pickup(i,v).Present + Delivery(i,v).Present) <= 1;
+        }
+        Constraint PickupPresent {
+            IndexDomain: (i,v);
+            Text: "C24";
+            Definition: {
+                (Pickup(i,v).Present = 1 AND PickupAmount(i,v) >= 1)
+                OR
+                (Pickup(i,v).Present = 0 AND PickupAmount(i,v) = 0)
+            }
+        }
+        Constraint DeliveryPresent {
+            IndexDomain: (i,v);
+            Text: "C26";
+            Definition: {
+                (Delivery(i,v).Present = 1 AND DeliveryAmount(i,v) >= 1)
+                OR
+                (Delivery(i,v).Present = 0 AND DeliveryAmount(i,v) = 0)
+            }
+        }
+        Variable TotalTime {
+            Range: free;
+            Definition: max((i,v), max(Pickup(i,v).End,Delivery(i,v).End));
+        }
+        Parameter SolverTimeLimit {
+            Range: nonnegative;
+            InitialData: 20;
+        }
+        MathematicalProgram MinimizeTotalTime {
+            Objective: TotalTime;
+            Direction: minimize;
+            Constraints: AllConstraints;
+            Variables: AllVariables;
+            Type: COP;
+            ScheduleDomain: ScheduleHorizon;
+        }
+    }
+    Section GUI {
+        Parameter MinXcoord {
+            Definition: Min(l,Xcoord(l));
+        }
+        Parameter MaxXcoord {
+            Definition: Max(l,Xcoord(l));
+        }
+        Parameter MinYcoord {
+            Definition: Min(l,Ycoord(l));
+        }
+        Parameter MaxYcoord {
+            Definition: Max(l,Ycoord(l));
+        }
+        Parameter Arcs {
+            IndexDomain: (i,j);
+            Range: binary;
+            Definition: {
+                Exists ( v | PickupOrDeliveryPresent(i,v) AND PickupOrDeliveryPresent(j,v)
+                AND PickupOrDeliveryTime(i,v) < PickupOrDeliveryTime(j,v)
+                AND
+                 NOT Exists ( l | PickupOrDeliveryTime(l,v) > PickupOrDeliveryTime(i,v) AND PickupOrDeliveryTime(l,v) < PickupOrDeliveryTime(j,v))
+                )
+            }
+        }
+        Parameter EndInventory {
+            IndexDomain: (i);
+            Definition: StartInventory(i) + sum(v, DeliveryAmount(i,v)-PickupAmount(i,v));
+        }
+        Parameter PickupOrDeliveryPresent {
+            IndexDomain: (i,v);
+            Range: binary;
+            Definition: PickupAmount(i,v) > 0 OR DeliveryAmount(i,v) > 0;
+        }
+        Parameter PickupOrDeliveryTime {
+            IndexDomain: (i,v);
+            Range: nonnegative;
+            Definition: {
+                IF Pickup(i,v).Present = 1 THEN
+                	Pickup(i,v).Begin
+                ELSEIF Delivery(i,v).Present = 1 THEN
+                	Delivery(i,v).Begin
+                ELSE
+                	0
+                ENDIF;
+            }
+        }
+    }
+    Procedure MainInitialization;
+    Procedure MainExecution {
+        Body: {
+            solve MinimizeTotalTime where time_limit := SolverTimeLimit;
+        }
+    }
+    Procedure MainTermination {
+        Body: {
+            return DataManagementExit();
+        }
+    }
+}

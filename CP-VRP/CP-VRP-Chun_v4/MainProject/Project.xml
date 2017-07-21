@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<Project AimmsVersion="4.34.1.910 unicode x64" ProjectUUID="E2D91135-A1F3-4DA8-A65B-5FCAE4111E49">
+	<ModelFileName>CP-VRP-Chun.ams</ModelFileName>
+	<AutoSaveAndBackup>
+		<DataBackup AtRegularInterval="true" EveryNMinutes="15" NumBackupsDatedToday="3" NumDaysBeforeToday="3" />
+	</AutoSaveAndBackup>
+</Project>

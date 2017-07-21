@@ -1,0 +1,24 @@
+﻿* AIMMS
+aim_character_encoding WINDOWS-1252
+ascii_case_character_encoding WINDOWS-1252
+datatable_character_encoding WINDOWS-1252
+default_input_character_encoding WINDOWS-1252
+default_output_character_encoding WINDOWS-1252
+external_dll_AIMMS_reference ASCII
+external_string_character_encoding WINDOWS-1252
+negate_objective_coefficient_modifications 1
+rounding_compatibility Aimms_3_7
+* AOA
+* CBC 2.9
+* CONOPT 3.14V
+* CPLEX 12.6.2
+* CPOptimizer 12.6
+* IPOPT 3.11
+* MINOS
+* SNOPT 7.2
+* XA 15
+* NETSOL
+* Environment
+Startup_Procedure "RandomData"
+Startup_Page "SolutionMap"
+Data_Management_Style 1

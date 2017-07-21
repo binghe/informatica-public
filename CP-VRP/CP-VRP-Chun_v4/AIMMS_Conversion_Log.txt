@@ -1,0 +1,21 @@
+﻿Converting Main project
+Converting CP-VRP-Chun.amb to new style model file: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\CP-VRP-Chun.ams
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\Project.xml
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\Tools\ProjectExport.xml
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\Settings\Options.txt
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\Pages\SolutionMap.xml
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\PageManager.xml
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\TemplateManager.xml
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\DataManagementSetup.xml
+Creating folder: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\User Files\bitmaps
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\User Files\bitmaps\construct.bmp
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\User Files\bitmaps\totree.bmp
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\User Files\bitmaps\previous.bmp
+Writing: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\User Files\bitmaps\next.bmp
+Copying file: CP-VRP-Chun.nch to C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\CP-VRP-Chun.nch
+Copying file: CP-VRP-Chun.DeveloperState to C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\MainProject\Main.DeveloperState
+Copying file: Bologna-Map.png to C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\Bologna-Map.png
+Copying file: CP-VRP-Chun.dat to C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\CP-VRP-Chun.dat
+Copying folder: ErrorReports to C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\ErrorReports
+Writing file: C:\Informatica\IA2\progetto\CP-VRP-Chun_v4\CP-VRP-Chun.aimms
+Finished the conversion of the project.
