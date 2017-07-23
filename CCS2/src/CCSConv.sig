@@ -3,7 +3,7 @@
  * Copyright 2016-2017  University of Bologna   (Author: Chun Tian)
  *)
 
-signature CCSSimps =
+signature CCSConv =
 sig
   include Abbrev
 

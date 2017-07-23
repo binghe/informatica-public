@@ -7,7 +7,7 @@ structure CCSSyntax :> CCSSyntax =
 struct
 
 open HolKernel Parse boolLib bossLib;
-open stringLib PFset_conv;
+open PFset_conv computeLib;
 open CCSLib CCSTheory;
 
 (******************************************************************************)
@@ -212,17 +212,17 @@ fun Label_EQ_CONV lab_eq = let
     and (op2, s2) = args_label l2
 in
     if (op1 = op2) then
-	let val thm = string_EQ_CONV ``^s1 = ^s2`` in 
+	let val thm = EVAL_CONV ``^s1 = ^s2`` in
 	    if op1 = mk_const ("name", type_of op1) then
-		TRANS (SPECL [s1, s2] (CONJUNCT1 Label_11)) thm
+		TRANS (ISPECL [s1, s2] (CONJUNCT1 Label_11)) thm
 	    else
-		TRANS (SPECL [s1, s2] (CONJUNCT2 Label_11)) thm
+		TRANS (ISPECL [s1, s2] (CONJUNCT2 Label_11)) thm
 	end
     else if op1 = mk_const ("name", type_of op1) andalso
 	    op2 = mk_const ("coname", type_of op2) then (* not (op1 = op2) *)
-	SPECL [s1, s2] Label_not_eq (* (op1 = "coname") & (op2 = "name") *)
+	ISPECL [s1, s2] Label_not_eq (* (op1 = "coname") & (op2 = "name") *)
     else
-	SPECL [s1, s2] Label_not_eq'
+	ISPECL [s1, s2] Label_not_eq'
 end;
 
 (* Conversion that proves/disproves membership of a label to a set of labels. *)
@@ -235,9 +235,9 @@ in
     if (is_tau u1 andalso is_tau u2) then
 	EQT_INTRO (REFL u1)
     else if (is_tau u1 andalso is_label u2) then
-	EQF_INTRO (SPEC (arg_action u2) Action_distinct)
+	EQF_INTRO (ISPEC (arg_action u2) Action_distinct)
     else if (is_label u1 andalso is_tau u2) then
-	EQF_INTRO (SPEC (arg_action u1) Action_distinct_label)
+	EQF_INTRO (ISPEC (arg_action u1) Action_distinct_label)
     else
 	let val l1 = arg_action u1 (* u1, u2 are both labels *)
 	    and l2 = arg_action u2;
@@ -247,16 +247,16 @@ in
 	in
 	    if (op1 = op2) then
 		if op1 = mk_const ("name", type_of op1) then
-		    TRANS (SPECL [``name ^s1``, ``name ^s2``] Action_11) thm
+		    TRANS (ISPECL [``name ^s1``, ``name ^s2``] Action_11) thm
 		else
-		    TRANS (SPECL [``coname ^s1``, ``coname ^s2``] Action_11) thm
+		    TRANS (ISPECL [``coname ^s1``, ``coname ^s2``] Action_11) thm
 	    else if op1 = mk_const ("name", type_of op1) andalso
 		    op2 = mk_const ("coname", type_of op2) then (* not (op1 = op2) *)
-		TRANS (SPECL [``name ^s1``, ``coname ^s2``] Action_11)
-		      (SPECL [s1, s2] Label_not_eq)
+		TRANS (ISPECL [``name ^s1``, ``coname ^s2``] Action_11)
+		      (ISPECL [s1, s2] Label_not_eq)
 	    else (* (op1 = "coname") & (op2 = "name") *)
-		TRANS (SPECL [``coname ^s1``, ``name ^s2``] Action_11)
-		      (SPECL [s1, s2] Label_not_eq')
+		TRANS (ISPECL [``coname ^s1``, ``name ^s2``] Action_11)
+		      (ISPECL [s1, s2] Label_not_eq')
 	end
 end;
 
@@ -270,7 +270,7 @@ in
     if is_cond c then
 	let val (b, l, r) = dest_cond c;
 	    val (s1, s2) = dest_eq b;
-	    val thm = string_EQ_CONV ``^s1 = ^s2``;
+	    val thm = EVAL_CONV ``^s1 = ^s2``;
 	    val thm' = REWRITE_RHS_RULE [thm] (REFL fc)
 	in
 	    TRANS thm' (RELAB_EVAL_CONV (rconcl thm'))

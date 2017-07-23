@@ -9,7 +9,7 @@ struct
 open HolKernel Parse boolLib bossLib;
 
 open IndDefRules;
-open CCSLib CCSTheory CCSSyntax CCSSimps;
+open CCSLib CCSTheory CCSSyntax CCSConv;
 open StrongEQTheory StrongEQLib StrongLawsTheory StrongLawsConv;
 open WeakEQTheory WeakEQLib WeakLawsTheory;
 

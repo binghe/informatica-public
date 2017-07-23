@@ -3,12 +3,11 @@
  * Copyright 2016-2017  University of Bologna   (Author: Chun Tian)
  *)
 
-structure CCSSimps :> CCSSimps =
+structure CCSConv :> CCSConv =
 struct
 
 open HolKernel Parse boolLib bossLib;
-open IndDefRules;
-open CCSLib CCSTheory CCSSyntax;
+open CCSLib CCSTheory CCSSyntax stringTheory;
 
 (******************************************************************************)
 (*									      *)
@@ -144,6 +143,7 @@ fun CCS_TRANS_CONV tm =
 		  val actl = map (snd o dest_eq o hd o strip_conj o hd o strip_disj) dl;
 		  val actl_not = extr_acts actl L;
 		  val tau = mk_const ("tau", type_of (hd actl));
+		  val U = mk_var ("u", type_of (hd actl));
 	      in
 		  if (null actl_not) then
 		      prove (``!u E. TRANS ^tm u E = F``,
@@ -161,7 +161,7 @@ fun CCS_TRANS_CONV tm =
 	(* goal 1.2 *)
 	IMP_RES_TAC thm >|
 	(list_apply_tac
-	  (fn a => ASSUME_TAC (REWRITE_RULE [ASSUME ``u = label l``, Action_11]
+	  (fn a => ASSUME_TAC (REWRITE_RULE [ASSUME ``^U = label l``, Action_11]
 					    (ASSUME ``u = ^a``)) \\
 		   CHECK_ASSUME_TAC
 		     (REWRITE_RULE [ASSUME ``l = ^(arg_action a)``,
@@ -210,11 +210,11 @@ fun CCS_TRANS_CONV tm =
 	IMP_RES_TAC thm >|
 	(list_apply_tac
 	  (fn a => if is_tau a then
-	  	       ASSUME_TAC (REWRITE_RULE [ASSUME ``u = label l``, Action_11]
+	  	       ASSUME_TAC (REWRITE_RULE [ASSUME ``^U = label l``, Action_11]
 						(ASSUME ``u = ^a``)) \\
 		       ASM_REWRITE_TAC []
 		   else
-		       ASSUME_TAC (REWRITE_RULE [ASSUME ``u = label l``, Action_11]
+		       ASSUME_TAC (REWRITE_RULE [ASSUME ``^U = label l``, Action_11]
 						(ASSUME ``u = ^a``)) \\
 		       CHECK_ASSUME_TAC
 			 (REWRITE_RULE [ASSUME ``l = ^(arg_action a)``,
@@ -293,6 +293,7 @@ fun CCS_TRANS_CONV tm =
 		  val dl = strip_disj (rconcl thm);
 		  val actl = map (snd o dest_eq o hd o strip_conj) dl
 		  and labl = arg_relabelling rf;
+		  val U = mk_var ("u", type_of (hd actl));
 		  val thml = relab_act actl labl;
 		  val rlp = combine (map rconcl thml, map (snd o list2_pair o f) dl);
 		  val disjt = build_disj_relab rlp rf
@@ -309,7 +310,7 @@ fun CCS_TRANS_CONV tm =
 	(fn (a, thm_act) =>
 	    REWRITE_TAC [REWRITE_RULE [ASSUME ``u' = ^a``, thm_act]
 			    (REWRITE_RULE [SYM (ASSUME ``RELAB ^labl = RELAB labl``)]
-				(ASSUME ``u = relabel (Apply_Relab labl) u'``))] \\
+					  (ASSUME ``^U = relabel (Apply_Relab labl) u'``))] \\
 	    ASM_REWRITE_TAC [])
 	(combine (actl, thml))),
       (* goal 2 (of 2) *)
