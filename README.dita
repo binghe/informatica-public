@@ -6,35 +6,23 @@
 
 <topic id = "informatica_public"
     xmlns:ditaarch = "http://dita.oasis-open.org/architecture/2005/">
-	<title>informatica-public</title>
-	<shortdesc>Some project code written during my master degree study
-		at University of Bologna.</shortdesc>
-	<prolog>
-		<author>Chun Tian</author>
-	</prolog>
-	<body>
-		<p>List of publications (public code):</p>
-		<ul>
-			<li>
-				<filepath>CCS</filepath>: A formalization of process algebra
-				CCS in HOL4 (MSC exam project)
-			</li>
-			<li>
-				<filepath>CCS2</filepath>: Further formalization of process
-				algebra CCS in HOL4 (tirocinio)
-			</li>
-			<li>
-				<filepath>FOOL</filepath>: A bytecode compiler and interpreter
-				for FOOL+ language (ASP exam project)
-			</li>
-			<li>
-				<filepath>cryptanalysis</filepath>: Differential cryptanalysis
-				on DES (reduced to 4 rounds) (Cryptografia demo code)
-			</li>
-			<li>
-				<filepath>lambek</filepath>: Formalized Lambek Calculus in HOL4
-				(CLP exam project)
-			</li>
-		</ul>
-	</body>
-</topic>
+<title>informatica-public</title>
+<shortdesc>Some project code written during my master degree study
+at University of Bologna.</shortdesc>
+<prolog><author>Chun Tian</author></prolog>
+<body><p>List of publications (public code):</p>
+<ul><li><filepath>CCS</filepath>: A formalization of process algebra
+CCS in HOL4 (MSC exam project)</li>
+<li><filepath>CCS2</filepath>: Further formalization of process
+algebra CCS in HOL4 (“tirocinio” project)</li>
+<li><filepath>FOOL</filepath>: A bytecode compiler and interpreter
+for FOOL+ language (Exam project for <b>Compilers and Interpreters</b>)</li>
+<li><filepath>cryptanalysis</filepath>: Differential cryptanalysis
+on DES (reduced to 4 rounds) (Cryptografia demo code &amp; paper)</li>
+<li><filepath>lambek</filepath>: Formalized Lambek Calculus in HOL4
+(CLP exam project)</li>
+<li><filepath>NetLogo</filepath>: Percolation threshold calculator
+for graphs in NetLogo (<b>Complex Systems</b> exam project)</li>
+<li><filepath>CP-VRP</filepath>: Constraint programming (bike sharing
+system) in AIMMS (Exam project for <b>Artificial Intelligence (module
+2)</b>)</li></ul></body></topic>
