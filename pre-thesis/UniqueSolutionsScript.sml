@@ -233,7 +233,7 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
   ``!E. WG E ==>
 	!P Q. STRONG_EQUIV P (E P) /\ STRONG_EQUIV Q (E Q) ==> STRONG_EQUIV P Q``,
     rpt STRIP_TAC
- >> irule (REWRITE_RULE [RSUBSET] STRONG_BISIM_UPTO_EQUIV)
+ >> irule (REWRITE_RULE [RSUBSET] STRONG_BISIM_UPTO_THM)
  >> Q.EXISTS_TAC `\x y. (x = y) \/ (?G. EXPR G /\ (x = G P) /\ (y = G Q))`
  >> BETA_TAC >> REVERSE CONJ_TAC
  >- ( DISJ2_TAC >> Q.EXISTS_TAC `\x. x` >> BETA_TAC \\

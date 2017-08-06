@@ -132,8 +132,8 @@ val STRONG_BISIM_UPTO_LEMMA = store_thm (
       Q.EXISTS_TAC `y''` >> ASM_REWRITE_TAC [] \\
       Q.EXISTS_TAC `y'''` >> ASM_REWRITE_TAC [] ]);
 
-val STRONG_BISIM_UPTO_EQUIV = store_thm (
-   "STRONG_BISIM_UPTO_EQUIV",
+val STRONG_BISIM_UPTO_THM = store_thm (
+   "STRONG_BISIM_UPTO_THM",
   ``!Bsm. STRONG_BISIM_UPTO Bsm ==> Bsm RSUBSET STRONG_EQUIV``,
     rpt STRIP_TAC
  >> IMP_RES_TAC STRONG_BISIM_UPTO_LEMMA
@@ -507,8 +507,8 @@ val WEAK_BISIM_UPTO_LEMMA = store_thm (
       Q.EXISTS_TAC `y''` >> ASM_REWRITE_TAC [] \\
       Q.EXISTS_TAC `y'''` >> ASM_REWRITE_TAC [] ]);
 
-val WEAK_BISIM_UPTO_EQUIV = store_thm (
-   "WEAK_BISIM_UPTO_EQUIV",
+val WEAK_BISIM_UPTO_THM = store_thm (
+   "WEAK_BISIM_UPTO_THM",
   ``!Wbsm. WEAK_BISIM_UPTO Wbsm ==> Wbsm RSUBSET WEAK_EQUIV``,
     rpt STRIP_TAC
  >> IMP_RES_TAC WEAK_BISIM_UPTO_LEMMA
