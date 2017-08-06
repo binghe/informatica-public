@@ -23,11 +23,11 @@ all: $(TARGETS) munge.exe
 
 munge.exe: CCSTheory.sig StrongEQTheory.sig StrongLawsTheory.sig WeakEQTheory.sig \
 		WeakLawsTheory.sig ObsCongrTheory.sig ObsCongrLawsTheory.sig \
-		CoarsestCongrTheory.sig CoarsestCongr2Theory.sig \
+		CoarsestCongrTheory.sig \
 		BisimulationUptoTheory.sig UniqueSolutionsTheory.sig
 	$(HOLDIR)/bin/mkmunge.exe CCSTheory StrongEQTheory StrongLawsTheory \
 		WeakEQTheory WeakLawsTheory ObsCongrTheory ObsCongrLawsTheory \
-		CoarsestCongrTheory CoarsestCongr2Theory ordinalTheory \
+		CoarsestCongrTheory \
 		BisimulationUptoTheory UniqueSolutionsTheory
 
 #ifeq ($(KERNELID),otknl)
