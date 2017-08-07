@@ -616,8 +616,9 @@ val WEAK_EQUIV = store_thm ((* NEW *)
       HO_MATCH_MP_TAC WEAK_EQUIV_coind \\ (* co-induction used here! *)
       PROVE_TAC [WEAK_BISIM] ]);
 
-val WEAK_BISIM_SUBSET_EQUIV = store_thm ((* NEW *)
-   "WEAK_BISIM_SUBSET_EQUIV", ``!Wbsm. WEAK_BISIM Wbsm ==> Wbsm RSUBSET WEAK_EQUIV``,
+val WEAK_BISIM_SUBSET_WEAK_EQUIV = store_thm ((* NEW *)
+   "WEAK_BISIM_SUBSET_WEAK_EQUIV",
+  ``!Wbsm. WEAK_BISIM Wbsm ==> Wbsm RSUBSET WEAK_EQUIV``,
     PROVE_TAC [RSUBSET, WEAK_EQUIV]);
 
 (******************************************************************************)

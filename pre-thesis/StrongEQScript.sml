@@ -179,8 +179,9 @@ val STRONG_EQUIV = store_thm ((* NEW *)
       HO_MATCH_MP_TAC STRONG_EQUIV_coind \\ (* co-induction used here! *)
       METIS_TAC [STRONG_BISIM] ]);
 
-val STRONG_BISIM_SUBSET_EQUIV = store_thm ((* NEW *)
-   "STRONG_BISIM_SUBSET_EQUIV", ``!Bsm. STRONG_BISIM Bsm ==> Bsm RSUBSET STRONG_EQUIV``,
+val STRONG_BISIM_SUBSET_STRONG_EQUIV = store_thm ((* NEW *)
+   "STRONG_BISIM_SUBSET_STRONG_EQUIV",
+  ``!Bsm. STRONG_BISIM Bsm ==> Bsm RSUBSET STRONG_EQUIV``,
     PROVE_TAC [RSUBSET, STRONG_EQUIV]);
 
 (* Strong equivalence is a reflexive relation. *)
