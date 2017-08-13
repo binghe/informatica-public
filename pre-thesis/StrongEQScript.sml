@@ -16,16 +16,41 @@ val _ = new_theory "StrongEQ";
 (*									      *)
 (******************************************************************************)
 
-(* Define the strong bisimulation relation on CCS processes. *)
-val STRONG_BISIM = new_definition ("STRONG_BISIM",
+val STRONG_SIM_def = Define
+   `STRONG_SIM (R :('a, 'b) simulation) =
+    !E E'. R E E' ==> !u E1. TRANS E u E1 ==> ?E2. TRANS E' u E2 /\ R E1 E2`;
+
+val STRONG_BISIM_def = Define
+   `STRONG_BISIM (R :('a, 'b) simulation) = STRONG_SIM R /\ STRONG_SIM (\x y. R y x)`;
+
+val STRONG_BISIM = store_thm ("STRONG_BISIM",
   ``STRONG_BISIM (Bsm :('a, 'b) simulation) =
-       (!E E'.
-	  Bsm E E' ==>
-	  (!u.
+    !E E'.
+	Bsm E E' ==>
+	!u.
 	   (!E1. TRANS E u E1 ==> 
 		 ?E2. TRANS E' u E2 /\ Bsm E1 E2) /\
 	   (!E2. TRANS E' u E2 ==> 
-		 ?E1. TRANS E u E1 /\ Bsm E1 E2)))``);
+		 ?E1. TRANS E u E1 /\ Bsm E1 E2)``,
+    REVERSE EQ_TAC
+ >- ( REWRITE_TAC [STRONG_BISIM_def, STRONG_SIM_def] >> METIS_TAC [] )
+ >> REWRITE_TAC [STRONG_BISIM_def]
+ >> rpt STRIP_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      Q.PAT_X_ASSUM `STRONG_SIM Bsm`
+	(STRIP_ASSUME_TAC o (REWRITE_RULE [STRONG_SIM_def])) \\
+      RES_TAC \\
+      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
+      (* goal 2 (of 2) *)
+      Q.ABBREV_TAC `Bsm' = (\x y. Bsm y x)` \\
+      `Bsm' E' E` by PROVE_TAC [] \\
+      Q.PAT_X_ASSUM `STRONG_SIM Bsm'`
+	(STRIP_ASSUME_TAC o (REWRITE_RULE [STRONG_SIM_def])) \\
+      RES_TAC \\
+      Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [] \\
+      Q.UNABBREV_TAC `Bsm'` \\
+      POP_ASSUM (MP_TAC o BETA_RULE) \\
+      REWRITE_TAC [] ]);
 
 (* The identity relation is a strong bisimulation. *)
 val IDENTITY_STRONG_BISIM = store_thm (

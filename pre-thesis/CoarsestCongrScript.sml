@@ -187,8 +187,8 @@ val [CONTEXT1, CONTEXT2, CONTEXT3, CONTEXT4, CONTEXT5, CONTEXT6, CONTEXT7, CONTE
 		   "CONTEXT5", "CONTEXT6", "CONTEXT7", "CONTEXT8"],
                   CONJUNCTS CONTEXT_rules));
 
-val CONTEXT_combin = store_thm ((* NEW *)
-   "CONTEXT_combin", ``!c1 c2. CONTEXT c1 /\ CONTEXT c2 ==> CONTEXT (c1 o c2)``,
+val CONTEXT_compose = store_thm ((* NEW *)
+   "CONTEXT_compose", ``!c1 c2. CONTEXT c1 /\ CONTEXT c2 ==> CONTEXT (c1 o c2)``,
     REPEAT STRIP_TAC
  >> NTAC 2 (POP_ASSUM MP_TAC)
  >> Q.SPEC_TAC (`c1`, `c`)
@@ -205,13 +205,16 @@ val CONTEXT_combin = store_thm ((* NEW *)
       FULL_SIMP_TAC std_ss [CONTEXT7],
       FULL_SIMP_TAC std_ss [CONTEXT8] ]);
 
-(* The definition of congruence *)
+(* The definition of congruence for CCS *)
 val congruence_def = Define `
-    congruence R = !x y ctx. CONTEXT ctx ==> R x y ==> R (ctx x) (ctx y) `;
+    congruence R = equivalence R /\ !x y ctx. CONTEXT ctx ==> R x y ==> R (ctx x) (ctx y)`;
 
-val STRONG_EQUIV_is_congruence = store_thm ((* NEW *)
-   "STRONG_EQUIV_is_congruence", ``congruence STRONG_EQUIV``,
-    REWRITE_TAC [congruence_def]
+val pre_congruence_def = Define `
+    pre_congruence R = !x y ctx. CONTEXT ctx ==> R x y ==> R (ctx x) (ctx y)`;
+
+val STRONG_EQUIV_congruence = store_thm ((* NEW *)
+   "STRONG_EQUIV_congruence", ``congruence STRONG_EQUIV``,
+    REWRITE_TAC [congruence_def, STRONG_EQUIV_equivalence]
  >> NTAC 2 GEN_TAC
  >> HO_MATCH_MP_TAC CONTEXT_ind
  >> BETA_TAC
@@ -225,9 +228,9 @@ val STRONG_EQUIV_is_congruence = store_thm ((* NEW *)
       MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR  >> ASM_REWRITE_TAC [],
       MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB  >> ASM_REWRITE_TAC [] ]);
 
-val OBS_CONGR_is_congruence = store_thm ((* NEW *)
-   "OBS_CONGR_is_congruence", ``congruence OBS_CONGR``,
-    REWRITE_TAC [congruence_def]
+val OBS_CONGR_congruence = store_thm ((* NEW *)
+   "OBS_CONGR_congruence", ``congruence OBS_CONGR``,
+    REWRITE_TAC [congruence_def, OBS_CONGR_equivalence]
  >> NTAC 2 GEN_TAC
  >> HO_MATCH_MP_TAC CONTEXT_ind
  >> BETA_TAC
@@ -241,7 +244,7 @@ val OBS_CONGR_is_congruence = store_thm ((* NEW *)
       MATCH_MP_TAC OBS_CONGR_SUBST_RESTR  >> ASM_REWRITE_TAC [],
       MATCH_MP_TAC OBS_CONGR_SUBST_RELAB  >> ASM_REWRITE_TAC [] ]);
 
-(* Building congruence closure from non-congruence relations *)
+(* Building congruence closure from an equivalence relation *)
 val CONGR_def = Define `
     CONGR R = (\g h. !c. CONTEXT c ==> R (c g) (c h)) `;
 
@@ -250,16 +253,35 @@ val _ = add_rule { fixity = Suffix 2100,
                    paren_style = OnlyIfNecessary,
                    pp_elements = [TOK "^c"],
                    term_name = "CONGR" }
+
+(* Recommended TeX inserts:
+\newcommand{\HOLTokenSupC}{${}^c$}
+ *)
 val _ = TeX_notation {hol = "^c", TeX = ("\\HOLTokenSupC{}", 1)}
 
 (* The built relation is indeed congruence *)
-val CONGR_is_congruence = store_thm ((* NEW *)
-   "CONGR_is_congruence", ``!R. congruence (CONGR R)``,
+val CONGR_congruence = store_thm ((* NEW *)
+   "CONGR_congruence", ``!R. equivalence R ==> congruence (CONGR R)``,
     REWRITE_TAC [congruence_def, CONGR_def]
- >> RW_TAC std_ss []
- >> `CONTEXT (c o ctx)` by PROVE_TAC [CONTEXT_combin]
- >> RES_TAC
- >> FULL_SIMP_TAC std_ss [o_THM]);
+ >> RW_TAC std_ss [] (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      REWRITE_TAC [equivalence_def] \\
+      rpt STRIP_TAC >| (* 3 sub-goals here *)
+      [ (* goal 1.1 (of 3) *)
+        REWRITE_TAC [reflexive_def] >> BETA_TAC \\
+        rpt STRIP_TAC \\
+        PROVE_TAC [equivalence_def, reflexive_def],
+        (* goal 1.2 (of 3) *)
+        REWRITE_TAC [symmetric_def] >> BETA_TAC \\
+        rpt GEN_TAC >> EQ_TAC >> rpt STRIP_TAC >> RES_TAC \\ (* 2 sub-goals here *)
+        PROVE_TAC [equivalence_def, symmetric_def],
+        (* goal 1.3 (of 3) *)
+        REWRITE_TAC [transitive_def] >> BETA_TAC \\
+        rpt STRIP_TAC >> RES_TAC \\
+        PROVE_TAC [equivalence_def, transitive_def] ],
+      (* goal 2 (of 2) *)
+      `CONTEXT (c o ctx)` by PROVE_TAC [CONTEXT_compose] \\
+      RES_TAC >> FULL_SIMP_TAC std_ss [o_THM] ]);
 
 (* The congruence is finer than original relation *)
 val CONGR_is_finer = store_thm ((* NEW *)
@@ -288,14 +310,16 @@ val WEAK_CONGR = new_definition ((* NEW *)
 val WEAK_CONGR_ALT = save_thm (
    "WEAK_CONGR_ALT", REWRITE_RULE [CONGR_def] WEAK_CONGR);
 
-val WEAK_CONGR_is_congruence = store_thm ((* NEW *)
-   "WEAK_CONGR_is_congruence", ``congruence WEAK_CONGR``,
-    REWRITE_TAC [WEAK_CONGR, CONGR_is_congruence]);
+val WEAK_CONGR_congruence = store_thm ((* NEW *)
+   "WEAK_CONGR_congruence", ``congruence WEAK_CONGR``,
+    REWRITE_TAC [WEAK_CONGR]
+ >> MATCH_MP_TAC CONGR_congruence
+ >> REWRITE_TAC [WEAK_EQUIV_equivalence]);
 
 val OBS_CONGR_IMP_WEAK_CONGR = store_thm ((* NEW *)
    "OBS_CONGR_IMP_WEAK_CONGR", ``!p q. OBS_CONGR p q ==> WEAK_CONGR p q``,
     REWRITE_TAC [WEAK_CONGR, GSYM RSUBSET]
- >> ASSUME_TAC OBS_CONGR_is_congruence
+ >> ASSUME_TAC OBS_CONGR_congruence
  >> `OBS_CONGR RSUBSET WEAK_EQUIV`
 	by PROVE_TAC [OBS_CONGR_IMP_WEAK_EQUIV, RSUBSET]
  >> IMP_RES_TAC CONGR_is_coarsest

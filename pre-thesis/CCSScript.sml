@@ -344,10 +344,17 @@ val (TRANS_rules, TRANS_ind, TRANS_cases) = Hol_reln `
 
 val _ =
     add_rule { term_name = "TRANS", fixity = Infix (NONASSOC, 450),
-	pp_elements = [ BreakSpace(1,0), TOK "--", HardSpace 0, TM, HardSpace 0, TOK "->",
+	pp_elements = [ BreakSpace(1,0), TOK "--", HardSpace 0, TM, HardSpace 0, TOK "->>",
 			BreakSpace(1,0) ],
 	paren_style = OnlyIfNecessary,
 	block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)) };
+
+(* Recommended TeX inserts:
+\newcommand{\HOLTokenTransBegin}{$-$}
+\newcommand{\HOLTokenTransEnd}{$\rightarrow$}
+ *)
+val _ = TeX_notation { hol = "--",  TeX = ("\\HOLTokenTransBegin", 1) };
+val _ = TeX_notation { hol = "->>", TeX = ("\\HOLTokenTransEnd", 1) };
 
 (* The rules for the transition relation TRANS as individual theorems. *)
 val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELING, REC] =

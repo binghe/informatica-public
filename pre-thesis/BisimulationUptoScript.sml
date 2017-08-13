@@ -1,18 +1,25 @@
 (*
- * Copyright 2016-2017  University of Bologna   (Author: Chun Tian)
+ * A formalization of unique solutions of equations in process algebra
+ *
+ * Copyright 2017  University of Bologna   (Author: Chun Tian)
  *)
 
 open HolKernel Parse boolLib bossLib;
 
-open pred_setTheory relationTheory pairTheory sumTheory listTheory;
-open prim_recTheory arithmeticTheory combinTheory;
+open relationTheory;
 
-open CCSLib CCSTheory CCSSyntax CCSConv;
-open StrongEQTheory StrongEQLib StrongLawsTheory StrongLawsConv;
-open WeakEQTheory WeakEQLib WeakLawsTheory WeakLawsConv;
-open ObsCongrTheory ObsCongrLib ObsCongrLawsTheory ObsCongrConv;
+open CCSLib CCSTheory;
+open StrongEQTheory StrongEQLib StrongLawsTheory;
+open WeakEQTheory WeakEQLib WeakLawsTheory;
+open ObsCongrTheory ObsCongrLib ObsCongrLawsTheory;
 
 val _ = new_theory "BisimulationUpto";
+
+(* Length of each section:
+   STRONG_EQUIV:	158 lines
+   WEAK_EQUIV:		413 lines
+   OBS_CONGR:		395 lines (but shared some lemmas with WEAK_EQUIV)
+ *)
 
 (******************************************************************************)
 (*                                                                            *)
@@ -154,6 +161,8 @@ val STRONG_BISIM_UPTO_LEMMA = store_thm (
       Q.EXISTS_TAC `y''` >> ASM_REWRITE_TAC [] \\
       Q.EXISTS_TAC `y'''` >> ASM_REWRITE_TAC [] ]);
 
+(* To prove (STRONG_EQUIV P Q), we only have to find a weak bisimulation up to STRONG_EQUIV
+   which contains (P, Q) *)
 val STRONG_BISIM_UPTO_THM = store_thm (
    "STRONG_BISIM_UPTO_THM",
   ``!Bsm. STRONG_BISIM_UPTO Bsm ==> Bsm RSUBSET STRONG_EQUIV``,
@@ -170,9 +179,7 @@ val STRONG_BISIM_UPTO_THM = store_thm (
  >> rpt STRIP_TAC
  >> `STRONG_EQUIV x x /\ STRONG_EQUIV y y` by PROVE_TAC [STRONG_EQUIV_REFL]
  >> Q.EXISTS_TAC `y` >> ASM_REWRITE_TAC []
- >> Q.EXISTS_TAC `x` >> ASM_REWRITE_TAC []
- (* Hence, to prove P ~ Q, we only have to find a strong bisimulation up to ~
-    which contains (P, Q) *));
+ >> Q.EXISTS_TAC `x` >> ASM_REWRITE_TAC []);
 
 (******************************************************************************)
 (*                                                                            *)
@@ -569,6 +576,8 @@ val WEAK_BISIM_UPTO_LEMMA = store_thm (
       Q.EXISTS_TAC `y''` >> ASM_REWRITE_TAC [] \\
       Q.EXISTS_TAC `y'''` >> ASM_REWRITE_TAC [] ]);
 
+(* To prove (WEAK_EQUIV P Q), we only have to find a weak bisimulation up to WEAK_EQUIV
+   which contains (P, Q) *)
 val WEAK_BISIM_UPTO_THM = store_thm (
    "WEAK_BISIM_UPTO_THM",
   ``!Wbsm. WEAK_BISIM_UPTO Wbsm ==> Wbsm RSUBSET WEAK_EQUIV``,
@@ -585,9 +594,403 @@ val WEAK_BISIM_UPTO_THM = store_thm (
  >> rpt STRIP_TAC
  >> `WEAK_EQUIV x x /\ WEAK_EQUIV y y` by PROVE_TAC [WEAK_EQUIV_REFL]
  >> Q.EXISTS_TAC `y` >> ASM_REWRITE_TAC []
- >> Q.EXISTS_TAC `x` >> ASM_REWRITE_TAC []
- (* Hence, to prove P =~ Q, we only have to find a strong bisimulation up to =~
-    which contains (P, Q) *));
+ >> Q.EXISTS_TAC `x` >> ASM_REWRITE_TAC []);
+
+(******************************************************************************)
+(*                                                                            *)
+(*        A stronger bisimulation upto WEAK_EQUIV related to OBS_CONGR        *)
+(*                                                                            *)
+(******************************************************************************)
+
+val OBS_BISIM_UPTO = new_definition (
+   "OBS_BISIM_UPTO",
+  ``OBS_BISIM_UPTO (Obsm: ('a, 'b) simulation) =
+    !E E'.
+	Obsm E E' ==>
+	!u.
+	  (!E1. TRANS E  u E1 ==>
+		?E2. WEAK_TRANS E' u E2 /\ (WEAK_EQUIV O Obsm O STRONG_EQUIV) E1 E2) /\
+	  (!E2. TRANS E' u E2 ==>
+		?E1. WEAK_TRANS E  u E1 /\ (STRONG_EQUIV O Obsm O WEAK_EQUIV) E1 E2)``);
+
+val OBS_BISIM_UPTO_TRANS = store_thm (
+   "OBS_BISIM_UPTO_TRANS",
+  ``!Obsm. OBS_BISIM_UPTO Obsm ==>
+	!E E'. Obsm E E' ==>
+	       !u E1. TRANS E u E1 ==>
+		      ?E2. WEAK_TRANS E' u E2 /\ (WEAK_EQUIV O Obsm O STRONG_EQUIV) E1 E2``,
+    PROVE_TAC [OBS_BISIM_UPTO]);
+
+val OBS_BISIM_UPTO_TRANS' = store_thm (
+   "OBS_BISIM_UPTO_TRANS'",
+  ``!Obsm. OBS_BISIM_UPTO Obsm ==>
+	!E E'. Obsm E E' ==>
+	       !u E2. TRANS E' u E2 ==>
+		      ?E1. WEAK_TRANS E  u E1 /\ (STRONG_EQUIV O Obsm O WEAK_EQUIV) E1 E2``,
+    PROVE_TAC [OBS_BISIM_UPTO]);
+
+val IDENTITY_OBS_BISIM_UPTO = store_thm (
+   "IDENTITY_OBS_BISIM_UPTO", ``OBS_BISIM_UPTO (\x y. x = y)``,
+    PURE_ONCE_REWRITE_TAC [OBS_BISIM_UPTO]
+ >> BETA_TAC
+ >> REPEAT STRIP_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 4) *)
+      ASSUME_TAC (REWRITE_RULE [ASSUME ``E :('a, 'b) CCS = E'``]
+			       (ASSUME ``TRANS E u E1``)) \\
+      IMP_RES_TAC TRANS_IMP_WEAK_TRANS \\
+      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
+      REWRITE_TAC [IDENTITY_WEAK_BISIM_UPTO_lemma],
+      (* goal 2 (of 4) *)
+      IMP_RES_TAC TRANS_IMP_WEAK_TRANS \\
+      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
+      REWRITE_TAC [IDENTITY_WEAK_BISIM_UPTO_lemma'] ]);
+
+val CONVERSE_OBS_BISIM_UPTO = store_thm (
+   "CONVERSE_OBS_BISIM_UPTO",
+  ``!Obsm. OBS_BISIM_UPTO Obsm ==> OBS_BISIM_UPTO (\x y. Obsm y x)``,
+    GEN_TAC
+ >> PURE_ONCE_REWRITE_TAC [OBS_BISIM_UPTO]
+ >> BETA_TAC
+ >> rpt STRIP_TAC
+ >> RES_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
+      REWRITE_TAC [CONVERSE_WEAK_BISIM_UPTO_lemma] \\
+      ASM_REWRITE_TAC [],
+      (* goal 2 (of 2) *)
+      Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [] \\
+      REWRITE_TAC [CONVERSE_WEAK_BISIM_UPTO_lemma'] \\
+      ASM_REWRITE_TAC [] ]);
+
+val OBS_BISIM_UPTO_EPS = store_thm ((* NEW *)
+   "OBS_BISIM_UPTO_EPS",
+  ``!Obsm. OBS_BISIM_UPTO Obsm ==>
+	!E E'. Obsm E E' ==>
+	       !E1. EPS E E1 ==> ?E2. EPS E' E2 /\ (WEAK_EQUIV O Obsm O STRONG_EQUIV) E1 E2``,
+    rpt STRIP_TAC
+ >> PAT_X_ASSUM ``OBS_BISIM_UPTO Obsm`` MP_TAC
+ >> Q.PAT_X_ASSUM `Obsm E E'` MP_TAC
+ >> POP_ASSUM MP_TAC
+ >> Q.SPEC_TAC (`E1`, `E1`)
+ >> Q.SPEC_TAC (`E`, `E`)
+ >> HO_MATCH_MP_TAC EPS_ind_right (* must use right induct here! *)
+ >> rpt STRIP_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      Q.EXISTS_TAC `E'` \\
+      RW_TAC std_ss [EPS_REFL] \\
+      REWRITE_TAC [O_DEF] >> BETA_TAC \\
+      Q.EXISTS_TAC `E'` >> REWRITE_TAC [WEAK_EQUIV_REFL] \\
+      Q.EXISTS_TAC `E` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL],
+      (* goal 2 (of 2) *)
+      RES_TAC \\
+      POP_ASSUM (STRIP_ASSUME_TAC o (REWRITE_RULE [O_DEF])) \\
+      IMP_RES_TAC PROPERTY_STAR_TRANS \\
+      IMP_RES_TAC OBS_BISIM_UPTO_TRANS \\
+      IMP_RES_TAC WEAK_EQUIV_WEAK_TRANS_tau \\
+      Q.EXISTS_TAC `E2'''` \\
+      CONJ_TAC >- IMP_RES_TAC EPS_TRANS \\
+      Q.PAT_X_ASSUM `X E2' E2''` MP_TAC \\
+      REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
+(* Induct case:
+      E                Obsm                E'
+                                           ||
+      ...                                 eps
+                                           ||
+      E1   ~    y'     Obsm      y    =~   E2
+      |        /                 \\        ||
+     tau     tau                 tau      eps
+      |      /                     \\      ||
+      E1' ~ E2' ~ y''' Obsm y'' =~ E2'' =~ E2'''
+ *)
+      `WEAK_EQUIV y'' E2'''` by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+      `STRONG_EQUIV E1' y'''` by PROVE_TAC [STRONG_EQUIV_TRANS] \\
+      Q.EXISTS_TAC `y''` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `y'''` >> ASM_REWRITE_TAC [] ]);
+
+val OBS_BISIM_UPTO_EPS' = store_thm ((* NEW *)
+   "OBS_BISIM_UPTO_EPS'",
+  ``!Obsm. OBS_BISIM_UPTO Obsm ==>
+	!E E'. Obsm E E' ==>
+	       !E2. EPS E' E2 ==> ?E1. EPS E E1 /\ (STRONG_EQUIV O Obsm O WEAK_EQUIV) E1 E2``,
+    GEN_TAC >> DISCH_TAC
+ >> POP_ASSUM (ASSUME_TAC o (MATCH_MP CONVERSE_OBS_BISIM_UPTO))
+ >> IMP_RES_TAC OBS_BISIM_UPTO_EPS
+ >> POP_ASSUM MP_TAC
+ >> BETA_TAC >> rpt STRIP_TAC
+ >> RES_TAC
+ >> Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC []
+ >> REWRITE_TAC [GSYM CONVERSE_WEAK_BISIM_UPTO_lemma]
+ >> ASM_REWRITE_TAC []);
+
+(* Proof sketch:
+      E            Obsm              E'
+      ||                             ||
+      eps                            eps
+      ||                             ||
+      E1' ~ y'     Obsm     y  =~    E2'    (WEAK_BISIM_UPTO_EPS)
+      |     |               ||       ||
+      |     l               l        ||
+      l     |               ||       l
+      |  ~ E2'' (~ Obsm =~) E2''' =~ ||
+      E2                             E2'''' (WEAK_BISIM_UPTO_TRANS_label)
+      || ~  y'''   Obsm     y''   =~ ||
+      eps   ||              ||       eps
+      ||    eps             eps      ||
+      ||    ||              ||       ||
+      E1 ~ E2'5 (~ Obsm =~) E2'6  =~ E2'7   (WEAK_BISIM_UPTO_EPS)
+ *)
+val OBS_BISIM_UPTO_WEAK_TRANS_label = store_thm ((* NEW *)
+   "OBS_BISIM_UPTO_WEAK_TRANS_label",
+  ``!Obsm. OBS_BISIM_UPTO Obsm ==>
+	!E E'. Obsm E E' ==>
+	       !l E1. WEAK_TRANS E (label l) E1 ==>
+		      ?E2. WEAK_TRANS E' (label l) E2 /\
+			   (WEAK_EQUIV O Obsm O STRONG_EQUIV) E1 E2``,
+    rpt STRIP_TAC
+ >> IMP_RES_TAC WEAK_TRANS
+ >> IMP_RES_TAC (MATCH_MP OBS_BISIM_UPTO_EPS (* lemma 1 used here *)
+			  (ASSUME ``OBS_BISIM_UPTO Obsm``))
+ >> POP_ASSUM (STRIP_ASSUME_TAC o (REWRITE_RULE [O_DEF]))
+ >> IMP_RES_TAC PROPERTY_STAR_TRANS
+ >> IMP_RES_TAC OBS_BISIM_UPTO_TRANS
+ >> POP_ASSUM K_TAC
+ >> IMP_RES_TAC WEAK_EQUIV_WEAK_TRANS_label
+ >> Know `(WEAK_EQUIV O Obsm O STRONG_EQUIV) E2 E2''''`
+ >- ( Q.PAT_X_ASSUM `X E2'' E2'''` MP_TAC \\
+      REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
+      `STRONG_EQUIV E2 y'''` by PROVE_TAC [STRONG_EQUIV_TRANS] \\
+      `WEAK_EQUIV y'' E2''''` by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+      Q.EXISTS_TAC `y''` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `y'''` >> ASM_REWRITE_TAC [] )
+ >> DISCH_TAC
+ >> POP_ASSUM (STRIP_ASSUME_TAC o (REWRITE_RULE [O_DEF]))
+ >> IMP_RES_TAC (MATCH_MP STRONG_EQUIV_EPS
+			  (ASSUME ``STRONG_EQUIV E2 y'''``))
+ >> IMP_RES_TAC (Q.SPECL [`y'''`, `y''`]
+			 (MATCH_MP OBS_BISIM_UPTO_EPS (* lemma 1 used here *)
+				   (ASSUME ``OBS_BISIM_UPTO Obsm``)))
+ >> NTAC 3 (POP_ASSUM K_TAC)
+ >> IMP_RES_TAC (MATCH_MP WEAK_EQUIV_EPS
+			  (ASSUME ``WEAK_EQUIV y'' E2''''``))
+ >> Know `(WEAK_EQUIV O Obsm O STRONG_EQUIV) E1 E2'''''''`
+ >- ( Q.PAT_X_ASSUM `X E2''''' E2''''''` MP_TAC \\
+      REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
+      `STRONG_EQUIV E1 y'''''` by PROVE_TAC [STRONG_EQUIV_TRANS] \\
+      `WEAK_EQUIV y'''' E2'''''''` by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+      Q.EXISTS_TAC `y''''` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `y'''''` >> ASM_REWRITE_TAC [] )
+ >> DISCH_TAC
+ >> Q.EXISTS_TAC `E2'''''''`
+ >> ASM_REWRITE_TAC []
+ >> MATCH_MP_TAC EPS_AND_WEAK
+ >> take [`E2'`, `E2''''`]
+ >> ASM_REWRITE_TAC []);
+
+val OBS_BISIM_UPTO_WEAK_TRANS_label' = store_thm ((* NEW *)
+   "OBS_BISIM_UPTO_WEAK_TRANS_label'",
+  ``!Obsm. OBS_BISIM_UPTO Obsm ==>
+	!E E'. Obsm E E' ==>
+	       !l E2. WEAK_TRANS E' (label l) E2 ==>
+		      ?E1. WEAK_TRANS E (label l) E1 /\
+			   (STRONG_EQUIV O Obsm O WEAK_EQUIV) E1 E2``,
+    GEN_TAC >> DISCH_TAC
+ >> POP_ASSUM (ASSUME_TAC o (MATCH_MP CONVERSE_OBS_BISIM_UPTO))
+ >> IMP_RES_TAC OBS_BISIM_UPTO_WEAK_TRANS_label
+ >> POP_ASSUM MP_TAC
+ >> BETA_TAC >> rpt STRIP_TAC
+ >> RES_TAC
+ >> Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC []
+ >> REWRITE_TAC [GSYM CONVERSE_WEAK_BISIM_UPTO_lemma]
+ >> ASM_REWRITE_TAC []);
+
+(* To prove (OBS_CONGR P Q), we only have to find a `Obs` bisimulation up to WEAK_EQUIV
+   which contains (P, Q) *)
+val OBS_BISIM_UPTO_THM = store_thm (
+   "OBS_BISIM_UPTO_THM",
+  ``!Obsm. OBS_BISIM_UPTO Obsm ==> Obsm RSUBSET OBS_CONGR``,
+    REWRITE_TAC [RSUBSET]
+ >> rpt STRIP_TAC
+ >> STRIP_ASSUME_TAC (REWRITE_RULE [OBS_BISIM_UPTO] (ASSUME ``OBS_BISIM_UPTO Obsm``))
+ >> RES_TAC
+ >> Q.PAT_X_ASSUM `!E E'. Obsm E E' ==> P` K_TAC
+ >> REWRITE_TAC [OBS_CONGR]
+ >> rpt STRIP_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      RES_TAC \\
+      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
+      irule (REWRITE_RULE [RSUBSET] WEAK_BISIM_UPTO_THM) \\
+      Q.EXISTS_TAC `(WEAK_EQUIV O Obsm O STRONG_EQUIV)` >> ASM_REWRITE_TAC [] \\
+      REWRITE_TAC [WEAK_BISIM_UPTO] >> rpt STRIP_TAC >| (* 4 sub-goals here *)
+      [ (* goal 1.1 (of 4) *)
+        Q.PAT_X_ASSUM `X E E'` (STRIP_ASSUME_TAC o BETA_RULE o (REWRITE_RULE [O_DEF])) \\
+        IMP_RES_TAC PROPERTY_STAR_TRANS \\
+        Q.PAT_X_ASSUM `Obsm x y` K_TAC \\
+        IMP_RES_TAC OBS_BISIM_UPTO_TRANS \\
+        Q.PAT_X_ASSUM `WEAK_TRANS y u E2` K_TAC \\
+        IMP_RES_TAC WEAK_EQUIV_WEAK_TRANS_label \\
+(***
+	E    ~   y''    Obsm     y'   ~~   E'
+	|        |               ||        || 
+	l        l               l         l
+	|        |               ||        ||
+       !E1'  ~   E2' (~ Obsm ~~) E2'' ~~  E2'''
+ ***)
+        Q.EXISTS_TAC `E2'''` >> ASM_REWRITE_TAC [] \\
+        NTAC 2 (ONCE_REWRITE_TAC [O_DEF]) \\
+        Q.EXISTS_TAC `E2''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [],
+        (* goal 1.2 (of 4) *)
+        Q.PAT_X_ASSUM `X E E'` (STRIP_ASSUME_TAC o BETA_RULE o (REWRITE_RULE [O_DEF])) \\
+        IMP_RES_TAC WEAK_EQUIV_TRANS_label' \\
+        Q.PAT_X_ASSUM `Obsm x y` K_TAC \\
+        IMP_RES_TAC OBS_BISIM_UPTO_WEAK_TRANS_label' \\
+        IMP_RES_TAC STRONG_EQUIV_WEAK_TRANS' \\
+(***
+	E    ~   y''          Obsm         y'   ~~   E'
+	||       ||                        ||        |
+	l        l                         l         l
+	||       ||                        ||        |
+	E1''' ~  E1'' ~ y'''' Obsm y''' ~~ E1'  ~~  !E2'
+ ***)
+        Q.EXISTS_TAC `E1'''` >> ASM_REWRITE_TAC [] \\
+        Q.PAT_X_ASSUM `X E1'' E1'` MP_TAC \\
+        REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
+        IMP_RES_TAC STRONG_IMP_WEAK_EQUIV \\
+        `WEAK_EQUIV E1''' y''''` by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+        `WEAK_EQUIV y''' E2'`  by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+        Q.EXISTS_TAC `E2'` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
+        Q.EXISTS_TAC `y''''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `y'''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `y''''` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL],
+        (* goal 1.3 (of 4) *)
+        Q.PAT_X_ASSUM `X E E'` (STRIP_ASSUME_TAC o BETA_RULE o (REWRITE_RULE [O_DEF])) \\
+        IMP_RES_TAC PROPERTY_STAR_TRANS \\
+        Q.PAT_X_ASSUM `Obsm x y` K_TAC \\
+        IMP_RES_TAC OBS_BISIM_UPTO_TRANS \\
+        Q.PAT_X_ASSUM `WEAK_TRANS y u E2` K_TAC \\
+        IMP_RES_TAC WEAK_EQUIV_WEAK_TRANS_tau \\
+(***
+	E    ~   y''    Obsm     y'   ~~   E'
+	|        |               ||        || 
+	tau     tau              tau       eps
+	|        |               ||        ||
+       !E1'  ~   E2' (~ Obsm ~~) E2'' ~~  E2'''
+ ***)
+        Q.EXISTS_TAC `E2'''` >> ASM_REWRITE_TAC [] \\
+        NTAC 2 (ONCE_REWRITE_TAC [O_DEF]) \\
+        Q.EXISTS_TAC `E2''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [],
+        (* goal 1.4 (of 4) *)
+        Q.PAT_X_ASSUM `X E E'` (STRIP_ASSUME_TAC o BETA_RULE o (REWRITE_RULE [O_DEF])) \\
+        IMP_RES_TAC WEAK_EQUIV_TRANS_tau' \\
+        Q.PAT_X_ASSUM `Obsm x y` K_TAC \\
+        IMP_RES_TAC OBS_BISIM_UPTO_EPS' \\
+        IMP_RES_TAC STRONG_EQUIV_EPS' \\
+(***
+	E    ~   y''          Obsm         y'   ~~   E'
+	||       ||                        ||        |
+	eps      eps                       eps      tau
+	||       ||                        ||        |
+	E1''' ~  E1'' ~ y'''' Obsm y''' ~~ E1'  ~~  !E2'
+ ***)
+        Q.EXISTS_TAC `E1'''` >> ASM_REWRITE_TAC [] \\
+        Q.PAT_X_ASSUM `X E1'' E1'` MP_TAC \\
+        REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
+        IMP_RES_TAC STRONG_IMP_WEAK_EQUIV \\
+        `WEAK_EQUIV E1''' y''''` by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+        `WEAK_EQUIV y''' E2'`  by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+        Q.EXISTS_TAC `E2'` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
+        Q.EXISTS_TAC `y''''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `y'''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `y''''` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ],
+      (* goal 2 (of 2) *)
+      RES_TAC \\
+      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
+      irule (REWRITE_RULE [RSUBSET] WEAK_BISIM_UPTO_THM) \\
+      Q.EXISTS_TAC `(STRONG_EQUIV O Obsm O WEAK_EQUIV)` >> ASM_REWRITE_TAC [] \\
+      REWRITE_TAC [WEAK_BISIM_UPTO] >> rpt STRIP_TAC >| (* 4 sub-goals here *)
+      [ (* goal 2.1 (of 4) *)
+        Q.PAT_X_ASSUM `X E E'` (STRIP_ASSUME_TAC o BETA_RULE o (REWRITE_RULE [O_DEF])) \\
+        IMP_RES_TAC WEAK_EQUIV_TRANS_label \\
+        Q.PAT_X_ASSUM `Obsm x y` K_TAC \\
+        IMP_RES_TAC OBS_BISIM_UPTO_WEAK_TRANS_label \\
+        Q.PAT_X_ASSUM `WEAK_TRANS x u E1` K_TAC \\
+        IMP_RES_TAC STRONG_EQUIV_WEAK_TRANS \\
+(***
+	E    ~~  y''    Obsm     y'   ~    E'
+	|        ||              ||        || 
+	l        l               l         l
+	|        ||              ||        ||
+       !E1'  ~~  E2' (~ Obsm ~~) E2'' ~   E2'''
+ ***)
+        Q.EXISTS_TAC `E2'''` >> ASM_REWRITE_TAC [] \\
+        Q.PAT_X_ASSUM `X E2' E2''` MP_TAC \\
+        REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
+        IMP_RES_TAC STRONG_IMP_WEAK_EQUIV \\
+        `WEAK_EQUIV E1' y''''` by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+        `WEAK_EQUIV y''' E2'''`  by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+        Q.EXISTS_TAC `y'''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `E1'` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
+        Q.EXISTS_TAC `y'''` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
+        Q.EXISTS_TAC `y''''` >> ASM_REWRITE_TAC [],
+        (* goal 2.2 (of 4) *)
+        Q.PAT_X_ASSUM `X E E'` (STRIP_ASSUME_TAC o BETA_RULE o (REWRITE_RULE [O_DEF])) \\
+        IMP_RES_TAC PROPERTY_STAR_TRANS' \\
+        Q.PAT_X_ASSUM `Obsm x y` K_TAC \\
+        IMP_RES_TAC OBS_BISIM_UPTO_TRANS' \\
+        IMP_RES_TAC WEAK_EQUIV_WEAK_TRANS_label' \\
+(***
+	E    ~~  y''          Obsm         y'   ~   E'
+	||       ||                        |        |
+	l        l                         l        l
+	||       ||                        |        |
+	E1''' ~~ E1'' ~ y'''' Obsm y''' ~~ E1'  ~  !E2'
+ ***)
+        Q.EXISTS_TAC `E1'''` >> ASM_REWRITE_TAC [] \\
+        NTAC 2 (ONCE_REWRITE_TAC [O_DEF]) \\
+        Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `E1''` >> ASM_REWRITE_TAC [],
+        (* goal 2.3 (of 4) *)
+        Q.PAT_X_ASSUM `X E E'` (STRIP_ASSUME_TAC o BETA_RULE o (REWRITE_RULE [O_DEF])) \\
+        IMP_RES_TAC WEAK_EQUIV_TRANS_tau \\
+        Q.PAT_X_ASSUM `Obsm x y` K_TAC \\
+        IMP_RES_TAC OBS_BISIM_UPTO_EPS \\
+        Q.PAT_X_ASSUM `WEAK_TRANS x u E1` K_TAC \\
+        IMP_RES_TAC STRONG_EQUIV_EPS \\
+(***
+	E    ~~  y''    Obsm     y'   ~    E'
+	|        ||              ||        || 
+       tau       eps            eps        eps
+	|        ||              ||        ||
+       !E1'  ~~  E2' (~ Obsm ~~) E2'' ~   E2'''
+ ***)
+        Q.EXISTS_TAC `E2'''` >> ASM_REWRITE_TAC [] \\
+        Q.PAT_X_ASSUM `X E2' E2''` MP_TAC \\
+        REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
+        IMP_RES_TAC STRONG_IMP_WEAK_EQUIV \\
+        `WEAK_EQUIV E1' y''''` by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+        `WEAK_EQUIV y''' E2'''`  by PROVE_TAC [WEAK_EQUIV_TRANS] \\
+        Q.EXISTS_TAC `y'''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `E1'` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
+        Q.EXISTS_TAC `y'''` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
+        Q.EXISTS_TAC `y''''` >> ASM_REWRITE_TAC [],
+        (* goal 2.4 (of 4) *)
+        Q.PAT_X_ASSUM `X E E'` (STRIP_ASSUME_TAC o BETA_RULE o (REWRITE_RULE [O_DEF])) \\
+        IMP_RES_TAC PROPERTY_STAR_TRANS' \\
+        Q.PAT_X_ASSUM `Obsm x y` K_TAC \\
+        IMP_RES_TAC OBS_BISIM_UPTO_TRANS' \\
+        IMP_RES_TAC WEAK_EQUIV_WEAK_TRANS_tau' \\
+(***
+	E    ~~  y''          Obsm         y'   ~   E'
+	||       ||                        |        |
+	eps      tau                       tau     tau
+	||       ||                        |        |
+	E1''' ~~ E1'' ~ y'''' Obsm y''' ~~ E1'  ~  !E2'
+ ***)
+        Q.EXISTS_TAC `E1'''` >> ASM_REWRITE_TAC [] \\
+        NTAC 2 (ONCE_REWRITE_TAC [O_DEF]) \\
+        Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `E1''` >> ASM_REWRITE_TAC [] ] ]);
 
 (* Bibliography:
  *
