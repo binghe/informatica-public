@@ -190,6 +190,8 @@ val STRONG_BISIM_UPTO_THM = store_thm (
 (* NOTE: the definition in Milner's book [1] is wrong, we use the one in Gorrieri's book [2],
          double-confirmed with Sangiorgi's book [3].
 
+   NOTE: this is actually Proposition 5.12 (section 5.7) in the ERRATA (1990) of [1].
+
    IMPORTANT: in HOL's big "O", the second argument to composition acts on the "input" first,
          so we need to revert the order of (?a O Wbsm O ?b) when ?a and ?b are different.
  *)
@@ -598,10 +600,64 @@ val WEAK_BISIM_UPTO_THM = store_thm (
 
 (******************************************************************************)
 (*                                                                            *)
+(*                 Weak Bisimulation Upto ~ (double-weak version)             *)
+(*                                                                            *)
+(******************************************************************************)
+
+(* NOTE: the (original) definition in Milner's 1989 book [1] is wrong, this is the
+         corrected Definition 5.8 in the ERRATA (1990) of [1]. *)
+
+val WEAK_BISIM_UPTO' = new_definition (
+   "WEAK_BISIM_UPTO'",
+  ``WEAK_BISIM_UPTO' (Wbsm: ('a, 'b) simulation) =
+    !E E'.
+	Wbsm E E' ==>
+	(!l.
+	  (!E1. WEAK_TRANS E  (label l) E1 ==>
+		?E2. WEAK_TRANS E' (label l) E2 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2) /\
+	  (!E2. WEAK_TRANS E' (label l) E2 ==>
+		?E1. WEAK_TRANS E  (label l) E1 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2)) /\
+	(!E1. WEAK_TRANS E  tau E1 ==> ?E2. EPS E' E2 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2) /\
+	(!E2. WEAK_TRANS E' tau E2 ==> ?E1. EPS E  E1 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2)``);
+
+(* Extracted above definition into smaller pieces for easier uses *)
+val WEAK_BISIM_UPTO'_WEAK_TRANS_label = store_thm (
+   "WEAK_BISIM_UPTO'_WEAK_TRANS_label",
+  ``!Wbsm. WEAK_BISIM_UPTO' Wbsm ==>
+	!E E'. Wbsm E E' ==>
+	       !l E1. WEAK_TRANS E (label l) E1 ==>
+		      ?E2. WEAK_TRANS E' (label l) E2 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2``,
+    PROVE_TAC [WEAK_BISIM_UPTO']);
+
+val WEAK_BISIM_UPTO'_WEAK_TRANS_label' = store_thm (
+   "WEAK_BISIM_UPTO'_WEAK_TRANS_label'",
+  ``!Wbsm. WEAK_BISIM_UPTO' Wbsm ==>
+	!E E'. Wbsm E E' ==>
+	       !l E2. WEAK_TRANS E' (label l) E2 ==>
+		      ?E1. WEAK_TRANS E  (label l) E1 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2``,
+    PROVE_TAC [WEAK_BISIM_UPTO']);
+
+val WEAK_BISIM_UPTO'_WEAK_TRANS_tau = store_thm (
+   "WEAK_BISIM_UPTO'_WEAK_TRANS_tau",
+  ``!Wbsm. WEAK_BISIM_UPTO' Wbsm ==>
+	!E E'. Wbsm E E' ==>
+	       !E1. WEAK_TRANS E tau E1 ==> ?E2. EPS E' E2 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2``,
+    PROVE_TAC [WEAK_BISIM_UPTO']);
+
+val WEAK_BISIM_UPTO'_WEAK_TRANS_tau' = store_thm (
+   "WEAK_BISIM_UPTO'_WEAK_TRANS_tau'",
+  ``!Wbsm. WEAK_BISIM_UPTO' Wbsm ==>
+	!E E'. Wbsm E E' ==>
+	       !E2. WEAK_TRANS E' tau E2 ==> ?E1. EPS E  E1 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2``,
+    PROVE_TAC [WEAK_BISIM_UPTO']);
+
+(******************************************************************************)
+(*                                                                            *)
 (*        A stronger bisimulation upto WEAK_EQUIV related to OBS_CONGR        *)
 (*                                                                            *)
 (******************************************************************************)
 
+(* this work is now useless *)
 val OBS_BISIM_UPTO = new_definition (
    "OBS_BISIM_UPTO",
   ``OBS_BISIM_UPTO (Obsm: ('a, 'b) simulation) =

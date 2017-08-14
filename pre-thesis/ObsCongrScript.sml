@@ -666,6 +666,36 @@ val OBS_CONGR_WEAK_TRANS' = store_thm ((* NEW *)
  >> Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC []
  >> IMP_RES_TAC WEAK_EQUIV_SYM);
 
+(******************************************************************************)
+(*                                                                            *)
+(*              Proving OBS_CONGR by constructing a WEAK_BISIM !              *)
+(*                                                                            *)
+(******************************************************************************)
+
+(* This beautiful result is learnt from Prof. Davide Sangiorgi *)
+val OBS_CONGR_BY_WEAK_BISIM = store_thm (
+   "OBS_CONGR_BY_WEAK_BISIM",
+  ``!Wbsm. WEAK_BISIM Wbsm ==>
+      !E E'.
+        (!u.
+	 (!E1. TRANS E u E1 ==>
+	       (?E2. WEAK_TRANS E' u E2 /\ Wbsm E1 E2)) /\
+	 (!E2. TRANS E' u E2 ==>
+	       (?E1. WEAK_TRANS E  u E1 /\ Wbsm E1 E2))) ==> OBS_CONGR E E'``,
+    rpt STRIP_TAC
+ >> REWRITE_TAC [OBS_CONGR]
+ >> REWRITE_TAC [WEAK_EQUIV]
+ >> GEN_TAC
+ >> CONJ_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      rpt STRIP_TAC >> RES_TAC \\
+      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `Wbsm` >> ASM_REWRITE_TAC [],
+      (* goal 2 (of 2) *)
+      rpt STRIP_TAC >> RES_TAC \\
+      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `Wbsm` >> ASM_REWRITE_TAC [] ]);
+
 val _ = export_theory ();
 val _ = DB.html_theory "ObsCongr";
 
