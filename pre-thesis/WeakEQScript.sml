@@ -1895,21 +1895,6 @@ val STRONG_EQUIV_EPS' = store_thm ((* NEW *)
  >> Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC []
  >> IMP_RES_TAC STRONG_EQUIV_SYM);
 
-(***
- E   ~  E'
- ||     ||
- eps    eps
- ||     ||
- E1' ~  E2'
- |      |
- u      u
- |      |
- E2  ~  E2''
- ||     ||
- eps    eps
- ||     ||
- E1  ~  E2'''
- ***)
 val STRONG_EQUIV_WEAK_TRANS = store_thm ((* NEW *)
    "STRONG_EQUIV_WEAK_TRANS",
   ``!E E'. STRONG_EQUIV E E' ==>
