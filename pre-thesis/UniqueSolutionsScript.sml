@@ -1857,7 +1857,7 @@ val WEAK_UNIQUE_SOLUTIONS_LEMMA_EPS = store_thm (
  >> `EPS (G Q) (H Q) /\ EPS (H Q) (H'' Q)` by PROVE_TAC [ONE_TAU]
  >> IMP_RES_TAC EPS_TRANS);
 
-val GSEQ_EPS_lemma1 = Q.prove (
+val GSEQ_EPS_lemma = Q.prove (
    `!E P Q R H. SG E /\ GSEQ E /\ WEAK_EQUIV P (E P) /\ WEAK_EQUIV Q (E Q) /\ GSEQ H /\
 		(R = \x y. ?H. GSEQ H /\ (WEAK_EQUIV x (H P)) /\ (WEAK_EQUIV y (H Q)))
     ==>	(!P'. EPS (H P) P' ==> ?Q'. EPS (H Q) Q' /\ (WEAK_EQUIV O R O WEAK_EQUIV) P' Q') /\
@@ -1892,44 +1892,6 @@ val GSEQ_EPS_lemma1 = Q.prove (
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
       Q.EXISTS_TAC `H' P` >> ASM_REWRITE_TAC [] \\
       Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [WEAK_EQUIV_REFL] ]);
-
-val GSEQ_EPS_lemma2 = Q.prove (
-   `!E P Q R H. SG E /\ GSEQ E /\ WEAK_EQUIV P (E P) /\ WEAK_EQUIV Q (E Q) /\ GSEQ H /\
-		(R = \x y. ?H. GSEQ H /\ WEAK_EQUIV x (H P) /\ WEAK_EQUIV y (H Q))
-    ==> (!P'. EPS (H P) P' ==> ?Q'. EPS (H Q) Q' /\ (WEAK_EQUIV O R O STRONG_EQUIV) P' Q') /\
-	(!Q'. EPS (H Q) Q' ==> ?P'. EPS (H P) P' /\ (STRONG_EQUIV O R O WEAK_EQUIV) P' Q')`,
-    rpt GEN_TAC >> STRIP_TAC
- >> `WEAK_EQUIV (H P) ((H o E) P) /\ WEAK_EQUIV (H Q) ((H o E) Q)`
-				 by PROVE_TAC [WEAK_EQUIV_SUBST_GSEQ, o_DEF]
- >> `SG (H o E) /\ GSEQ (H o E)` by PROVE_TAC [SG_GSEQ_compose]
- >> rpt STRIP_TAC (* 2 sub-goals here *)
- >| [ (* goal 1 (of 2) *)
-      IMP_RES_TAC (Q.SPECL [`H P`, `(H o E) P`] WEAK_EQUIV_EPS) \\
-      IMP_RES_TAC (Q.SPEC `H o E` WEAK_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
-      NTAC 4 (POP_ASSUM K_TAC) \\
-      POP_ASSUM (ASSUME_TAC o BETA_RULE o (Q.SPEC `Q`)) \\
-      IMP_RES_TAC (Q.SPECL [`H Q`, `(H o E) Q`] WEAK_EQUIV_EPS') \\
-      NTAC 2 (POP_ASSUM K_TAC) \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
-      REWRITE_TAC [O_DEF] >> BETA_TAC \\
-      `WEAK_EQUIV (H' Q) E1` by PROVE_TAC [WEAK_EQUIV_SYM] \\
-      Q.EXISTS_TAC `H' Q` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `P'` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
-      Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [WEAK_EQUIV_REFL] \\
-      PROVE_TAC [],
-      (* goal 2 (of 2) *)
-      IMP_RES_TAC (Q.SPECL [`H Q`, `(H o E) Q`] WEAK_EQUIV_EPS) \\
-      IMP_RES_TAC (Q.SPEC `H o E` WEAK_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
-      NTAC 4 (POP_ASSUM K_TAC) \\
-      POP_ASSUM (ASSUME_TAC o BETA_RULE o (Q.SPEC `P`)) \\
-      IMP_RES_TAC (Q.SPECL [`H P`, `(H o E) P`] WEAK_EQUIV_EPS') \\
-      Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
-      REWRITE_TAC [O_DEF] >> BETA_TAC \\
-      `WEAK_EQUIV E2 Q'` by PROVE_TAC [WEAK_EQUIV_SYM] \\
-      Q.EXISTS_TAC `Q'` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
-      Q.EXISTS_TAC `H' P` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [WEAK_EQUIV_REFL] \\
-      PROVE_TAC [WEAK_EQUIV_SYM] ]);
 
 (* Proposition 7.13 in Milner's book [1]:
    Let the expression E contains at most the variable X, and let X be guarded and sequential
@@ -1973,7 +1935,7 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
       NTAC 7 (POP_ASSUM K_TAC) \\
       POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
       `EPS (H'' P) E3` by PROVE_TAC [] \\
-      MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H''`] GSEQ_EPS_lemma1) \\
+      MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H''`] GSEQ_EPS_lemma) \\
       RW_TAC std_ss [] >> POP_ASSUM K_TAC \\
       RES_TAC >> NTAC 2 (POP_ASSUM K_TAC) \\
       `WEAK_TRANS ((H o E) Q) (label l) Q''` by PROVE_TAC [WEAK_TRANS] \\
@@ -2028,7 +1990,7 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
       NTAC 7 (POP_ASSUM K_TAC) \\
       POP_ASSUM (ASSUME_TAC o (Q.SPEC `P`)) \\
       `EPS (H'' Q) E3` by PROVE_TAC [] \\
-      MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H''`] GSEQ_EPS_lemma1) \\
+      MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H''`] GSEQ_EPS_lemma) \\
       RW_TAC std_ss [] \\
       Q.PAT_X_ASSUM `!P'. EPS (H'' P) P' ==> X` K_TAC \\
       RES_TAC >> NTAC 2 (POP_ASSUM K_TAC) \\
@@ -2160,7 +2122,7 @@ val OBS_UNIQUE_SOLUTIONS_LEMMA_EPS = store_thm (
  >> IMP_RES_TAC EPS_TRANS);
 
 (* These lemmas may apply at the final stage, it doesn't require (SG H), just (SEQ H) *)
-val SEQ_EPS_lemma1 = Q.prove (
+val SEQ_EPS_lemma = Q.prove (
    `!E P Q R H. SG E /\ SEQ E /\ OBS_CONGR P (E P) /\ OBS_CONGR Q (E Q) /\ SEQ H /\
 		(R = \x y. ?H. SEQ H /\ (WEAK_EQUIV x (H P)) /\ (WEAK_EQUIV y (H Q)))
     ==>	(!P'. EPS (H P) P' ==> ?Q'. EPS (H Q) Q' /\ (WEAK_EQUIV O R O WEAK_EQUIV) P' Q') /\
@@ -2195,44 +2157,6 @@ val SEQ_EPS_lemma1 = Q.prove (
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
       Q.EXISTS_TAC `H' P` >> ASM_REWRITE_TAC [] \\
       Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [WEAK_EQUIV_REFL] ]);
-
-val SEQ_EPS_lemma2 = Q.prove (
-   `!E P Q R H. SG E /\ SEQ E /\ OBS_CONGR P (E P) /\ OBS_CONGR Q (E Q) /\ SEQ H /\
-		(R = \x y. ?H. SEQ H /\ WEAK_EQUIV x (H P) /\ WEAK_EQUIV y (H Q))
-    ==> (!P'. EPS (H P) P' ==> ?Q'. EPS (H Q) Q' /\ (WEAK_EQUIV O R O STRONG_EQUIV) P' Q') /\
-	(!Q'. EPS (H Q) Q' ==> ?P'. EPS (H P) P' /\ (STRONG_EQUIV O R O WEAK_EQUIV) P' Q')`,
-    REPEAT GEN_TAC >> STRIP_TAC
- >> `OBS_CONGR (H P) ((H o E) P) /\ OBS_CONGR (H Q) ((H o E) Q)`
-				by PROVE_TAC [OBS_CONGR_SUBST_SEQ, o_DEF]
- >> `SG (H o E) /\ SEQ (H o E)` by PROVE_TAC [SG_SEQ_compose]
- >> rpt STRIP_TAC (* 2 sub-goals here *)
- >| [ (* goal 1 (of 2) *)
-      IMP_RES_TAC (Q.SPECL [`H P`, `(H o E) P`] OBS_CONGR_EPS) \\
-      IMP_RES_TAC (Q.SPEC `H o E` OBS_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
-      NTAC 4 (POP_ASSUM K_TAC) \\
-      POP_ASSUM (ASSUME_TAC o BETA_RULE o (Q.SPEC `Q`)) \\
-      IMP_RES_TAC (Q.SPECL [`H Q`, `(H o E) Q`] OBS_CONGR_EPS') \\
-      NTAC 2 (POP_ASSUM K_TAC) \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
-      REWRITE_TAC [O_DEF] >> BETA_TAC \\
-      `WEAK_EQUIV (H' Q) E1` by PROVE_TAC [WEAK_EQUIV_SYM] \\
-      Q.EXISTS_TAC `H' Q` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `P'` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
-      Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [WEAK_EQUIV_REFL] \\
-      PROVE_TAC [],
-      (* goal 2 (of 2) *)
-      IMP_RES_TAC (Q.SPECL [`H Q`, `(H o E) Q`] OBS_CONGR_EPS) \\
-      IMP_RES_TAC (Q.SPEC `H o E` OBS_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
-      NTAC 4 (POP_ASSUM K_TAC) \\
-      POP_ASSUM (ASSUME_TAC o BETA_RULE o (Q.SPEC `P`)) \\
-      IMP_RES_TAC (Q.SPECL [`H P`, `(H o E) P`] OBS_CONGR_EPS') \\
-      Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
-      REWRITE_TAC [O_DEF] >> BETA_TAC \\
-      `WEAK_EQUIV E2 Q'` by PROVE_TAC [WEAK_EQUIV_SYM] \\
-      Q.EXISTS_TAC `Q'` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
-      Q.EXISTS_TAC `H' P` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [WEAK_EQUIV_REFL] \\
-      PROVE_TAC [WEAK_EQUIV_SYM] ]);
 
 (* Proposition 7.13 in Milner's book [1]:
    Let the expression E contains at most the variable X, and let X be guarded and sequential
@@ -2276,7 +2200,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         NTAC 7 (POP_ASSUM K_TAC) \\
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
         `EPS (H'' P) E3` by PROVE_TAC [] \\
-        MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H''`] SEQ_EPS_lemma1) \\
+        MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H''`] SEQ_EPS_lemma) \\
         RW_TAC std_ss [] >> POP_ASSUM K_TAC \\
         RES_TAC >> NTAC 2 (POP_ASSUM K_TAC) \\
         `WEAK_TRANS ((H o E) Q) (label l) Q''` by PROVE_TAC [WEAK_TRANS] \\
@@ -2331,7 +2255,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         NTAC 7 (POP_ASSUM K_TAC) \\
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `P`)) \\
         `EPS (H'' Q) E3` by PROVE_TAC [] \\
-        MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H''`] SEQ_EPS_lemma1) \\
+        MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H''`] SEQ_EPS_lemma) \\
         RW_TAC std_ss [] \\
         Q.PAT_X_ASSUM `!P'. EPS (H'' P) P' ==> X` K_TAC \\
         RES_TAC >> NTAC 2 (POP_ASSUM K_TAC) \\
@@ -2411,7 +2335,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         NTAC 5 (POP_ASSUM K_TAC) \\
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
         `EPS (H' P) E2` by PROVE_TAC [] \\
-        MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H'`] SEQ_EPS_lemma1) \\
+        MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H'`] SEQ_EPS_lemma) \\
         RW_TAC std_ss [] >> POP_ASSUM K_TAC \\
         RES_TAC >> NTAC 2 (POP_ASSUM K_TAC) \\
         `WEAK_TRANS (E Q) u Q'` by PROVE_TAC [WEAK_TRANS] \\
@@ -2453,7 +2377,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         NTAC 5 (POP_ASSUM K_TAC) \\
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `P`)) \\
         `EPS (H' Q) E1` by PROVE_TAC [] \\
-        MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H'`] SEQ_EPS_lemma1) \\
+        MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H'`] SEQ_EPS_lemma) \\
         RW_TAC std_ss [] \\
         Q.PAT_X_ASSUM `!P'. EPS (H' P) P' ==> X` K_TAC \\
         RES_TAC >> NTAC 2 (POP_ASSUM K_TAC) \\
