@@ -11,7 +11,7 @@ ifdef POLY
 HOLHEAP = heap
 OBJNAMES = pairTheory sumTheory relationTheory pred_setTheory set_relationTheory \
 	listTheory rich_listTheory arithmeticTheory prim_recTheory optionTheory \
-	testutils
+	realTheory testutils
 DEPS = $(patsubst %,$(dprot $(SIGOBJ)/%.uo),$(OBJNAMES))
 
 all: $(HOLHEAP)

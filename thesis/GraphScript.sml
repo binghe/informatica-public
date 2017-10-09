@@ -1,14 +1,12 @@
-(* -*- mode: lisp; coding: utf-8 -*- *) (* Emacs hangs in SML mode *)
+(* -*- mode: lisp; coding: utf-8 -*- (sometimes Emacs hangs in SML mode) *)
 (* ========================================================================== *)
+(* FILE          : GraphScript.sml                                            *)
+(* DESCRIPTION   : General Graph Theory for HOL4, version 1.0                 *)
 (*                                                                            *)
-(*     A formalized general Graph Theory for HOL4, version 1.0                *)
-(*       (based on Reinhard Diestel's "Graph Theory" book)                    *)
-(*                                                                            *)
+(* AUTHOR        : (c) Chun Tian, University of Bologna                       *)
+(* DATE          : 2017                                                       *)
 (* ========================================================================== *)
-
 (*
- * Copyright 2017  University of Bologna, Italy (Author: Chun Tian)
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,12 +23,12 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open arithmeticTheory realTheory pred_setTheory pathTheory relationTheory
-     oneTheory pairTheory;
+open pred_setTheory pathTheory relationTheory oneTheory pairTheory;
+open arithmeticTheory realTheory;
 
 (******************************************************************************)
 (*									      *)
-(*      Backward compatibility and utility tactic/tacticals (2017/07/16)      *)
+(*      Backward compatibility and utility tactic/tacticals (9 oct 2017)      *)
 (*									      *)
 (******************************************************************************)
 
@@ -51,12 +49,13 @@ fun Q_GENL qs th = List.foldr (fn (q, th) => Q.GEN q th) th qs;
 fun fix  ts = MAP_EVERY Q.X_GEN_TAC ts;		(* from HOL Light *)
 fun set  ts = MAP_EVERY Q.ABBREV_TAC ts;	(* from HOL mizar mode *)
 fun take ts = MAP_EVERY Q.EXISTS_TAC ts;	(* from HOL mizar mode *)
-val op // = op REPEAT				(* from Matita *)
+val op !! = op REPEAT				(* from ?, actually "rpt" is good too *)
 val Know = Q_TAC KNOW_TAC;			(* from util_prob *)
 val Suff = Q_TAC SUFF_TAC;			(* from util_prob *)
 fun K_TAC _ = ALL_TAC;				(* from util_prob *)
 val KILL_TAC = POP_ASSUM_LIST K_TAC;		(* from util_prob *)
-fun wrap a = [a];
+fun wrap a = [a];				(* from util_prob *)
+val art = ASM_REWRITE_TAC;
 
 fun PRINT_TAC s gl =				(* from cardinalTheory *)
   (print ("** " ^ s ^ "\n"); ALL_TAC gl);
@@ -65,6 +64,41 @@ fun COUNT_TAC tac g =				(* from Konrad Slind *)
    let val res as (sg, _) = tac g
        val _ = print ("subgoals: " ^ Int.toString (List.length sg) ^ "\n")
    in res end;
+
+val Rewr = DISCH_THEN (REWRITE_TAC o wrap);	(* from util_prob *)
+val Rewr' = DISCH_THEN (ONCE_REWRITE_TAC o wrap);
+
+local
+  val th = prove (``!a b. a /\ (a ==> b) ==> a /\ b``, PROVE_TAC [])
+in
+  val STRONG_CONJ_TAC :tactic = MATCH_MP_TAC th >> CONJ_TAC
+end;
+
+val Rev = Tactical.REVERSE; (* REVERSE has different meaning in rich_listTheory *)
+
+(* signatures:
+
+  val PAT_X_ASSUM		: term -> thm_tactic -> tactic
+  val qpat_x_assum		: term quotation -> thm_tactic -> tactic
+  val Q_GENL			: Q.tmquote list -> thm -> thm
+  val fix			: Q.tmquote list -> tactic
+  val set			: Q.tmquote list -> tactic
+  val take			: Q.tmquote list -> tactic
+  val !!			: tactic -> tactic
+  val Know			: Q.tmquote -> tactic
+  val Suff			: Q.tmquote -> tactic
+  val K_TAC			: 'a -> tactic
+  val KILL_TAC			: tactic
+  val wrap			: 'a -> 'a list
+  val art			: thm list -> tactic
+  val PRINT_TAC			: string -> tactic
+  val COUNT_TAC			: tactic -> tactic
+  val Rewr			: tactic
+  val Rewr'			: tactic
+  val STRONG_CONJ_TAC		: tactic
+  val Rev			: tactic -> tactic
+
+   end of signatures *)
 
 val _ = new_theory "Graph";
 

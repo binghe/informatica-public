@@ -10,7 +10,7 @@ open HolKernel Parse boolLib bossLib;
 
 (******************************************************************************)
 (*									      *)
-(*      Backward compatibility and utility tactic/tacticals (4 oct 2017)      *)
+(*      Backward compatibility and utility tactic/tacticals (9 oct 2017)      *)
 (*									      *)
 (******************************************************************************)
 
@@ -37,6 +37,7 @@ val Suff = Q_TAC SUFF_TAC;			(* from util_prob *)
 fun K_TAC _ = ALL_TAC;				(* from util_prob *)
 val KILL_TAC = POP_ASSUM_LIST K_TAC;		(* from util_prob *)
 fun wrap a = [a];				(* from util_prob *)
+val art = ASM_REWRITE_TAC;
 
 fun PRINT_TAC s gl =				(* from cardinalTheory *)
   (print ("** " ^ s ^ "\n"); ALL_TAC gl);
@@ -71,6 +72,7 @@ val Rev = Tactical.REVERSE; (* REVERSE has different meaning in rich_listTheory 
   val K_TAC			: 'a -> tactic
   val KILL_TAC			: tactic
   val wrap			: 'a -> 'a list
+  val art			: thm list -> tactic
   val PRINT_TAC			: string -> tactic
   val COUNT_TAC			: tactic -> tactic
   val Rewr			: tactic

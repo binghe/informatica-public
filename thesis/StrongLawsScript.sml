@@ -1344,13 +1344,13 @@ val PREF_ACT_def = Define `
 val PREF_PROC_def = Define `
     PREF_PROC (prefix (u :'b Action) E) = E `;
 
-val IS_PREFIX_def = Define `
-    IS_PREFIX E = (?(u :'b Action) E'. (E = prefix u E')) `;
+val Is_Prefix_def = Define `
+    Is_Prefix E = (?(u :'b Action) E'. (E = prefix u E')) `;
 
 val PREF_IS_PREFIX = store_thm (
-   "PREF_IS_PREFIX", ``!(u :'b Action) E. IS_PREFIX (prefix u E)``,
+   "PREF_IS_PREFIX", ``!(u :'b Action) E. Is_Prefix (prefix u E)``,
     REPEAT GEN_TAC
- >> REWRITE_TAC [IS_PREFIX_def]
+ >> REWRITE_TAC [Is_Prefix_def]
  >> EXISTS_TAC ``u: 'b Action``
  >> EXISTS_TAC ``E :('a, 'b) CCS``
  >> REWRITE_TAC []);
@@ -1799,7 +1799,7 @@ val ALL_SYNC_TRANS_THM = save_thm (
 
 (* The expansion law for strong equivalence:
  |- ∀f n f' m.
-     (∀i. i ≤ n ⇒ IS_PREFIX (f i)) ∧ (∀j. j ≤ m ⇒ IS_PREFIX (f' j)) ⇒
+     (∀i. i ≤ n ⇒ Is_Prefix (f i)) ∧ (∀j. j ≤ m ⇒ Is_Prefix (f' j)) ⇒
      SIGMA f n || SIGMA f' m
      ∼
      SIGMA (λi. PREF_ACT (f i)..(PREF_PROC (f i) || SIGMA f' m)) n +
@@ -1809,7 +1809,7 @@ val ALL_SYNC_TRANS_THM = save_thm (
 val STRONG_EXPANSION_LAW = store_thm (
    "STRONG_EXPANSION_LAW",
       ``!f n f' m.
-	 (!i. i <= n ==> IS_PREFIX (f i)) /\ (!j. j <= m ==> IS_PREFIX (f' j)) ==>
+	 (!i. i <= n ==> Is_Prefix (f i)) /\ (!j. j <= m ==> Is_Prefix (f' j)) ==>
 	 STRONG_EQUIV
 	 (par (SIGMA f n) (SIGMA f' m))
 	 (sum
@@ -1825,8 +1825,8 @@ val STRONG_EXPANSION_LAW = store_thm (
       ``\x y.
 	(x = y) \/
 	(?f1 n1 f2 m2.
-	 (!i. i <= n1 ==> IS_PREFIX(f1 i)) /\
-	 (!j. j <= m2 ==> IS_PREFIX(f2 j)) /\
+	 (!i. i <= n1 ==> Is_Prefix(f1 i)) /\
+	 (!j. j <= m2 ==> Is_Prefix(f2 j)) /\
 	 (x = par (SIGMA f1 n1) (SIGMA f2 m2)) /\
 	 (y = sum
 	      (sum
@@ -1868,8 +1868,8 @@ val STRONG_EXPANSION_LAW = store_thm (
 	  IMP_RES_TAC SIGMA_TRANS_THM \\
 	  EXISTS_TAC ``k: num`` \\
 	  STRIP_ASSUME_TAC
-	    (REWRITE_RULE [IS_PREFIX_def]
-		(MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> IS_PREFIX (f1 i)``)
+	    (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> Is_Prefix (f1 i)``)
 			  (ASSUME ``(k: num) <= n1``))) \\
 	  ASSUME_TAC
 	    (REWRITE_RULE [ASSUME ``(f1: num -> ('a, 'b) CCS) k = prefix u' E''``]
@@ -1884,8 +1884,8 @@ val STRONG_EXPANSION_LAW = store_thm (
 	  IMP_RES_TAC SIGMA_TRANS_THM \\
 	  EXISTS_TAC ``k: num`` \\
 	  STRIP_ASSUME_TAC
-	    (REWRITE_RULE [IS_PREFIX_def]
-		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> IS_PREFIX (f2 j)``)
+	    (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
 			  (ASSUME ``(k :num) <= m2``))) \\
 	  ASSUME_TAC
 	    (REWRITE_RULE [ASSUME ``(f2: num -> ('a, 'b) CCS) k = prefix u' E''``]
@@ -1897,12 +1897,12 @@ val STRONG_EXPANSION_LAW = store_thm (
 	  ASM_REWRITE_TAC [ALL_SYNC_TRANS_THM_EQ] \\
 	  IMP_RES_TAC SIGMA_TRANS_THM \\
 	  STRIP_ASSUME_TAC
-	    (REWRITE_RULE [IS_PREFIX_def]
-		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> IS_PREFIX (f2 j)``)
+	    (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
 				    (ASSUME ``(k :num) <= m2``))) \\
 	  STRIP_ASSUME_TAC
-	    (REWRITE_RULE [IS_PREFIX_def]
-		(MATCH_MP (ASSUME ``!(i :num). i <= n1 ==> IS_PREFIX (f1 i)``)
+	    (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(i :num). i <= n1 ==> Is_Prefix (f1 i)``)
 			  (ASSUME ``(k' :num) <= n1``))) \\
 	  ASSUME_TAC
 	    (REWRITE_RULE [ASSUME ``(f2: num -> ('a, 'b) CCS) k = prefix u' E''``]
@@ -1944,8 +1944,8 @@ val STRONG_EXPANSION_LAW = store_thm (
 			       u E2``)) \\
 	    IMP_RES_TAC TRANS_PREFIX \\
 	    STRIP_ASSUME_TAC
-	     (REWRITE_RULE [IS_PREFIX_def]
-		(MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> IS_PREFIX (f1 i)``)
+	     (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> Is_Prefix (f1 i)``)
 			  (ASSUME ``(k: num) <= n1``))) \\
 	    ASM_REWRITE_TAC [] \\
 	    MATCH_MP_TAC PAR1 \\
@@ -1961,8 +1961,8 @@ val STRONG_EXPANSION_LAW = store_thm (
 			       u E2``)) \\
 	    IMP_RES_TAC TRANS_PREFIX \\
 	    STRIP_ASSUME_TAC
-	     (REWRITE_RULE [IS_PREFIX_def]
-		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> IS_PREFIX (f2 j)``)
+	     (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
 			  (ASSUME ``(k :num) <= m2``))) \\
 	    ASM_REWRITE_TAC [] \\
 	    MATCH_MP_TAC PAR2 \\
@@ -1979,8 +1979,8 @@ val STRONG_EXPANSION_LAW = store_thm (
 	  [ (* goal 4.2.1 (of 2) *)
 	    EXISTS_TAC ``k: num`` \\
 	    STRIP_ASSUME_TAC
-	     (REWRITE_RULE [IS_PREFIX_def]
-		(MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> IS_PREFIX (f1 i)``)
+	     (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(i: num). i <= n1 ==> Is_Prefix (f1 i)``)
 			  (ASSUME ``(k :num) <= n1``))) \\
 	    ASSUME_TAC
 	     (REWRITE_RULE [ASSUME ``(f1: num -> ('a, 'b) CCS) k = prefix u' E''``,
@@ -1990,8 +1990,8 @@ val STRONG_EXPANSION_LAW = store_thm (
 	    (* goal 4.2.2 (of 2) *)
 	    EXISTS_TAC ``k': num`` \\
 	    STRIP_ASSUME_TAC
-	     (REWRITE_RULE [IS_PREFIX_def]
-		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> IS_PREFIX (f2 j)``)
+	     (REWRITE_RULE [Is_Prefix_def]
+		(MATCH_MP (ASSUME ``!(j :num). j <= m2 ==> Is_Prefix (f2 j)``)
 			  (ASSUME ``(k' :num) <= m2``))) \\
 	    ASSUME_TAC
 	     (REWRITE_RULE [ASSUME ``(f2: num -> ('a, 'b) CCS) k' = prefix u' E''``,

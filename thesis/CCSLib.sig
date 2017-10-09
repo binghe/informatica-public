@@ -19,6 +19,7 @@ sig
   val K_TAC			: 'a -> tactic
   val KILL_TAC			: tactic
   val wrap			: 'a -> 'a list
+  val art			: thm list -> tactic
   val PRINT_TAC			: string -> tactic
   val COUNT_TAC			: tactic -> tactic
   val Rewr			: tactic

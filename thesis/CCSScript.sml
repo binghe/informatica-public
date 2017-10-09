@@ -6,7 +6,7 @@
 open HolKernel Parse boolLib bossLib;
 
 open pred_setTheory relationTheory optionTheory ordinalTheory;
-open CCSLib GraphTheory;
+open GraphTheory CCSLib;
 
 val _ = new_theory "CCS";
 val _ = temp_loose_equality ();
@@ -292,9 +292,8 @@ val _ = Datatype `CCS = nil
 
 (* LTS accessors *)
 val   root_def = Define `  root ((r, ts) :('a, 'b) LTS) = r`;
-val     TS_def = Define `    TS ((r, ts) :('a, 'b) LTS) = ts`;
 val states_def = Define `states ((r, ts) :('a, 'b) LTS) = vertices ts`;
-val  trans_def = Define ` trans ((r, ts) :('a, 'b) LTS) = labeled_directed_edges ts`;
+val     TS_def = Define `    TS ((r, ts) :('a, 'b) LTS) = labeled_directed_edges ts`;
 
 (* compact representation for single-action restriction *)
 val _ = overload_on ("nu", ``\(n :'b) P. restr {name n} P``);
@@ -380,12 +379,12 @@ val (TRANS_rules, TRANS_ind, TRANS_cases) = Hol_reln `
 		==> TRANS (relab E rf) (relabel rf u) (relab E' rf)) /\	(* RELABELING *)
     (!E u X E1.     TRANS (CCS_Subst E (rec X E) X) u E1
 		==> TRANS (rec X E) u E1) /\				(* REC *)
-    (!E u E'.       (root E, u, root E') IN (trans E)
+    (!E u E'.       (root E, u, root E') IN (TS E)
 		==> TRANS (LTS E) u (LTS E')) `;			(* LTS *)
 
 val _ = overload_on ("Trans", ``TRANS``);
 val _ = overload_on ("Trans", (* pp setting used in literal LTS graphs *)
-      ``\(x :'a ordinal) (u :'b Action) (y :'a ordinal). ({x}, u, {y})``);
+      ``\(x :'a ordinal set) (u :'b Action) (y :'a ordinal set). (x, u, y)``);
 
 val _ =
     add_rule { term_name = "Trans", fixity = Infix (NONASSOC, 450),
@@ -798,14 +797,6 @@ val TRANS_REC_EQ = store_thm ("TRANS_REC_EQ",
       PURE_ONCE_REWRITE_TAC [REC] ]);
 
 val TRANS_REC = save_thm ("TRANS_REC", EQ_IMP_LR TRANS_REC_EQ);
-
-(******************************************************************************)
-(*                                                                            *)
-(*                      Transition theorems for LTS                           *)
-(*                                                                            *)
-(******************************************************************************)
-
-(* TODO: move here from CoarsestCongrScript.sml *)
 
 val _ = export_theory ();
 val _ = html_theory "CCS";
