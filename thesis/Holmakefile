@@ -1,4 +1,4 @@
-# INCLUDES = $(HOLDIR)/examples/set-theory/hol_sets
+INCLUDES = $(HOLDIR)/examples/set-theory/hol_sets
 OPTIONS = QUIT_ON_FAILURE
 
 THYFILES = $(patsubst %Script.sml,%Theory.uo,$(wildcard *.sml))
@@ -10,7 +10,8 @@ EXTRA_CLEANS = heap munge.exe selftest.exe \
 ifdef POLY
 HOLHEAP = heap
 OBJNAMES = pairTheory sumTheory relationTheory pred_setTheory set_relationTheory \
-	listTheory arithmeticTheory prim_recTheory
+	listTheory rich_listTheory arithmeticTheory prim_recTheory optionTheory \
+	testutils
 DEPS = $(patsubst %,$(dprot $(SIGOBJ)/%.uo),$(OBJNAMES))
 
 all: $(HOLHEAP)
@@ -21,12 +22,12 @@ endif
 
 all: $(TARGETS) munge.exe
 
-munge.exe: CCSTheory.sig StrongEQTheory.sig StrongLawsTheory.sig WeakEQTheory.sig \
-	   WeakLawsTheory.sig ObsCongrTheory.sig ObsCongrLawsTheory.sig \
+munge.exe: GraphTheory.sig CCSTheory.sig StrongEQTheory.sig StrongLawsTheory.sig \
+	   WeakEQTheory.sig WeakLawsTheory.sig ObsCongrTheory.sig ObsCongrLawsTheory.sig \
 	   CongruenceTheory.sig TraceTheory.sig CoarsestCongrTheory.sig \
 	   BisimulationUptoTheory.sig ExpansionTheory.sig ContractionTheory.sig \
 	   UniqueSolutionsTheory.sig
-	$(HOLDIR)/bin/mkmunge.exe CCSTheory StrongEQTheory StrongLawsTheory \
+	$(HOLDIR)/bin/mkmunge.exe GraphTheory CCSTheory StrongEQTheory StrongLawsTheory \
 	   WeakEQTheory WeakLawsTheory ObsCongrTheory ObsCongrLawsTheory \
 	   CongruenceTheory TraceTheory CoarsestCongrTheory \
 	   BisimulationUptoTheory ExpansionTheory ContractionTheory \

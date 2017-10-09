@@ -17,6 +17,7 @@ open WeakEQTheory WeakLawsTheory;
 open CongruenceTheory TraceTheory ExpansionTheory;
 
 val _ = new_theory "Contraction";
+val _ = temp_loose_equality ();
 
 (******************************************************************************)
 (*                                                                            *)
@@ -900,7 +901,7 @@ val contracts_AND_TRACE1_lemma = Q.prove (
       (* goal 2 (of 2) *)
       IMP_RES_TAC contracts_TRANS_label \\
       RES_TAC \\
-      take [`(label L) :: xs'`, `E2'`] >> ASM_REWRITE_TAC [] \\
+      take [`label x :: xs'`, `E2'`] >> ASM_REWRITE_TAC [] \\
       MATCH_MP_TAC TRACE2 \\
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] ]);
 
@@ -937,7 +938,7 @@ val contracts_AND_TRACE2_lemma = Q.prove (
       (* goal 2 (of 2) *)
       IMP_RES_TAC contracts_TRANS_label \\
       RES_TAC \\
-      take [`(label L) :: xs'`, `E2'`] >> ASM_REWRITE_TAC [] \\
+      take [`label x :: xs'`, `E2'`] >> ASM_REWRITE_TAC [] \\
       CONJ_TAC >| (* 2 sub-goals here *)
       [ (* goal 2.1 (of 2) *)
 	MATCH_MP_TAC TRACE2 \\
@@ -1022,7 +1023,7 @@ val contracts_AND_TRACE_label_lemma = Q.prove (
       IMP_RES_TAC (EQ_IMP_LR UNIQUE_LABEL_cases2) \\
       IMP_RES_TAC (MATCH_MP contracts_AND_TRACE_tau (ASSUME ``E' contracts E2``)) \\
       NTAC 4 (POP_ASSUM K_TAC) \\
-      take [`label L :: xs'`, `E2'`] >> ASM_REWRITE_TAC [] \\
+      take [`label x :: xs'`, `E2'`] >> ASM_REWRITE_TAC [] \\
       CONJ_TAC >- ( MATCH_MP_TAC TRACE2 >> Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] ) \\
       CONJ_TAC >- ( FULL_SIMP_TAC arith_ss [LENGTH] ) \\
       REWRITE_TAC [UNIQUE_LABEL_cases2] >> ASM_REWRITE_TAC [] ]);
@@ -1052,14 +1053,14 @@ val BISIM_UPTO_contracts_and_C = new_definition (
 	(!l.
 	  (!E1. TRANS E  (label l) E1 ==>
 		?E2. WEAK_TRANS E' (label l) E2 /\
-		    (WEAK_EQUIV O (gcontext_closure Wbsm) O $contracts) E1 E2) /\
+		    (WEAK_EQUIV O (GCC Wbsm) O $contracts) E1 E2) /\
 	  (!E2. TRANS E' (label l) E2 ==>
 		?E1. WEAK_TRANS E  (label l) E1 /\
-		    ($contracts O (gcontext_closure Wbsm) O WEAK_EQUIV) E1 E2)) /\
+		    ($contracts O (GCC Wbsm) O WEAK_EQUIV) E1 E2)) /\
 	(!E1. TRANS E  tau E1 ==>
-	      ?E2. EPS E' E2 /\ (WEAK_EQUIV O (gcontext_closure Wbsm) O $contracts) E1 E2) /\
+	      ?E2. EPS E' E2 /\ (WEAK_EQUIV O (GCC Wbsm) O $contracts) E1 E2) /\
 	(!E2. TRANS E' tau E2 ==>
-	      ?E1. EPS E  E1 /\ ($contracts O (gcontext_closure Wbsm) O WEAK_EQUIV) E1 E2)``);
+	      ?E1. EPS E  E1 /\ ($contracts O (GCC Wbsm) O WEAK_EQUIV) E1 E2)``);
 
 (* Bibliography:
  *

@@ -9,6 +9,7 @@ open pred_setTheory relationTheory listTheory IndDefRules;
 open CCSLib CCSTheory StrongEQTheory;
 
 val _ = new_theory "WeakEQ";
+val _ = temp_loose_equality ();
 
 (******************************************************************************)
 (*									      *)

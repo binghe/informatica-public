@@ -14,6 +14,7 @@ open relationTheory arithmeticTheory listTheory;
 open CCSLib CCSTheory StrongEQTheory WeakEQTheory;
 
 val _ = new_theory "Trace";
+val _ = temp_loose_equality ();
 
 (******************************************************************************)
 (*                                                                            *)
@@ -407,33 +408,53 @@ in
 val TRACE_rules = save_thm (
    "TRACE_rules", trans LRTC_RULES);
 
+(* |- ∀x m y. x --m--> y ⇒ ∀n z. y --n--> z ⇒ x --m ++ n--> z *)
 val TRACE_trans = save_thm (
    "TRACE_trans", trans LRTC_LRTC);
 
+(* |- ∀P.
+     (∀x. P x ε x) ∧ (∀x h y t z. x --h--> y ∧ P y t z ⇒ P x (h::t) z) ⇒
+     ∀x l y. x --l--> y ⇒ P x l y *)
 val TRACE_ind = save_thm (
    "TRACE_ind", trans LRTC_INDUCT);
 
+(* |- ∀P.
+     (∀x. P x ε x) ∧
+     (∀x h y t z. x --h--> y ∧ y --t--> z ∧ P y t z ⇒ P x (h::t) z) ⇒
+     ∀x l y. x --l--> y ⇒ P x l y *)
 val TRACE_strongind = save_thm (
    "TRACE_strongind", trans LRTC_STRONG_INDUCT);
 
+(* |- ∀x l y.
+     x --l--> y ⇔
+     if NULL l then x = y else ∃u. x --HD l--> u ∧ u --TL l--> y *)
 val TRACE_cases1 = save_thm (
    "TRACE_cases1", trans LRTC_CASES1);
 
+(* |- ∀x l y.
+     x --l--> y ⇔
+     if NULL l then x = y else ∃u. x --FRONT l--> u ∧ u --LAST l--> y *)
 val TRACE_cases2 = save_thm (
    "TRACE_cases2", trans LRTC_CASES2);
 
+(* |- ∀x l y.
+     x --l--> y ⇔ ∃u l1 l2. x --l1--> u ∧ u --l2--> y ∧ (l = l1 ++ l2) *)
 val TRACE_cases_twice = save_thm (
    "TRACE_cases_twice", trans LRTC_CASES_LRTC_TWICE);
 
+(* |- ∀l1 l2 x y. x --l1 ++ l2--> y ⇔ ∃u. x --l1--> u ∧ u --l2--> y *)
 val TRACE_APPEND_cases = save_thm (
    "TRACE_APPEND_cases", trans LRTC_APPEND_CASES);
 
+(* |- ∀x y. x --ε--> y ⇔ (x = y) *)
 val TRACE_NIL = save_thm (
    "TRACE_NIL", trans LRTC_NIL);
 
+(* |- ∀x t y. x --t--> y ⇒ x --[t]--> y *)
 val TRACE1 = save_thm (
    "TRACE1", trans LRTC_SINGLE);
 
+(* |- ∀x t y. x --[t]--> y ⇔ x --t--> y *)
 val TRACE_ONE = save_thm (
    "TRACE_ONE", trans LRTC_ONE);
 end;
@@ -488,8 +509,8 @@ val NO_LABEL_cases = store_thm (
     REWRITE_TAC [NO_LABEL_def]
  >> rpt GEN_TAC >> REWRITE_TAC [MEM]
  >> Cases_on `x` >> SIMP_TAC list_ss [Action_distinct_label, IS_LABEL_def]
- >> Q.EXISTS_TAC `L` >> DISJ1_TAC
- >> ACCEPT_TAC (REFL ``label (L :'b Label)``));
+ >> Q.EXISTS_TAC `x'` >> DISJ1_TAC
+ >> ACCEPT_TAC (REFL ``x' :'b Label``));
 
 val EPS_TRACE2 = Q.prove (
    `!E E'. EPS E E' ==> ?xs. TRACE E xs E' /\ NO_LABEL xs`,
@@ -625,8 +646,8 @@ val WEAK_TRANS_AND_TRACE = store_thm (
       REV_FULL_SIMP_TAC list_ss [] \\
       Know `HD us = tau`
       >- ( Cases_on `HD us` >- REWRITE_TAC [] \\
-	   Q.PAT_X_ASSUM `!l. ~MEM (label l) us` (ASSUME_TAC o (Q.SPEC `L`)) \\
-	   Q.PAT_X_ASSUM `HD us = label L` ((FULL_SIMP_TAC list_ss) o wrap o SYM) \\
+	   Q.PAT_X_ASSUM `!l. ~MEM (label l) us` (ASSUME_TAC o (Q.SPEC `x`)) \\
+	   Q.PAT_X_ASSUM `HD us = label x` ((FULL_SIMP_TAC list_ss) o wrap o SYM) \\
 	   PROVE_TAC [CONS, MEM] ) \\
       DISCH_TAC >> FULL_SIMP_TAC list_ss [] \\
       Q.EXISTS_TAC `u` >> ASM_REWRITE_TAC [] \\

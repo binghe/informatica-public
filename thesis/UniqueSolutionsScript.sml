@@ -21,6 +21,7 @@ open CongruenceTheory BisimulationUptoTheory;
 open TraceTheory ExpansionTheory ContractionTheory;
 
 val _ = new_theory "UniqueSolutions";
+val _ = temp_loose_equality ();
 
 (******************************************************************************)
 (*                                                                            *)
@@ -52,7 +53,8 @@ val STRONG_UNIQUE_SOLUTIONS_LEMMA = store_thm (
         MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> FULL_SIMP_TAC std_ss [],
         MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> FULL_SIMP_TAC std_ss [],
         MATCH_MP_TAC RELABELING >> ASM_REWRITE_TAC [],
-        MATCH_MP_TAC REC >> ASM_REWRITE_TAC [] ],
+        MATCH_MP_TAC REC >> ASM_REWRITE_TAC [],
+	MATCH_MP_TAC LTS >> ASM_REWRITE_TAC [] ],
       (* goal 2 (of 6) *)
       IMP_RES_TAC TRANS_PREFIX \\
       ASM_REWRITE_TAC [] \\
@@ -1336,8 +1338,8 @@ val unfolding_lemma1 = store_thm (
  >> IMP_RES_TAC contracts_TRANS);
 
 (* This can be merged to HOL's arithmeticTheory *)
-val FUNPOW_SUC_LEFT = store_thm (
-   "FUNPOW_SUC_LEFT", ``!f n. FUNPOW f (SUC n) = (FUNPOW f n) o f``,
+val FUNPOW_SUC_alt = store_thm (
+   "FUNPOW_SUC_alt", ``!f n. FUNPOW f (SUC n) = (FUNPOW f n) o f``,
     REPEAT GEN_TAC
  >> REWRITE_TAC [FUN_EQ_THM, o_DEF] >> BETA_TAC
  >> GEN_TAC
@@ -1345,8 +1347,8 @@ val FUNPOW_SUC_LEFT = store_thm (
  >> FULL_SIMP_TAC arith_ss [FUNPOW_1, ADD1]);
 
 (* |- !f n x. FUNPOW f (SUC n) x = FUNPOW f n (f x) *)
-val FUNPOW_SUC_LEFT' = save_thm (
-   "FUNPOW_SUC_LEFT'", BETA_RULE (REWRITE_RULE [FUN_EQ_THM, o_DEF] FUNPOW_SUC_LEFT));
+val FUNPOW_SUC_alt' = save_thm (
+   "FUNPOW_SUC_alt'", BETA_RULE (REWRITE_RULE [FUN_EQ_THM, o_DEF] FUNPOW_SUC_alt));
 
 val unfolding_lemma2 = store_thm (
    "unfolding_lemma2",
@@ -1455,7 +1457,7 @@ val unfolding_lemma4 = store_thm (
  >> rpt STRIP_TAC
  >> Q.PAT_X_ASSUM `TRACE X xs P'` MP_TAC
  >> Know `(C o (FUNPOW E (SUC n))) P = (C o (FUNPOW E n)) (E P)`
- >- ( REWRITE_TAC [o_DEF, FUNPOW_SUC_LEFT'] >> BETA_TAC >> RW_TAC std_ss [] )
+ >- ( REWRITE_TAC [o_DEF, FUNPOW_SUC_alt'] >> BETA_TAC >> RW_TAC std_ss [] )
  >> Rewr >> DISCH_TAC
  >> IMP_RES_TAC TRACE_cases2
  >> Cases_on `xs`
@@ -1468,7 +1470,7 @@ val unfolding_lemma4 = store_thm (
       CONJ_TAC >- ( IMP_RES_TAC WGS_IS_GCONTEXT >> MATCH_MP_TAC GCONTEXT_combin \\
 		    ASM_REWRITE_TAC [] ) \\
       CONJ_TAC >- ( KILL_TAC >> REWRITE_TAC [o_DEF] >> RW_TAC std_ss [] ) \\
-      GEN_TAC >> REWRITE_TAC [FUNPOW_SUC_LEFT', o_DEF] >> BETA_TAC \\
+      GEN_TAC >> REWRITE_TAC [FUNPOW_SUC_alt', o_DEF] >> BETA_TAC \\
       ASM_REWRITE_TAC [] )
  >> FULL_SIMP_TAC list_ss []
  >> `LENGTH (FRONT (h::t)) <= n` by PROVE_TAC [LENGTH_FRONT_CONS]
@@ -1485,7 +1487,7 @@ val unfolding_lemma4 = store_thm (
  >> REWRITE_TAC [NULL]
  >> Q.EXISTS_TAC `C' (E Q)`
  >> Q.UNABBREV_TAC `x` >> ASM_REWRITE_TAC []
- >> REWRITE_TAC [FUNPOW_SUC_LEFT']
+ >> REWRITE_TAC [FUNPOW_SUC_alt']
  >> Q.UNABBREV_TAC `xs` >> ASM_REWRITE_TAC []);
 
 (* Lemma 3.9 of [2] *)
@@ -1510,7 +1512,7 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA = store_thm (
       [ (* goal 1.1 (of 2) *)
         ASM_REWRITE_TAC [o_DEF, FUNPOW, ETA_AX],
         (* goal 1.2 (of 2) *)
-        REWRITE_TAC [FUNPOW_SUC_LEFT, o_ASSOC] \\
+        REWRITE_TAC [FUNPOW_SUC_alt, o_ASSOC] \\
         MATCH_MP_TAC GCONTEXT_combin \\
         ASM_REWRITE_TAC [] ] )
  >> DISCH_TAC
@@ -1719,7 +1721,7 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA = store_thm (
       [ (* goal 1.1 (of 2) *)
         ASM_REWRITE_TAC [o_DEF, FUNPOW, ETA_AX],
         (* goal 1.2 (of 2) *)
-        REWRITE_TAC [FUNPOW_SUC_LEFT, o_ASSOC] \\
+        REWRITE_TAC [FUNPOW_SUC_alt, o_ASSOC] \\
         MATCH_MP_TAC GCONTEXT_combin \\
         ASM_REWRITE_TAC [] ] )
  >> DISCH_TAC

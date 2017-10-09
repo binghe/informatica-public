@@ -5,9 +5,11 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open pred_setTheory relationTheory CCSLib;
+open pred_setTheory relationTheory optionTheory ordinalTheory;
+open CCSLib GraphTheory;
 
 val _ = new_theory "CCS";
+val _ = temp_loose_equality ();
 
 (******************************************************************************)
 (*                                                                            *)
@@ -41,14 +43,16 @@ val Label_not_eq = save_thm (
    "Label_not_eq", STRIP_FORALL_RULE EQF_INTRO Label_distinct);
 
 val Label_not_eq' = save_thm (
-   "Label_not_eq'",
-    STRIP_FORALL_RULE (PURE_REWRITE_RULE [SYM_CONV ``name s = coname s'``])
-		      Label_not_eq);
+   "Label_not_eq'", STRIP_FORALL_RULE
+			(PURE_REWRITE_RULE [SYM_CONV ``name s = coname s'``])
+			Label_not_eq);
 
 val Label_11 = TypeBase.one_one_of ``:'b Label``;
 
-(* Define the set of actions as the union of the internal action tau and the labels. *)
-val _ = Datatype `Action = tau | label ('b Label)`;
+(* NEW: define the set of actions as the OPTION of Label *)
+val _ = type_abbrev ("Action", ``:'b Label option``);
+val _ = overload_on ("tau",    ``NONE :'b Action``);
+val _ = overload_on ("label",  ``SOME :'b Label -> 'b Action``);
 val _ = Unicode.unicode_version { u = UnicodeChars.tau, tmnm = "tau"};
 
 (* The compact representation for (visible) input and output actions, suggested by Michael Norrish *)
@@ -58,20 +62,27 @@ val _ = overload_on ("Out", ``\a. label (coname a)``);
 (* Define structural induction on actions
    |- ∀P. P tau ∧ (∀L. P (label L)) ⇒ ∀A. P A
  *)
-val Action_induction = TypeBase.induction_of ``:'b Action``;
+val Action_induction = save_thm (
+   "Action_induction", INST_TYPE [``:'a`` |-> ``:'b Label``] option_induction);
 
 (* The structural cases theorem for the type Action
    |- ∀AA. (AA = tau) ∨ ∃L. AA = label L
  *)
-val Action_nchotomy = TypeBase.nchotomy_of ``:'b Action``;
+val Action_nchotomy = save_thm (
+   "Action_nchotomy", INST_TYPE [``:'a`` |-> ``:'b Label``] option_nchotomy);
 
 (* The distinction and injectivity theorems for the type Action
    |- ∀a. tau ≠ label a
    |- ∀a a'. (label a = label a') ⇔ (a = a')
  *)
-val Action_distinct = TypeBase.distinct_of ``:'b Action``;
-val Action_distinct_label = save_thm ("Action_distinct_label", GSYM Action_distinct);
-val Action_11 = TypeBase.one_one_of ``:'b Action``;
+val Action_distinct = save_thm (
+   "Action_distinct", INST_TYPE [``:'a`` |-> ``:'b Label``] NOT_NONE_SOME);
+
+val Action_distinct_label = save_thm (
+   "Action_distinct_label", INST_TYPE [``:'a`` |-> ``:'b Label``] NOT_SOME_NONE);
+
+val Action_11 = save_thm (
+   "Action_11", INST_TYPE [``:'a`` |-> ``:'b Label``] SOME_11);
 
 (* |- ∀A. A ≠ tau ⇒ ∃L. A = label L *)
 val Action_no_tau_is_Label = save_thm (
@@ -79,9 +90,12 @@ val Action_no_tau_is_Label = save_thm (
     Q.GEN `A` (DISJ_IMP (Q.SPEC `A` Action_nchotomy)));
 
 (* Extract the label from a visible action, LABEL: Action -> Label. *)
-val    LABEL_def = Define `    LABEL (label (l: 'b Label)) = l`;
-val IS_LABEL_def = Define `(IS_LABEL (label (l: 'b Label)) = T) /\
-			   (IS_LABEL tau = F)`;
+val _ = overload_on ("LABEL", ``THE :'b Label option -> 'b Label``);
+val    LABEL_def = save_thm (
+      "LABEL_def", INST_TYPE [``:'a`` |-> ``:'b Label``] THE_DEF);
+
+val IS_LABEL_def = save_thm (
+   "IS_LABEL_def", INST_TYPE [``:'a`` |-> ``:'b Label``] IS_SOME_DEF);
 val _ = export_rewrites ["LABEL_def", "IS_LABEL_def"];
 
 (* Define the complement of a label, COMPL: Label -> Label. *)
@@ -194,7 +208,7 @@ val Relab_label = store_thm ("Relab_label",
  >- REWRITE_TAC [relabel_def, Action_distinct]
  >> REWRITE_TAC [relabel_def]
  >> REPEAT STRIP_TAC
- >> EXISTS_TAC ``L :'b Label``
+ >> EXISTS_TAC ``a :'b Label``
  >> REWRITE_TAC []);
 
 (* If the renaming of an action is tau, that action is tau. *)
@@ -263,6 +277,8 @@ val APPLY_RELAB_THM = save_thm ("APPLY_RELAB_THM",
 (*                                                                            *)
 (******************************************************************************)
 
+val _ = type_abbrev ("LTS", ``:'a ordinal # ('a ordinal, 'b Action) graph``);
+
 (* Define the type of (pure) CCS agent expressions. *)
 val _ = Datatype `CCS = nil
 		      | var 'a
@@ -271,7 +287,14 @@ val _ = Datatype `CCS = nil
 		      | par CCS CCS
 		      | restr (('b Label) set) CCS
 		      | relab CCS ('b Relabeling)
-		      | rec 'a CCS `;
+		      | rec 'a CCS
+		      | LTS (('a, 'b) LTS)`;
+
+(* LTS accessors *)
+val   root_def = Define `  root ((r, ts) :('a, 'b) LTS) = r`;
+val     TS_def = Define `    TS ((r, ts) :('a, 'b) LTS) = ts`;
+val states_def = Define `states ((r, ts) :('a, 'b) LTS) = vertices ts`;
+val  trans_def = Define ` trans ((r, ts) :('a, 'b) LTS) = labeled_directed_edges ts`;
 
 (* compact representation for single-action restriction *)
 val _ = overload_on ("nu", ``\(n :'b) P. restr {name n} P``);
@@ -343,24 +366,27 @@ val _ = type_abbrev ("transition",
 (* Inductive definition of the transition relation TRANS for CCS.
    TRANS: CCS -> Action -> CCS -> bool *)
 val (TRANS_rules, TRANS_ind, TRANS_cases) = Hol_reln `
-    (!E u.                        TRANS (prefix u E) u E) /\		(* PREFIX *)
-    (!E u E1 E'. TRANS E u E1 ==> TRANS (sum E E') u E1) /\		(* SUM1 *)
-    (!E u E1 E'. TRANS E u E1 ==> TRANS (sum E' E) u E1) /\		(* SUM2 *)
-    (!E u E1 E'. TRANS E u E1 ==> TRANS (par E E') u (par E1 E')) /\	(* PAR1 *)
-    (!E u E1 E'. TRANS E u E1 ==> TRANS (par E' E) u (par E' E1)) /\	(* PAR2 *)
-    (!E l E1 E' E2.
-		 TRANS E (label l) E1 /\ TRANS E' (label (COMPL l)) E2
-	     ==> TRANS (par E E') tau (par E1 E2)) /\			(* PAR3 (COM) *)
-    (!E u E' l L.
-		 TRANS E u E' /\ ((u = tau) \/
-				  ((u = label l) /\ (~(l IN L)) /\ (~((COMPL l) IN L))))
-	     ==> TRANS (restr L E) u (restr L E')) /\			(* RESTR *)
-    (!E u E' rf. TRANS E u E'
-	     ==> TRANS (relab E rf) (relabel rf u) (relab E' rf)) /\	(* RELABELING *)
-    (!E u X E1.  TRANS (CCS_Subst E (rec X E) X) u E1
-	     ==> TRANS (rec X E) u E1) `;				(* REC (CONS) *)
+    (!E u.                           TRANS (prefix u E) u E) /\		(* PREFIX *)
+    (!E u E1 E'.    TRANS E u E1 ==> TRANS (sum E E') u E1) /\		(* SUM1 *)
+    (!E u E1 E'.    TRANS E u E1 ==> TRANS (sum E' E) u E1) /\		(* SUM2 *)
+    (!E u E1 E'.    TRANS E u E1 ==> TRANS (par E E') u (par E1 E')) /\	(* PAR1 *)
+    (!E u E1 E'.    TRANS E u E1 ==> TRANS (par E' E) u (par E' E1)) /\	(* PAR2 *)
+    (!E l E1 E' E2. TRANS E (label l) E1 /\ TRANS E' (label (COMPL l)) E2
+		==> TRANS (par E E') tau (par E1 E2)) /\		(* PAR3 *)
+    (!E u E' l L.   TRANS E u E' /\ ((u = tau) \/
+				     ((u = label l) /\ (~(l IN L)) /\ (~((COMPL l) IN L))))
+		==> TRANS (restr L E) u (restr L E')) /\		(* RESTR *)
+    (!E u E' rf.    TRANS E u E'
+		==> TRANS (relab E rf) (relabel rf u) (relab E' rf)) /\	(* RELABELING *)
+    (!E u X E1.     TRANS (CCS_Subst E (rec X E) X) u E1
+		==> TRANS (rec X E) u E1) /\				(* REC *)
+    (!E u E'.       (root E, u, root E') IN (trans E)
+		==> TRANS (LTS E) u (LTS E')) `;			(* LTS *)
 
 val _ = overload_on ("Trans", ``TRANS``);
+val _ = overload_on ("Trans", (* pp setting used in literal LTS graphs *)
+      ``\(x :'a ordinal) (u :'b Action) (y :'a ordinal). ({x}, u, {y})``);
+
 val _ =
     add_rule { term_name = "Trans", fixity = Infix (NONASSOC, 450),
 	pp_elements = [ BreakSpace(1,0), TOK "--", HardSpace 0, TM, HardSpace 0, TOK "-->",
@@ -372,10 +398,10 @@ val _ = TeX_notation { hol = "--",  TeX = ("\\HOLTokenTransBegin", 1) };
 val _ = TeX_notation { hol = "-->", TeX = ("\\HOLTokenTransEnd", 1) };
 
 (* The rules for the transition relation TRANS as individual theorems. *)
-val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELING, REC] =
+val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELING, REC, LTS] =
     map save_thm
         (combine (["PREFIX", "SUM1", "SUM2", "PAR1", "PAR2", "PAR3", "RESTR",
-		   "RELABELING", "REC"],
+		   "RELABELING", "REC", "LTS"],
                   CONJUNCTS TRANS_rules));
 
 (* The process nil has no transitions.
@@ -773,7 +799,15 @@ val TRANS_REC_EQ = store_thm ("TRANS_REC_EQ",
 
 val TRANS_REC = save_thm ("TRANS_REC", EQ_IMP_LR TRANS_REC_EQ);
 
+(******************************************************************************)
+(*                                                                            *)
+(*                      Transition theorems for LTS                           *)
+(*                                                                            *)
+(******************************************************************************)
+
+(* TODO: move here from CoarsestCongrScript.sml *)
+
 val _ = export_theory ();
 val _ = html_theory "CCS";
 
-(* last updated: May 14, 2017 *)
+(* last updated: Oct 9, 2017 *)

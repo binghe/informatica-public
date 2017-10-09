@@ -17,6 +17,7 @@ open ObsCongrTheory ObsCongrLib ObsCongrLawsTheory;
 open CongruenceTheory;
 
 val _ = new_theory "BisimulationUpto";
+val _ = temp_loose_equality ();
 
 (******************************************************************************)
 (*                                                                            *)

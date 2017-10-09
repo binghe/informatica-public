@@ -11,6 +11,7 @@ open StrongEQTheory StrongLawsTheory;
 open WeakEQTheory WeakEQLib WeakLawsTheory;
 
 val _ = new_theory "ObsCongr";
+val _ = temp_loose_equality ();
 
 (******************************************************************************)
 (*                                                                            *)
@@ -72,7 +73,7 @@ val WEAK_EQUIV_STABLE_IMP_CONGR = store_thm (
  >| [ (* goal 1 (of 2) *)
       RES_TAC \\
       IMP_RES_TAC Action_no_tau_is_Label \\
-      ASSUME_TAC (REWRITE_RULE [ASSUME ``(u :'b Action) = label L``]
+      ASSUME_TAC (REWRITE_RULE [ASSUME ``(u :'b Action) = label x``]
                                (ASSUME ``TRANS E u E1``)) \\
       IMP_RES_TAC
         (CONJUNCT1 (ONCE_REWRITE_RULE [OBS_PROPERTY_STAR]
@@ -80,7 +81,7 @@ val WEAK_EQUIV_STABLE_IMP_CONGR = store_thm (
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
       RES_TAC THEN IMP_RES_TAC Action_no_tau_is_Label \\
-      ASSUME_TAC (REWRITE_RULE [ASSUME ``(u :'b Action) = label L``]
+      ASSUME_TAC (REWRITE_RULE [ASSUME ``(u :'b Action) = label x``]
                                (ASSUME ``TRANS E' u E2``)) \\
       IMP_RES_TAC
         (CONJUNCT1 (ONCE_REWRITE_RULE [OBS_PROPERTY_STAR]

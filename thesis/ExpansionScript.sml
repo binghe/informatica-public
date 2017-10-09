@@ -17,6 +17,7 @@ open WeakEQTheory WeakLawsTheory;
 open CongruenceTheory TraceTheory;
 
 val _ = new_theory "Expansion";
+val _ = temp_loose_equality ();
 
 (******************************************************************************)
 (*                                                                            *)
@@ -929,7 +930,7 @@ val expands_AND_TRACE_label_lemma = Q.prove (
       IMP_RES_TAC (EQ_IMP_LR UNIQUE_LABEL_cases2) \\
       IMP_RES_TAC (MATCH_MP expands_AND_TRACE_tau (ASSUME ``E' expands E2``)) \\
       NTAC 4 (POP_ASSUM K_TAC) \\
-      take [`label L :: xs'`, `E2'`] >> ASM_REWRITE_TAC [] \\
+      take [`label x :: xs'`, `E2'`] >> ASM_REWRITE_TAC [] \\
       CONJ_TAC >- ( MATCH_MP_TAC TRACE2 >> Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] ) \\
       CONJ_TAC >- ( FULL_SIMP_TAC arith_ss [LENGTH] ) \\
       REWRITE_TAC [UNIQUE_LABEL_cases2] >> ASM_REWRITE_TAC [] ]);
@@ -959,14 +960,14 @@ val BISIM_UPTO_expands_and_C = new_definition (
 	(!l.
 	  (!E1. TRANS E  (label l) E1 ==>
 		?E2. WEAK_TRANS E' (label l) E2 /\
-		    (WEAK_EQUIV O (gcontext_closure Wbsm) O $expands) E1 E2) /\
+		    (WEAK_EQUIV O (GCC Wbsm) O $expands) E1 E2) /\
 	  (!E2. TRANS E' (label l) E2 ==>
 		?E1. WEAK_TRANS E  (label l) E1 /\
-		    ($expands O (gcontext_closure Wbsm) O WEAK_EQUIV) E1 E2)) /\
+		    ($expands O (GCC Wbsm) O WEAK_EQUIV) E1 E2)) /\
 	(!E1. TRANS E  tau E1 ==>
-	      ?E2. EPS E' E2 /\ (WEAK_EQUIV O (gcontext_closure Wbsm) O $expands) E1 E2) /\
+	      ?E2. EPS E' E2 /\ (WEAK_EQUIV O (GCC Wbsm) O $expands) E1 E2) /\
 	(!E2. TRANS E' tau E2 ==>
-	      ?E1. EPS E  E1 /\ ($expands O (gcontext_closure Wbsm) O WEAK_EQUIV) E1 E2)``);
+	      ?E1. EPS E  E1 /\ ($expands O (GCC Wbsm) O WEAK_EQUIV) E1 E2)``);
 
 (* Bibliography:
  *
