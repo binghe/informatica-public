@@ -148,7 +148,7 @@ fun CCS_TRANS_CONV tm =
 	      let val dl = strip_disj (rconcl thm);
 		  val actl = map (snd o dest_eq o hd o strip_conj o hd o strip_disj) dl;
 		  val actl_not = extr_acts actl L;
-		  val tau = mk_const ("tau", type_of (hd actl));
+		  val tau = mk_const ("NONE", type_of (hd actl));
 		  val U = mk_var ("u", type_of (hd actl));
 	      in
 		  if (null actl_not) then
@@ -199,7 +199,7 @@ fun CCS_TRANS_CONV tm =
 						       actl_not) dl);
 			  val dsjt = build_disj lp L;
 			  val (u, p) = hd lp;
-			  val tau = mk_const ("tau", type_of u);
+			  val tau = mk_const ("NONE", type_of u);
 		      in
 			  prove (``!u E. TRANS ^tm u E = ^dsjt``,
 (** PROOF BEGIN ***************************************************************)
@@ -356,7 +356,7 @@ fun CCS_TRANS_CONV tm =
 	  fun build_disj_tau _ [] = ``F``
 	    | build_disj_tau  p syncl = let
 		val (u, p') = hd syncl;
-		val tau = mk_const ("tau", type_of u);
+		val tau = mk_const ("NONE", type_of u);
 	    in
 		mk_disj (mk_conj (``u = ^tau``, ``E = ^(mk_par (p, p'))``),
 			 build_disj_tau p (tl syncl))

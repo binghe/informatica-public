@@ -48,7 +48,6 @@ val (_, _, args_prefix, _)	= HolKernel.syntax_fns2 "CCS" "prefix";
 val (_, _, args_sum, _)		= HolKernel.syntax_fns2 "CCS" "sum";
 val (_, _, args_par, _)		= HolKernel.syntax_fns2 "CCS" "par";
 val (_, _, args_restr, _)	= HolKernel.syntax_fns2 "CCS" "restr";
-val (_, _, arg_LTS, _)		= HolKernel.syntax_fns1 "CCS" "LTS";
 
 fun args_restr tm = let
     val (opn, [lset, P]) = strip_comb tm

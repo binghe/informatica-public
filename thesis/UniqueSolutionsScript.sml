@@ -1350,6 +1350,7 @@ val FUNPOW_SUC_alt = store_thm (
 val FUNPOW_SUC_alt' = save_thm (
    "FUNPOW_SUC_alt'", BETA_RULE (REWRITE_RULE [FUN_EQ_THM, o_DEF] FUNPOW_SUC_alt));
 
+(* A single transition from WGS E[P] will not touch the variable P *)
 val unfolding_lemma2 = store_thm (
    "unfolding_lemma2",
   ``!E. WGS E ==> !P u P'. TRANS (E P) u P' ==>
@@ -1420,6 +1421,7 @@ val unfolding_lemma2 = store_thm (
       ASM_REWRITE_TAC [] \\
       GEN_TAC >> MATCH_MP_TAC RELABELING >> ASM_REWRITE_TAC [] ]);
 
+(* In this proof, we combine C and E into a single WGS and call previous lemma *)
 val unfolding_lemma3 = store_thm (
    "unfolding_lemma3",
   ``!C E. GCONTEXT C /\ WGS E ==>
@@ -1700,6 +1702,7 @@ val unfolding_lemma1' = store_thm (
  >> `(E P) expands (E Q)` by PROVE_TAC [expands_precongruence_applied]
  >> IMP_RES_TAC expands_TRANS);
 
+(* The proof has only minor differences with UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA *)
 val UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA = store_thm (
    "UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA",
   ``!(P :('a, 'b) CCS) (Q :('a, 'b) CCS).
@@ -1779,6 +1782,7 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA = store_thm (
       Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
       MATCH_MP_TAC expands_IMP_WEAK_EQUIV >> ASM_REWRITE_TAC [] ]); (* extra steps *)
 
+(* The proof is essentially the same with UNIQUE_SOLUTIONS_OF_CONTRACTIONS *)
 val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
    "UNIQUE_SOLUTIONS_OF_EXPANSIONS",
   ``!E. WGS E ==>

@@ -360,8 +360,7 @@ val COARSEST_CONGR_THM = store_thm ((* NEW *)
   ``!p q. free_action p /\ free_action q ==>
 	  (OBS_CONGR p q = !r. WEAK_EQUIV (sum p r) (sum q r))``,
     REPEAT STRIP_TAC
- >> EQ_TAC
- >- REWRITE_TAC [COARSEST_CONGR_LR]
+ >> EQ_TAC >- REWRITE_TAC [COARSEST_CONGR_LR]
  >> MATCH_MP_TAC COARSEST_CONGR_RL
  >> ASM_REWRITE_TAC []);
 
@@ -729,9 +728,7 @@ val KLOP_EXISTS_LEMMA = store_thm ((* NEW *)
         (* goal 2 (of 2) *)
         ONCE_REWRITE_TAC [GSYM IN_APP] \\
         MATCH_MP_TAC CHOICE_DEF \\
-        PROVE_TAC [FINITE_EMPTY] ] )
- >> DISCH_TAC
-
+        PROVE_TAC [FINITE_EMPTY] ] ) >> DISCH_TAC
  >> Q.ABBREV_TAC `B0 = IMAGE map A`
  >> `FINITE B0` by PROVE_TAC [IMAGE_FINITE]
  >> Know `B0 SUBSET B`
@@ -739,14 +736,11 @@ val KLOP_EXISTS_LEMMA = store_thm ((* NEW *)
       REPEAT STRIP_TAC \\
       `x IN (IMAGE map A)` by PROVE_TAC [] \\
       POP_ASSUM MP_TAC \\
-      REWRITE_TAC [IN_IMAGE] >> PROVE_TAC [] )
- >> DISCH_TAC
-
+      REWRITE_TAC [IN_IMAGE] >> PROVE_TAC [] ) >> DISCH_TAC
  >> `?k. k IN B /\ k NOTIN B0`
 	by PROVE_TAC [Q.SPECL [`B`, `B0`] IN_INFINITE_NOT_FINITE]
  >> Q.EXISTS_TAC `k`
  >> `!n. n IN A ==> map n IN B0` by PROVE_TAC [IN_IMAGE]
-
  >> Know `!n. n IN A ==> R n (map n) \/ (~?x. x IN B /\ R n x)`
  >- ( REPEAT STRIP_TAC \\
       PAT_X_ASSUM ``!x. map x = P`` (ASSUME_TAC o (Q.SPEC `n`)) \\
@@ -756,9 +750,7 @@ val KLOP_EXISTS_LEMMA = store_thm ((* NEW *)
         DISJ1_TAC \\
 	METIS_TAC [], (* PROVE_TAC doesn't work here *)
         (* goal 2 (of 2) *)
-        FULL_SIMP_TAC std_ss [] ] )
- >> DISCH_TAC
-
+        FULL_SIMP_TAC std_ss [] ] ) >> DISCH_TAC
  >> Know `!n. n IN A ==> ~(R n k)`
  >- ( REPEAT STRIP_TAC \\
       `map n IN B0` by PROVE_TAC [IMAGE_IN] \\
@@ -771,8 +763,7 @@ val KLOP_EXISTS_LEMMA = store_thm ((* NEW *)
         `~(R k y)` by PROVE_TAC [],
         (* goal 2 (of 2) *)
         `B k /\ R n k` by PROVE_TAC [IN_DEF] \\
-        RES_TAC ] )
- >> DISCH_TAC
+        RES_TAC ] ) >> DISCH_TAC
  >> ASM_REWRITE_TAC []);
 
 val KLOP_LEMMA_FINITE = store_thm ((* NEW *)
@@ -855,11 +846,24 @@ val KLOP_LEMMA_FINITE = store_thm ((* NEW *)
 val COARSEST_CONGR_FINITE = store_thm ((* NEW *)
    "COARSEST_CONGR_FINITE",
   ``!p q. finite_state p /\ finite_state q ==>
-	  (OBS_CONGR p q = (!r. WEAK_EQUIV (sum p r) (sum q r)))``,
+	  (OBS_CONGR p q = !r. WEAK_EQUIV (sum p r) (sum q r))``,
     REPEAT STRIP_TAC
  >> EQ_TAC >- REWRITE_TAC [COARSEST_CONGR_LR]
  >> MP_TAC (Q.SPECL [`p`, `q`] KLOP_LEMMA_FINITE)
  >> RW_TAC std_ss [PROP3_COMMON]);
+
+(******************************************************************************)
+(*                                                                            *)
+(*         Coarsest congruence contained in WEAK_EQUIV (full version)         *)
+(*                                                                            *)
+(******************************************************************************)
+
+(* `Klop function` has type ``:'b Label -> 'a ordinal -> ('a, 'b) LTS`` *)
+val Klop_def = Define `
+    Klop (l: 'b Label) (n :'a ordinal) =
+	 ABS_graph ({m | m <= n}, {({p}, label l, {q}) | p <= n /\ q < p})`;
+
+
 
 (** Bibliography:
 

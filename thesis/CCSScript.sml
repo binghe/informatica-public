@@ -277,7 +277,8 @@ val APPLY_RELAB_THM = save_thm ("APPLY_RELAB_THM",
 (*                                                                            *)
 (******************************************************************************)
 
-val _ = type_abbrev ("LTS", ``:'a ordinal # ('a ordinal, 'b Action) graph``);
+(* there's a bijection between num and string established in string_numTheory *)
+val _ = type_abbrev ("LTS", ``:('a ordinal, 'b Action) graph``);
 
 (* Define the type of (pure) CCS agent expressions. *)
 val _ = Datatype `CCS = nil
@@ -288,12 +289,12 @@ val _ = Datatype `CCS = nil
 		      | restr (('b Label) set) CCS
 		      | relab CCS ('b Relabeling)
 		      | rec 'a CCS
-		      | LTS (('a, 'b) LTS)`;
+		      | lts ('a ordinal) (('a, 'b) LTS)`;
 
 (* LTS accessors *)
-val   root_def = Define `  root ((r, ts) :('a, 'b) LTS) = r`;
-val states_def = Define `states ((r, ts) :('a, 'b) LTS) = vertices ts`;
-val     TS_def = Define `    TS ((r, ts) :('a, 'b) LTS) = labeled_directed_edges ts`;
+val _ = overload_on ("states", ``vertices :('a, 'b) LTS -> 'a ordinal set``);
+val _ = overload_on ("TS",
+      ``labeled_directed_edges :('a, 'b) LTS -> 'a ordinal # 'b Action # 'a ordinal -> bool``);
 
 (* compact representation for single-action restriction *)
 val _ = overload_on ("nu", ``\(n :'b) P. restr {name n} P``);
@@ -373,14 +374,14 @@ val (TRANS_rules, TRANS_ind, TRANS_cases) = Hol_reln `
     (!E l E1 E' E2. TRANS E (label l) E1 /\ TRANS E' (label (COMPL l)) E2
 		==> TRANS (par E E') tau (par E1 E2)) /\		(* PAR3 *)
     (!E u E' l L.   TRANS E u E' /\ ((u = tau) \/
-				     ((u = label l) /\ (~(l IN L)) /\ (~((COMPL l) IN L))))
+				     ((u = label l) /\ l NOTIN L /\ (COMPL l) NOTIN L))
 		==> TRANS (restr L E) u (restr L E')) /\		(* RESTR *)
     (!E u E' rf.    TRANS E u E'
 		==> TRANS (relab E rf) (relabel rf u) (relab E' rf)) /\	(* RELABELING *)
     (!E u X E1.     TRANS (CCS_Subst E (rec X E) X) u E1
 		==> TRANS (rec X E) u E1) /\				(* REC *)
-    (!E u E'.       (root E, u, root E') IN (TS E)
-		==> TRANS (LTS E) u (LTS E')) `;			(* LTS *)
+    (!E u E' G.     (E, u, E') IN (TS G)
+		==> TRANS (lts E G) u (lts E' G)) `;			(* LTS *)
 
 val _ = overload_on ("Trans", ``TRANS``);
 val _ = overload_on ("Trans", (* pp setting used in literal LTS graphs *)
