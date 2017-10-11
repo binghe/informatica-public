@@ -7,6 +7,7 @@ open HolKernel Parse boolLib bossLib;
 
 open pred_setTheory relationTheory pairTheory sumTheory listTheory;
 open prim_recTheory arithmeticTheory combinTheory;
+open cardinalTheory ordinalTheory;
 
 open CCSLib CCSTheory GraphTheory;
 open StrongEQTheory StrongLawsTheory WeakEQTheory WeakLawsTheory;
@@ -854,7 +855,7 @@ val COARSEST_CONGR_FINITE = store_thm ((* NEW *)
 
 (******************************************************************************)
 (*                                                                            *)
-(*         Coarsest congruence contained in WEAK_EQUIV (full version)         *)
+(*           Arbitrary Many Non-bisimilar Processes (Klop processes)          *)
 (*                                                                            *)
 (******************************************************************************)
 
@@ -863,7 +864,136 @@ val Klop_def = Define `
     Klop (l: 'b Label) (n :'a ordinal) =
 	 ABS_graph ({m | m <= n}, {({p}, label l, {q}) | p <= n /\ q < p})`;
 
+val Klop0_cases = store_thm ((* NEW *)
+   "Klop0_cases",
+  ``!(a :'b Label). Klop a 0 = ABS_graph ({0}, EMPTY)``,
+    GEN_TAC >> REWRITE_TAC [Klop_def]
+ >> SIMP_TAC std_ss []
+ >> Know `hypergraph (({0}, EMPTY) :('a ordinal, 'b Action) REP_graph)`
+ >- ( REWRITE_TAC [hypergraph_def] >> SIMP_TAC std_ss [NOT_IN_EMPTY] )
+ >> Know `hypergraph (({m | m <= 0}, {({p}, label a, {q}) | p <= 0 /\ q < p})
+		      :('a ordinal, 'b Action) REP_graph)`
+ >- ( REWRITE_TAC [hypergraph_def] >> SIMP_TAC std_ss [NOT_IN_EMPTY] \\
+      GEN_TAC >> RW_TAC std_ss [GSPECIFICATION] \\
+      POP_ASSUM MP_TAC \\
+      Cases_on `x` >> FULL_SIMP_TAC std_ss [] \\
+      Cases_on `e` >> Cases_on `r'` \\
+      FULL_SIMP_TAC std_ss [ends_def, inits_def, ters_def, SUBSET_DEF, UNION_DEF,
+			    GSPECIFICATION, IN_SING] \\
+      RW_TAC std_ss [] >- ASM_REWRITE_TAC [] \\
+      REV_FULL_SIMP_TAC std_ss [ordleq0, ordlt_ZERO] )
+ >> rpt STRIP_TAC
+ >> FULL_SIMP_TAC std_ss [ABS_graph_one_one] >> KILL_TAC
+ >> CONJ_TAC (* 2 sub-goals here *)
+ >- ( REWRITE_TAC [EXTENSION, GSPECIFICATION, IN_SING] \\
+      GEN_TAC >> EQ_TAC >| (* 2 sub-goals here *)
+      [ (* goal 1 (of 2) *)
+	BETA_TAC >> rpt STRIP_TAC >> FULL_SIMP_TAC std_ss [ordleq0],
+	(* goal 2 (of 2) *)
+	Rewr >> BETA_TAC >> Q.EXISTS_TAC `0` >> SIMP_TAC std_ss [ordlt_REFL] ] )
+ >> REWRITE_TAC [EXTENSION, GSPECIFICATION, NOT_IN_EMPTY]
+ >> rpt STRIP_TAC
+ >> Cases_on `x'` >> FULL_SIMP_TAC std_ss [ordleq0]
+ >> REV_FULL_SIMP_TAC std_ss [ordlt_ZERO]);
 
+val K0_no_trans = store_thm ((* NEW *)
+   "K0_no_trans", ``!(a :'b Label) u E. ~(TRANS (lts 0 (Klop a 0)) u E)``,
+    rpt GEN_TAC
+ >> REWRITE_TAC [Klop0_cases]
+ >> ONCE_REWRITE_TAC [TRANS_cases]
+ >> SIMP_TAC std_ss [CCS_distinct', CCS_11]
+ >> GEN_TAC >> DISJ2_TAC
+ >> REWRITE_TAC [labeled_directed_edges_def, graph_edges_def]
+ >> Know `hypergraph (({0}, EMPTY) :('a ordinal, 'b Action) REP_graph)`
+ >- ( REWRITE_TAC [hypergraph_def] >> SIMP_TAC std_ss [NOT_IN_EMPTY] )
+ >> DISCH_TAC
+ >> FULL_SIMP_TAC std_ss [graph_REP_ABS, REP_edges_def]
+ >> REWRITE_TAC [IMAGE_EMPTY, NOT_IN_EMPTY]);
+
+val Klop1_cases = store_thm ((* NEW *)
+   "Klop1_cases",
+  ``!(a :'b Label) (n :'a ordinal) (u :'b Action) (E :('a, 'b) CCS).
+     TRANS (lts (ordSUC n) (Klop a (ordSUC n))) u E =
+	((u = label a) /\ (E = lts n (Klop a (ordSUC n)))) \/ TRANS (lts n (Klop a (ordSUC n))) u E``,
+    rpt GEN_TAC
+ >> REWRITE_TAC [Klop_def]
+ >> Know `hypergraph (({m | m <= ordSUC n}, {({p}, label a, {q}) | p <= ordSUC n /\ q < p})
+		      :('a ordinal, 'b Action) REP_graph)`
+    >- ( REWRITE_TAC [hypergraph_def] \\
+	 GEN_TAC >> RW_TAC std_ss [GSPECIFICATION] \\
+	 POP_ASSUM MP_TAC \\
+	 Cases_on `x` >> FULL_SIMP_TAC std_ss [] \\
+	 Cases_on `e` >> Cases_on `r'` \\
+	 FULL_SIMP_TAC std_ss [ends_def, inits_def, ters_def, SUBSET_DEF, UNION_DEF,
+			       GSPECIFICATION, IN_SING] \\
+	 RW_TAC std_ss [] >- art [] \\
+	 MATCH_MP_TAC ordle_TRANS \\
+	 Q.EXISTS_TAC `q` >> art [] \\
+	 REWRITE_TAC [ordle_lteq] >> DISJ1_TAC >> art [] )
+ >> DISCH_TAC
+ >> EQ_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      DISCH_TAC \\
+      POP_ASSUM (STRIP_ASSUME_TAC o (SIMP_RULE std_ss [CCS_distinct', CCS_11]) o
+		 (ONCE_REWRITE_RULE [TRANS_cases])) \\
+      rfs [labeled_directed_edges_def, graph_edges_def, graph_REP_ABS, REP_edges_def] \\
+      rfs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def] \\
+      Q.PAT_X_ASSUM `ordSUC n = p` (ASSUME_TAC o SYM) >> fs [] \\
+      Cases_on `q = n` >> art [] \\
+      MATCH_MP_TAC LTS \\
+      fs [labeled_directed_edges_def, graph_edges_def, graph_REP_ABS, REP_edges_def] \\
+      Q.EXISTS_TAC `({n}, label a, {q})` \\
+      fs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def] \\
+      CONJ_TAC >- ( REWRITE_TAC [ordle_lteq] >> DISJ1_TAC >> REWRITE_TAC [ordlt_SUC] ) \\
+      fs [ordlt_SUC_DISCRETE],
+      (* goal 2 (of 2) *)
+      rpt STRIP_TAC >> art [] >| (* 2 sub-goals here *)
+      [ (* goal 2.1 (of 2) *)
+	MATCH_MP_TAC LTS \\
+	fs [labeled_directed_edges_def, graph_edges_def, graph_REP_ABS, REP_edges_def] \\
+	Q.EXISTS_TAC `({ordSUC n}, label a, {n})` \\
+	fs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def],
+	(* goal 2.2 (of 2) *)
+	POP_ASSUM (STRIP_ASSUME_TAC o (SIMP_RULE std_ss [CCS_distinct', CCS_11]) o
+		   (ONCE_REWRITE_RULE [TRANS_cases])) >> art [] \\
+	MATCH_MP_TAC LTS \\
+	POP_ASSUM MP_TAC \\
+	fs [labeled_directed_edges_def, graph_edges_def, graph_REP_ABS, REP_edges_def] \\
+	rpt STRIP_TAC \\
+	Q.EXISTS_TAC `({ordSUC n}, u, {E''})` \\
+	fs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def] \\
+	REWRITE_TAC [ordlt_SUC_DISCRETE] >> art [] ] ]);
+
+(* Not used in the project, but this is a beatiful result *)
+val ONE_ONE_IMP_NOTIN = store_thm ((* NEW *)
+   "ONE_ONE_IMP_NOTIN",
+  ``!(A :'a set) (f :'a ordinal -> 'a). ONE_ONE f ==> ?n. f n NOTIN A``,
+    REPEAT GEN_TAC
+ >> MP_TAC univ_ord_greater_cardinal
+ >> RW_TAC std_ss [ONE_ONE_DEF, cardleq_def, INJ_DEF, IN_UNIV]
+ >> CCONTR_TAC
+ >> FIRST_X_ASSUM
+	(Q.SPEC_THEN `\n. if n < omega then INL (@m. &m = n) else INR (f n)` MP_TAC)
+ >> BETA_TAC
+ >> REPEAT STRIP_TAC
+ >> Cases_on `x < omega` (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      FULL_SIMP_TAC std_ss [] \\
+      Q.PAT_X_ASSUM `(@m. &m = x) = P` MP_TAC \\
+      REWRITE_TAC [] \\
+      NTAC 2 SELECT_ELIM_TAC \\
+      REPEAT STRIP_TAC >| (* 3 sub-goals here *)
+      [ (* goal 1.1 (of 3) *)
+        Q.PAT_X_ASSUM `y < omega` (ASSUME_TAC o (REWRITE_RULE [lt_omega])) \\
+        PROVE_TAC [],
+        (* goal 1.2 (of 3) *)
+        Q.PAT_X_ASSUM `x < omega` (ASSUME_TAC o (REWRITE_RULE [lt_omega])) \\
+        PROVE_TAC [],
+        (* goal 1.3 (of 3) *)
+        FULL_SIMP_TAC std_ss [] ],
+      (* goal 2 (of 2) *)
+      FULL_SIMP_TAC std_ss [EXTENSION, GSPECIFICATION] \\
+      PROVE_TAC [] ]);
 
 (** Bibliography:
 

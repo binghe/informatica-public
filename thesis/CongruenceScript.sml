@@ -375,42 +375,85 @@ val CC_is_coarsest = store_thm (
 
 (******************************************************************************)
 (*                                                                            *)
+(*                  CCS Expressions (CONTEXT with constants)                  *)
+(*                                                                            *)
+(******************************************************************************)
+
+val (EXPR_rules, EXPR_ind, EXPR_cases) = Hol_reln `
+    (                      EXPR (\t. t)) /\		    (* EXPR1 *)
+    (!p.                   EXPR (\t. p)) /\		    (* EXPR2 *)
+    (!a e.   EXPR e    ==> EXPR (\t. prefix a (e t))) /\    (* EXPR3 *)
+    (!e1 e2. EXPR e1 /\ EXPR e2
+		       ==> EXPR (\t. sum (e1 t) (e2 t))) /\ (* EXPR4 *)
+    (!e1 e2. EXPR e1 /\ EXPR e2
+		       ==> EXPR (\t. par (e1 t) (e2 t))) /\ (* EXPR5 *)
+    (!L e.   EXPR e    ==> EXPR (\t. restr L (e t))) /\	    (* EXPR6 *)
+    (!rf e.  EXPR e    ==> EXPR (\t. relab (e t) rf)) /\    (* EXPR7 *)
+    (!X e.   EXPR e /\ EXPR (\t. CCS_Subst (e t) (rec X (e t)) X)
+		       ==> EXPR (\t. rec X (e t))) `;	    (* EXPR8 *)
+
+val [EXPR1, EXPR2, EXPR3, EXPR4, EXPR5, EXPR6, EXPR7, EXPR8] =
+    map save_thm
+        (combine (["EXPR1", "EXPR2", "EXPR3", "EXPR4",
+		   "EXPR5", "EXPR6", "EXPR7", "EXPR8"], CONJUNCTS EXPR_rules));
+
+(* Some typical expressions containing constants (TODO) *)
+val var_IS_EXPR = store_thm (
+   "var_IS_EXPR", ``!X. EXPR (\t. var X)``,
+    REWRITE_TAC [EXPR2]);
+
+val CONTEXT_IS_EXPR = store_thm (
+   "CONTEXT_IS_EXPR", ``!e. CONTEXT e ==> EXPR e``,
+    Induct_on `CONTEXT`
+ >> rpt STRIP_TAC (* 7 sub-goals here *)
+ >| [ REWRITE_TAC [EXPR1],
+      REWRITE_TAC [EXPR2],
+      MATCH_MP_TAC EXPR3 >> art [],
+      MATCH_MP_TAC EXPR4 >> art [],
+      MATCH_MP_TAC EXPR5 >> art [],
+      MATCH_MP_TAC EXPR6 >> art [],
+      MATCH_MP_TAC EXPR7 >> art [] ]);
+
+(******************************************************************************)
+(*                                                                            *)
 (*                     Weakly guarded (WG) expressions                        *)
 (*                                                                            *)
 (******************************************************************************)
 
 val (WG_rules, WG_ind, WG_cases) = Hol_reln `
     (!p.                        WG (\t. p)) /\                   (* WG2 *)
-    (!a e.   CONTEXT e      ==> WG (\t. prefix a (e t))) /\      (* WG3 *)
+    (!a e.   EXPR e         ==> WG (\t. prefix a (e t))) /\      (* WG3 *)
     (!e1 e2. WG e1 /\ WG e2 ==> WG (\t. sum (e1 t) (e2 t))) /\   (* WG4 *)
     (!e1 e2. WG e1 /\ WG e2 ==> WG (\t. par (e1 t) (e2 t))) /\   (* WG5 *)
     (!L e.   WG e           ==> WG (\t. restr L (e t))) /\       (* WG6 *)
-    (!rf e.  WG e           ==> WG (\t. relab (e t) rf)) `;      (* WG7 *)
+    (!rf e.  WG e           ==> WG (\t. relab (e t) rf)) /\      (* WG7 *)
+    (!X e.   WG e  /\ WG (\t. CCS_Subst (e t) (rec X (e t)) X)
+			    ==> WG (\t. rec X (e t))) `;	 (* WG8 *)
 
-val [WG2, WG3, WG4, WG5, WG6, WG7] =
+val [WG2, WG3, WG4, WG5, WG6, WG7, WG8] =
     map save_thm
-        (combine (["WG2", "WG3", "WG4", "WG5", "WG6", "WG7"], CONJUNCTS WG_rules));
+        (combine (["WG2", "WG3", "WG4", "WG5", "WG6", "WG7", "WG8"], CONJUNCTS WG_rules));
 
 (** WG1 is derivable from WG3 *)
 val WG1 = store_thm ("WG1",
   ``!a :'b Action. WG (\t. prefix a t)``,
-    ASSUME_TAC CONTEXT1
+    ASSUME_TAC EXPR1
  >> IMP_RES_TAC WG3
  >> POP_ASSUM MP_TAC
- >> BETA_TAC
- >> REWRITE_TAC []);
+ >> BETA_TAC >> art []);
 
 (* Weakly guarded expressions are also expressions *)
-val WG_IS_CONTEXT = store_thm (
-   "WG_IS_CONTEXT", ``!e. WG e ==> CONTEXT e``,
+val WG_IS_EXPR = store_thm (
+   "WG_IS_EXPR", ``!e. WG e ==> EXPR e``,
     Induct_on `WG`
  >> rpt STRIP_TAC (* 6 sub-goals here *)
- >| [ REWRITE_TAC [CONTEXT2],
-      MATCH_MP_TAC CONTEXT3 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC CONTEXT4 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC CONTEXT6 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC CONTEXT7 >> ASM_REWRITE_TAC [] ]);
+ >| [ REWRITE_TAC [EXPR2],
+      MATCH_MP_TAC EXPR3 >> art [],
+      MATCH_MP_TAC EXPR4 >> art [],
+      MATCH_MP_TAC EXPR5 >> art [],
+      MATCH_MP_TAC EXPR6 >> art [],
+      MATCH_MP_TAC EXPR7 >> art [],
+      MATCH_MP_TAC EXPR8 >> art [] ]);
 
 (******************************************************************************)
 (*                                                                            *)
@@ -440,12 +483,12 @@ val SG_IS_CONTEXT = store_thm (
     Induct_on `SG`
  >> rpt STRIP_TAC (* 7 sub-goals here *)
  >| [ REWRITE_TAC [CONTEXT2],
-      MATCH_MP_TAC CONTEXT3 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC CONTEXT3 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC CONTEXT4 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC CONTEXT6 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC CONTEXT7 >> ASM_REWRITE_TAC [] ]);
+      MATCH_MP_TAC CONTEXT3 >> art [],
+      MATCH_MP_TAC CONTEXT3 >> art [],
+      MATCH_MP_TAC CONTEXT4 >> art [],
+      MATCH_MP_TAC CONTEXT5 >> art [],
+      MATCH_MP_TAC CONTEXT6 >> art [],
+      MATCH_MP_TAC CONTEXT7 >> art [] ]);
 
 (* Strong guardness implies weak guardness *)
 val SG_IMP_WG = store_thm (
@@ -453,12 +496,12 @@ val SG_IMP_WG = store_thm (
     Induct_on `SG`
  >> rpt STRIP_TAC (* 7 sub-goals here *)
  >| [ REWRITE_TAC [WG2],
-      MATCH_MP_TAC WG3 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC WG3 >> IMP_RES_TAC WG_IS_CONTEXT,
-      MATCH_MP_TAC WG4 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC WG5 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC WG6 >> ASM_REWRITE_TAC [],
-      MATCH_MP_TAC WG7 >> ASM_REWRITE_TAC [] ]);
+      MATCH_MP_TAC WG3 >> IMP_RES_TAC CONTEXT_IS_EXPR,
+      MATCH_MP_TAC WG3 >> IMP_RES_TAC WG_IS_EXPR,
+      MATCH_MP_TAC WG4 >> art [],
+      MATCH_MP_TAC WG5 >> art [],
+      MATCH_MP_TAC WG6 >> art [],
+      MATCH_MP_TAC WG7 >> art [] ]);
 
 val lemma = Q.prove (`!p :('a, 'b) CCS. ?q. q <> p`,
     Cases_on `p`
@@ -731,26 +774,6 @@ val SG11' = store_thm ("SG11'",
       Q.PAT_X_ASSUM `(\t. sum (prefix (label L) (e t)) (prefix tau (e' t))) = X`
 	  (ASSUME_TAC o BETA_RULE o (REWRITE_RULE [FUN_EQ_THM])) \\
       PROVE_TAC [CCS_distinct'] ]);
-
-val OBS_CONGR_SUBST_SG = store_thm (
-   "OBS_CONGR_SUBST_SG",
-  ``!P Q. OBS_CONGR P Q ==> !E. SG E ==> OBS_CONGR (E P) (E Q)``,
-    rpt GEN_TAC >> DISCH_TAC
- >> Induct_on `SG` >> BETA_TAC >> rpt STRIP_TAC (* 7 sub-goals here *)
- >- REWRITE_TAC [OBS_CONGR_REFL]
- >| [ (* goal 1 (of 6) *)
-      MATCH_MP_TAC OBS_CONGR_SUBST_PREFIX \\
-      irule OBS_CONGR_SUBST_CONTEXT >> ASM_REWRITE_TAC [],
-      (* goal 2 (of 6) *)
-      MATCH_MP_TAC OBS_CONGR_SUBST_PREFIX >> ASM_REWRITE_TAC [],
-      (* goal 3 (of 6) *)
-      IMP_RES_TAC OBS_CONGR_PRESD_BY_SUM,
-      (* goal 4 (of 6) *)
-      IMP_RES_TAC OBS_CONGR_PRESD_BY_PAR,
-      (* goal 5 (of 6) *)
-      MATCH_MP_TAC OBS_CONGR_SUBST_RESTR >> ASM_REWRITE_TAC [],
-      (* goal 6 (of 6) *)
-      MATCH_MP_TAC OBS_CONGR_SUBST_RELAB >> ASM_REWRITE_TAC [] ]);
 
 (******************************************************************************)
 (*                                                                            *)

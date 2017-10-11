@@ -37,39 +37,37 @@ val STRONG_UNIQUE_SOLUTIONS_LEMMA = store_thm (
    "STRONG_UNIQUE_SOLUTIONS_LEMMA",
   ``!E. WG E ==>
 	!P a P'. TRANS (E P) a P' ==>
-		 ?E'. CONTEXT E' /\ (P' = E' P) /\ !Q. TRANS (E Q) a (E' Q)``,
+		 ?E'. EXPR E' /\ (P' = E' P) /\ !Q. TRANS (E Q) a (E' Q)``,
     Induct_on `WG` >> BETA_TAC
  >> COUNT_TAC (rpt STRIP_TAC) (* 6 sub-goals here *)
  >| [ (* goal 1 (of 6) *)
       POP_ASSUM (STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [TRANS_cases])) \\
       Q.EXISTS_TAC `\t. P'` >> BETA_TAC \\
-      ASM_REWRITE_TAC [CONTEXT2] >| (* 10 sub-goals here *)
+      art [EXPR2] >| (* 10 sub-goals here *)
       [ REWRITE_TAC [PREFIX],
-        MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [],
-        MATCH_MP_TAC SUM2 >> ASM_REWRITE_TAC [],
-        MATCH_MP_TAC PAR1 >> ASM_REWRITE_TAC [],
-        MATCH_MP_TAC PAR2 >> ASM_REWRITE_TAC [],
-        MATCH_MP_TAC PAR3 >> Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [],
-        MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> FULL_SIMP_TAC std_ss [],
-        MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> FULL_SIMP_TAC std_ss [],
-        MATCH_MP_TAC RELABELING >> ASM_REWRITE_TAC [],
-        MATCH_MP_TAC REC >> ASM_REWRITE_TAC [],
-	MATCH_MP_TAC LTS >> ASM_REWRITE_TAC [] ],
+        MATCH_MP_TAC SUM1 >> art [],
+        MATCH_MP_TAC SUM2 >> art [],
+        MATCH_MP_TAC PAR1 >> art [],
+        MATCH_MP_TAC PAR2 >> art [],
+        MATCH_MP_TAC PAR3 >> Q.EXISTS_TAC `l` >> art [],
+        MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> fs [],
+        MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> fs [],
+        MATCH_MP_TAC RELABELING >> art [],
+        MATCH_MP_TAC REC >> art [],
+	MATCH_MP_TAC LTS >> art [] ],
       (* goal 2 (of 6) *)
-      IMP_RES_TAC TRANS_PREFIX \\
-      ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `e` \\
-      ASM_REWRITE_TAC [PREFIX],
+      IMP_RES_TAC TRANS_PREFIX >> art [] \\
+      Q.EXISTS_TAC `e` >> art [PREFIX],
       (* goal 3 (of 6) *)
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 3.1 (of 2) *)
         RES_TAC \\
-        Q.EXISTS_TAC `E''` >> ASM_REWRITE_TAC [] \\
-        GEN_TAC >> MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [],
+        Q.EXISTS_TAC `E''` >> art [] \\
+        GEN_TAC >> MATCH_MP_TAC SUM1 >> art [],
         (* goal 3.2 (of 2) *)
         RES_TAC \\
-        Q.EXISTS_TAC `E''` >> ASM_REWRITE_TAC [] \\
-        GEN_TAC >> MATCH_MP_TAC SUM2 >> ASM_REWRITE_TAC [] ],
+        Q.EXISTS_TAC `E''` >> art [] \\
+        GEN_TAC >> MATCH_MP_TAC SUM2 >> art [] ],
       (* goal 4 (of 6) *)
       IMP_RES_TAC TRANS_PAR >| (* 3 sub-goals here *)
       [ (* goal 4.1 (of 3) *)
@@ -78,43 +76,43 @@ val STRONG_UNIQUE_SOLUTIONS_LEMMA = store_thm (
         BETA_TAC >> REWRITE_TAC [] \\
         CONJ_TAC >| (* 2 sub-goals here *)
         [ (* goal 4.1.1 (of 2) *)
-          MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] \\
-          IMP_RES_TAC WG_IS_CONTEXT,
+          MATCH_MP_TAC EXPR5 >> art [] \\
+          IMP_RES_TAC WG_IS_EXPR,
           (* goal 4.1.2 (of 2) *)
-          GEN_TAC >> MATCH_MP_TAC PAR1 >> ASM_REWRITE_TAC [] ],
+          GEN_TAC >> MATCH_MP_TAC PAR1 >> art [] ],
         (* goal 4.2 (of 3) *)
         RES_TAC >> FULL_SIMP_TAC std_ss [] \\
         Q.EXISTS_TAC `\t. par (E t) (E'' t)` \\
         BETA_TAC >> REWRITE_TAC [] \\
         CONJ_TAC >| (* 2 sub-goals here *)
         [ (* goal 4.2.1 (of 2) *)
-          MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] \\
-          IMP_RES_TAC WG_IS_CONTEXT,
+          MATCH_MP_TAC EXPR5 >> art [] \\
+          IMP_RES_TAC WG_IS_EXPR,
           (* goal 4.2.2 (of 2) *)
-          GEN_TAC >> MATCH_MP_TAC PAR2 >> ASM_REWRITE_TAC [] ],
+          GEN_TAC >> MATCH_MP_TAC PAR2 >> art [] ],
         (* goal 4.3 (of 3) *)
         RES_TAC >> FULL_SIMP_TAC std_ss [] \\
         Q.EXISTS_TAC `\t. par (E''' t) (E'' t)` \\
         BETA_TAC >> REWRITE_TAC [] \\
         CONJ_TAC >| (* 2 sub-goals here *)
         [ (* goal 4.3.1 (of 2) *)
-          MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [],
+          MATCH_MP_TAC EXPR5 >> art [],
           (* goal 4.3.2 (of 2) *)
           GEN_TAC >> MATCH_MP_TAC PAR3 \\
-          Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [] ] ],
+          Q.EXISTS_TAC `l` >> art [] ] ],
       (* goal 5 (of 6) *)
       IMP_RES_TAC TRANS_RESTR >| (* 2 sub-goals here *)
       [ (* goal 5.1 (of 2) *)
         RES_TAC >> FULL_SIMP_TAC std_ss [] \\
         Q.EXISTS_TAC `\t. restr L (E' t)` >> BETA_TAC >> REWRITE_TAC [] \\
-        CONJ_TAC >- ( MATCH_MP_TAC CONTEXT6 >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC EXPR6 >> art [] ) \\
         GEN_TAC >> MATCH_MP_TAC RESTR \\
         FULL_SIMP_TAC std_ss [] \\
         PROVE_TAC [],
         (* goal 5.2 (of 2) *)
         RES_TAC >> FULL_SIMP_TAC std_ss [] \\
         Q.EXISTS_TAC `\t. restr L (E' t)` >> BETA_TAC >> REWRITE_TAC [] \\
-        CONJ_TAC >- ( MATCH_MP_TAC CONTEXT6 >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC EXPR6 >> art [] ) \\
         GEN_TAC >> MATCH_MP_TAC RESTR \\
         Q.EXISTS_TAC `l` >> FULL_SIMP_TAC std_ss [Action_distinct_label] \\
         PROVE_TAC [] ],
@@ -122,9 +120,12 @@ val STRONG_UNIQUE_SOLUTIONS_LEMMA = store_thm (
       IMP_RES_TAC TRANS_RELAB \\
       RES_TAC >> FULL_SIMP_TAC std_ss [] \\
       Q.EXISTS_TAC `\t. relab (E' t) rf` >> BETA_TAC >> REWRITE_TAC [] \\
-      CONJ_TAC >- ( MATCH_MP_TAC CONTEXT7 >> ASM_REWRITE_TAC [] ) \\
-      GEN_TAC >> MATCH_MP_TAC RELABELING \\
-      ASM_REWRITE_TAC [] ]);
+      CONJ_TAC >- ( MATCH_MP_TAC EXPR7 >> art [] ) \\
+      GEN_TAC >> MATCH_MP_TAC RELABELING >> art [],
+      (* goal 7 (of 7) *)
+      IMP_RES_TAC TRANS_REC >> RES_TAC \\
+      Q.EXISTS_TAC `E'` >> art [] \\
+      GEN_TAC >> MATCH_MP_TAC REC >> art [] ]);
 
 (* Proposition 3.14 in Milner's book [1]:
    Let the expression E contains at most the variable X, and let X be weakly guarded in E,
@@ -137,33 +138,33 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
 	!P Q. STRONG_EQUIV P (E P) /\ STRONG_EQUIV Q (E Q) ==> STRONG_EQUIV P Q``,
     rpt STRIP_TAC
  >> irule (REWRITE_RULE [RSUBSET] STRONG_BISIM_UPTO_THM)
- >> Q.EXISTS_TAC `\x y. (x = y) \/ (?G. CONTEXT G /\ (x = G P) /\ (y = G Q))`
+ >> Q.EXISTS_TAC `\x y. (x = y) \/ (?G. EXPR G /\ (x = G P) /\ (y = G Q))`
  >> BETA_TAC >> Rev CONJ_TAC
  >- ( DISJ2_TAC >> Q.EXISTS_TAC `\x. x` >> BETA_TAC \\
-      KILL_TAC >> RW_TAC std_ss [CONTEXT1] )
+      KILL_TAC >> RW_TAC std_ss [EXPR1] )
  >> REWRITE_TAC [STRONG_BISIM_UPTO]
  >> Q.X_GEN_TAC `P'`
  >> Q.X_GEN_TAC `Q'`
  >> BETA_TAC >> STRIP_TAC (* 2 sub-goals here *)
- >- ( ASM_REWRITE_TAC [] >> rpt STRIP_TAC >| (* 2 sub-goals here *)
+ >- ( art [] >> rpt STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 1 (of 2) *)
-        Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `E1` >> art [] \\
         REWRITE_TAC [O_DEF] \\
-        Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL] \\
-        Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL] \\
+        Q.EXISTS_TAC `E1` >> art [STRONG_EQUIV_REFL] \\
+        Q.EXISTS_TAC `E1` >> art [STRONG_EQUIV_REFL] \\
         BETA_TAC >> DISJ1_TAC >> RW_TAC std_ss [],
         (* goal 2 (of 2) *)
-        Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `E2` >> art [] \\
         REWRITE_TAC [O_DEF] \\
-        Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL] \\
-        Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL] \\
+        Q.EXISTS_TAC `E2` >> art [STRONG_EQUIV_REFL] \\
+        Q.EXISTS_TAC `E2` >> art [STRONG_EQUIV_REFL] \\
         BETA_TAC >> DISJ1_TAC >> RW_TAC std_ss [] ] )
- >> ASM_REWRITE_TAC []
+ >> art []
  >> NTAC 2 (POP_ASSUM K_TAC)
  >> POP_ASSUM MP_TAC
  >> Q.SPEC_TAC (`G`, `G`)
- >> COUNT_TAC (Induct_on `CONTEXT` >> BETA_TAC >> rpt STRIP_TAC) (* 14 sub-goals here *)
- >| [ (* goal 1 (of 14) *)
+ >> COUNT_TAC (Induct_on `EXPR` >> BETA_TAC >> rpt STRIP_TAC) (* 16 sub-goals here *)
+ >| [ (* goal 1 (of 16) *)
       Q.PAT_X_ASSUM `STRONG_EQUIV P (E P)`
 	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [PROPERTY_STAR])) \\
       RES_TAC \\
@@ -173,14 +174,14 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
       Q.PAT_X_ASSUM `STRONG_EQUIV Q (E Q)`
 	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [PROPERTY_STAR])) \\
       RES_TAC \\
-      Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1'` >> art [] \\
       REWRITE_TAC [O_DEF] \\
       `STRONG_EQUIV (E' Q) E1'` by PROVE_TAC [STRONG_EQUIV_SYM] \\
-      Q.EXISTS_TAC `E' Q` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `E' P` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E' Q` >> art [] \\
+      Q.EXISTS_TAC `E' P` >> art [] \\
       BETA_TAC >> DISJ2_TAC \\
-      Q.EXISTS_TAC `E'` >> ASM_REWRITE_TAC [],
-      (* goal 2 (of 14) *)
+      Q.EXISTS_TAC `E'` >> art [],
+      (* goal 2 (of 16) *)
       Q.PAT_X_ASSUM `STRONG_EQUIV Q (E Q)`
 	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [PROPERTY_STAR])) \\
       RES_TAC \\
@@ -190,27 +191,27 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
       Q.PAT_X_ASSUM `STRONG_EQUIV P (E P)`
 	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [PROPERTY_STAR])) \\
       RES_TAC \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1` >> art [] \\
       REWRITE_TAC [O_DEF] \\
       `STRONG_EQUIV (E' P) E1` by PROVE_TAC [STRONG_EQUIV_SYM] \\
       `STRONG_EQUIV (E' Q) E2` by PROVE_TAC [STRONG_EQUIV_SYM] \\
-      Q.EXISTS_TAC `E' Q` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `E' P` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E' Q` >> art [] \\
+      Q.EXISTS_TAC `E' P` >> art [] \\
       BETA_TAC >> DISJ2_TAC \\
-      Q.EXISTS_TAC `E'` >> ASM_REWRITE_TAC [],
-      (* goal 3 (of 14) *)
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E'` >> art [],
+      (* goal 3 (of 16) *)
+      Q.EXISTS_TAC `E1` >> art [] \\
       REWRITE_TAC [O_DEF] \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL] \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL] \\
+      Q.EXISTS_TAC `E1` >> art [STRONG_EQUIV_REFL] \\
+      Q.EXISTS_TAC `E1` >> art [STRONG_EQUIV_REFL] \\
       BETA_TAC >> DISJ1_TAC >> RW_TAC std_ss [],
-      (* goal 4 (of 14) *)
-      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
+      (* goal 4 (of 16) *)
+      Q.EXISTS_TAC `E2` >> art [] \\
       REWRITE_TAC [O_DEF] \\
-      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL] \\
-      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [STRONG_EQUIV_REFL] \\
+      Q.EXISTS_TAC `E2` >> art [STRONG_EQUIV_REFL] \\
+      Q.EXISTS_TAC `E2` >> art [STRONG_EQUIV_REFL] \\
       BETA_TAC >> DISJ1_TAC >> RW_TAC std_ss [],
-      (* goal 5 (of 14) *)
+      (* goal 5 (of 16) *)
       IMP_RES_TAC TRANS_PREFIX \\
       FULL_SIMP_TAC std_ss [] \\
       NTAC 2 (POP_ASSUM K_TAC) \\
@@ -218,8 +219,8 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
       REWRITE_TAC [O_DEF] >> BETA_TAC \\
       Q.EXISTS_TAC `G Q` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
       Q.EXISTS_TAC `G P` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
-      DISJ2_TAC >> Q.EXISTS_TAC `G` >> ASM_REWRITE_TAC [],
-      (* goal 6 (of 14) *)
+      DISJ2_TAC >> Q.EXISTS_TAC `G` >> art [],
+      (* goal 6 (of 16) *)
       IMP_RES_TAC TRANS_PREFIX \\
       FULL_SIMP_TAC std_ss [] \\
       NTAC 2 (POP_ASSUM K_TAC) \\
@@ -227,101 +228,101 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
       REWRITE_TAC [O_DEF] >> BETA_TAC \\
       Q.EXISTS_TAC `G Q` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
       Q.EXISTS_TAC `G P` >> REWRITE_TAC [STRONG_EQUIV_REFL] \\
-      DISJ2_TAC >> Q.EXISTS_TAC `G` >> ASM_REWRITE_TAC [],
-      (* goal 7 (of 14) *)
+      DISJ2_TAC >> Q.EXISTS_TAC `G` >> art [],
+      (* goal 7 (of 16) *)
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 7.1 (of 2) *)
         RES_TAC \\
         Q.EXISTS_TAC `E2` \\
-        CONJ_TAC >- ( MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [] ) \\
-        ASM_REWRITE_TAC [],
+        CONJ_TAC >- ( MATCH_MP_TAC SUM1 >> art [] ) \\
+        art [],
         (* goal 7.2 (of 2) *)
         RES_TAC \\
         Q.EXISTS_TAC `E2` \\
-        CONJ_TAC >- ( MATCH_MP_TAC SUM2 >> ASM_REWRITE_TAC [] ) \\
-        ASM_REWRITE_TAC [] ],
-      (* goal 8 (of 14) *)
+        CONJ_TAC >- ( MATCH_MP_TAC SUM2 >> art [] ) \\
+        art [] ],
+      (* goal 8 (of 16) *)
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 8.1 (of 2) *)
         RES_TAC \\
         Q.EXISTS_TAC `E1` \\
-        CONJ_TAC >- ( MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [] ) \\
-        ASM_REWRITE_TAC [],
+        CONJ_TAC >- ( MATCH_MP_TAC SUM1 >> art [] ) \\
+        art [],
         (* goal 8.2 (of 2) *)
         RES_TAC \\
         Q.EXISTS_TAC `E1` \\
-        CONJ_TAC >- ( MATCH_MP_TAC SUM2 >> ASM_REWRITE_TAC [] ) \\
-        ASM_REWRITE_TAC [] ],
-      (* goal 9 (of 14) *)
+        CONJ_TAC >- ( MATCH_MP_TAC SUM2 >> art [] ) \\
+        art [] ],
+      (* goal 9 (of 16) *)
       IMP_RES_TAC TRANS_PAR >> FULL_SIMP_TAC std_ss [] >| (* 3 sub-goals here *)
       [ (* goal 9.1 (of 3) *)
         Q.PAT_X_ASSUM `E1 = X` K_TAC \\
         RES_TAC \\
         Q.EXISTS_TAC `E2 || G' Q` \\
-        CONJ_TAC >- ( MATCH_MP_TAC PAR1 >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC PAR1 >> art [] ) \\
         POP_ASSUM MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC \\
         RW_TAC std_ss [] >| (* 2 sub-goals here *)
         [ (* goal 9.1.1 (of 2) *)
           Q.EXISTS_TAC `y || G' Q` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+				art [STRONG_EQUIV_REFL] ) \\
           Q.EXISTS_TAC `y || G' P` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+			art [STRONG_EQUIV_REFL] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. y || G' t` >> BETA_TAC >> REWRITE_TAC [] \\
-          `CONTEXT (\z. y)` by REWRITE_TAC [CONTEXT2] \\
-          Know `CONTEXT (\t. (\z. y) t || G' t)`
-          >- ( MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ) \\
+          `EXPR (\z. y)` by REWRITE_TAC [EXPR2] \\
+          Know `EXPR (\t. (\z. y) t || G' t)`
+          >- ( MATCH_MP_TAC EXPR5 >> art [] ) \\
           BETA_TAC >> REWRITE_TAC [],
           (* goal 9.1.2 (of 2) *)
           Q.EXISTS_TAC `G'' Q || G' Q` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+				art [STRONG_EQUIV_REFL] ) \\
           Q.EXISTS_TAC `G'' P || G' P` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+			art [STRONG_EQUIV_REFL] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. G'' t || G' t` >> BETA_TAC >> REWRITE_TAC [] \\
-          MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ],
+          MATCH_MP_TAC EXPR5 >> art [] ],
         (* goal 9.2 (of 3) *)
         Q.PAT_X_ASSUM `E1 = X` K_TAC \\
         RES_TAC \\
         Q.EXISTS_TAC `G Q || E2` \\
-        CONJ_TAC >- ( MATCH_MP_TAC PAR2 >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC PAR2 >> art [] ) \\
         POP_ASSUM MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC \\
         RW_TAC std_ss [] >| (* 2 sub-goals here *)
         [ (* goal 9.2.1 (of 2) *)
           Q.EXISTS_TAC `G Q || y` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+				art [STRONG_EQUIV_REFL] ) \\
           Q.EXISTS_TAC `G P || y` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+			art [STRONG_EQUIV_REFL] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. G t || y` >> BETA_TAC >> REWRITE_TAC [] \\
-          `CONTEXT (\z. y)` by REWRITE_TAC [CONTEXT2] \\
-          Know `CONTEXT (\t. G t || (\z. y) t)`
-          >- ( MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ) \\
+          `EXPR (\z. y)` by REWRITE_TAC [EXPR2] \\
+          Know `EXPR (\t. G t || (\z. y) t)`
+          >- ( MATCH_MP_TAC EXPR5 >> art [] ) \\
           BETA_TAC >> REWRITE_TAC [],
           (* goal 9.2.2 (of 2) *)
           Q.EXISTS_TAC `G Q || G'' Q` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+				art [STRONG_EQUIV_REFL] ) \\
           Q.EXISTS_TAC `G P || G'' P` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+			art [STRONG_EQUIV_REFL] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. G t || G'' t` >> BETA_TAC >> REWRITE_TAC [] \\
-          MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ],
+          MATCH_MP_TAC EXPR5 >> art [] ],
         (* goal 9.3 (of 3) *)
         Q.PAT_X_ASSUM `E1 = X` K_TAC \\
         Q.PAT_X_ASSUM `u = tau` K_TAC \\
         RES_TAC \\
         Q.EXISTS_TAC `E2'' || E2'` \\
-        CONJ_TAC >- ( MATCH_MP_TAC PAR3 >> Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC PAR3 >> Q.EXISTS_TAC `l` >> art [] ) \\
         Q.PAT_X_ASSUM `X E2 E2'` MP_TAC \\
         Q.PAT_X_ASSUM `X E1' E2''` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC \\
@@ -329,114 +330,114 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
         [ (* goal 9.3.1 (of 4) *)
           Q.EXISTS_TAC `y || y''` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `y || y''` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ1_TAC >> REWRITE_TAC [],
           (* goal 9.3.2 (of 4) *)
           Q.EXISTS_TAC `y || G'' Q` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `y || G'' P` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. y || G'' t` >> BETA_TAC >> REWRITE_TAC [] \\
-          `CONTEXT (\z. y)` by REWRITE_TAC [CONTEXT2] \\
-          Know `CONTEXT (\t. (\z. y) t || G'' t)`
-          >- ( MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ) \\
+          `EXPR (\z. y)` by REWRITE_TAC [EXPR2] \\
+          Know `EXPR (\t. (\z. y) t || G'' t)`
+          >- ( MATCH_MP_TAC EXPR5 >> art [] ) \\
           BETA_TAC >> REWRITE_TAC [],
           (* goal 9.3.3 (of 4) *)
           Q.EXISTS_TAC `G'' Q || y''` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `G'' P || y''` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. G'' t || y''` >> BETA_TAC >> REWRITE_TAC [] \\
-          `CONTEXT (\z. y'')` by REWRITE_TAC [CONTEXT2] \\
-          Know `CONTEXT (\t. G'' t || (\z. y'') t)`
-          >- ( MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ) \\
+          `EXPR (\z. y'')` by REWRITE_TAC [EXPR2] \\
+          Know `EXPR (\t. G'' t || (\z. y'') t)`
+          >- ( MATCH_MP_TAC EXPR5 >> art [] ) \\
           BETA_TAC >> REWRITE_TAC [],
           (* goal 9.3.4 (of 4) *)
           Q.EXISTS_TAC `G'' Q || G''' Q` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `G'' P || G''' P` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. G'' t || G''' t` >> BETA_TAC >> REWRITE_TAC [] \\
-          MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ] ],
-      (* goal 10 (of 14) *)
+          MATCH_MP_TAC EXPR5 >> art [] ] ],
+      (* goal 10 (of 16) *)
       IMP_RES_TAC TRANS_PAR >> FULL_SIMP_TAC std_ss [] >| (* 3 sub-goals here *)
       [ (* goal 10.1 (of 3) *)
         Q.PAT_X_ASSUM `E2 = X` K_TAC >> RES_TAC \\
         Q.EXISTS_TAC `E1' || G' P` \\
-        CONJ_TAC >- ( MATCH_MP_TAC PAR1 >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC PAR1 >> art [] ) \\
         POP_ASSUM MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC \\
         RW_TAC std_ss [] >| (* 2 sub-goals here *)
         [ (* goal 10.1.1 (of 2) *)
           Q.EXISTS_TAC `y || G' Q` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+				art [STRONG_EQUIV_REFL] ) \\
           Q.EXISTS_TAC `y || G' P` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+			art [STRONG_EQUIV_REFL] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. y || G' t` >> BETA_TAC >> REWRITE_TAC [] \\
-          `CONTEXT (\z. y)` by REWRITE_TAC [CONTEXT2] \\
-          Know `CONTEXT (\t. (\z. y) t || G' t)`
-          >- ( MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ) \\
+          `EXPR (\z. y)` by REWRITE_TAC [EXPR2] \\
+          Know `EXPR (\t. (\z. y) t || G' t)`
+          >- ( MATCH_MP_TAC EXPR5 >> art [] ) \\
           BETA_TAC >> REWRITE_TAC [],
           (* goal 10.1.2 (of 2) *)
           Q.EXISTS_TAC `G'' Q || G' Q` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+				art [STRONG_EQUIV_REFL] ) \\
           Q.EXISTS_TAC `G'' P || G' P` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+			art [STRONG_EQUIV_REFL] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. G'' t || G' t` >> BETA_TAC >> REWRITE_TAC [] \\
-          MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ],
+          MATCH_MP_TAC EXPR5 >> art [] ],
         (* goal 10.2 (of 3) *)
         Q.PAT_X_ASSUM `E2 = X` K_TAC >> RES_TAC \\
         Q.EXISTS_TAC `G P || E1'` \\
-        CONJ_TAC >- ( MATCH_MP_TAC PAR2 >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC PAR2 >> art [] ) \\
         POP_ASSUM MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC \\
         RW_TAC std_ss [] >| (* 2 sub-goals here *)
         [ (* goal 10.2.1 (of 2) *)
           Q.EXISTS_TAC `G Q || y` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+				art [STRONG_EQUIV_REFL] ) \\
           Q.EXISTS_TAC `G P || y` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+			art [STRONG_EQUIV_REFL] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. G t || y` >> BETA_TAC >> REWRITE_TAC [] \\
-          `CONTEXT (\z. y)` by REWRITE_TAC [CONTEXT2] \\
-          Know `CONTEXT (\t. G t || (\z. y) t)`
-          >- ( MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ) \\
+          `EXPR (\z. y)` by REWRITE_TAC [EXPR2] \\
+          Know `EXPR (\t. G t || (\z. y) t)`
+          >- ( MATCH_MP_TAC EXPR5 >> art [] ) \\
           BETA_TAC >> REWRITE_TAC [],
           (* goal 10.2.2 (of 2) *)
           Q.EXISTS_TAC `G Q || G'' Q` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+				art [STRONG_EQUIV_REFL] ) \\
           Q.EXISTS_TAC `G P || G'' P` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [STRONG_EQUIV_REFL] ) \\
+			art [STRONG_EQUIV_REFL] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. G t || G'' t` >> BETA_TAC >> REWRITE_TAC [] \\
-          MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ],
+          MATCH_MP_TAC EXPR5 >> art [] ],
         (* goal 10.3 (of 3) *)
         Q.PAT_X_ASSUM `E2 = X` K_TAC \\
         Q.PAT_X_ASSUM `u = tau` K_TAC >> RES_TAC \\
         Q.EXISTS_TAC `E1'' || E1'` \\
-        CONJ_TAC >- ( MATCH_MP_TAC PAR3 >> Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC PAR3 >> Q.EXISTS_TAC `l` >> art [] ) \\
         Q.PAT_X_ASSUM `X E1'' E1` MP_TAC \\
         Q.PAT_X_ASSUM `X E1' E2'` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC \\
@@ -444,47 +445,47 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
         [ (* goal 10.3.1 (of 4) *)
           Q.EXISTS_TAC `y'' || y` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `y'' || y` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ1_TAC >> REWRITE_TAC [],
           (* goal 10.3.2 (of 4) *)
           Q.EXISTS_TAC `G'' Q || y` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `G'' P || y` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. G'' t || y` >> BETA_TAC >> REWRITE_TAC [] \\
-          `CONTEXT (\z. y)` by REWRITE_TAC [CONTEXT2] \\
-          Know `CONTEXT (\t. G'' t || (\z. y) t)`
-          >- ( MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ) \\
+          `EXPR (\z. y)` by REWRITE_TAC [EXPR2] \\
+          Know `EXPR (\t. G'' t || (\z. y) t)`
+          >- ( MATCH_MP_TAC EXPR5 >> art [] ) \\
           BETA_TAC >> REWRITE_TAC [],
           (* goal 10.3.3 (of 4) *)
           Q.EXISTS_TAC `y'' || G'' Q` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `y'' || G'' P` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. y'' || G'' t` >> BETA_TAC >> REWRITE_TAC [] \\
-          `CONTEXT (\z. y'')` by REWRITE_TAC [CONTEXT2] \\
-          Know `CONTEXT (\t. (\z. y'') t || G'' t)`
-          >- ( MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ) \\
+          `EXPR (\z. y'')` by REWRITE_TAC [EXPR2] \\
+          Know `EXPR (\t. (\z. y'') t || G'' t)`
+          >- ( MATCH_MP_TAC EXPR5 >> art [] ) \\
           BETA_TAC >> REWRITE_TAC [],
           (* goal 10.3.4 (of 4) *)
           Q.EXISTS_TAC `G''' Q || G'' Q` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `G''' P || G'' P` \\
-          CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR >> ASM_REWRITE_TAC [] ) \\
+          CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_PRESD_BY_PAR >> art [] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. G''' t || G'' t` >> BETA_TAC >> REWRITE_TAC [] \\
-          MATCH_MP_TAC CONTEXT5 >> ASM_REWRITE_TAC [] ] ],
-      (* goal 11 (of 14) *)
+          MATCH_MP_TAC EXPR5 >> art [] ] ],
+      (* goal 11 (of 16) *)
       IMP_RES_TAC TRANS_RESTR >> FULL_SIMP_TAC std_ss [] >| (* 2 sub-goals here *)
       [ (* goal 11.1 (of 2) *)
         RES_TAC \\
@@ -495,46 +496,46 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
         [ (* goal 11.1.1 (of 2) *)
           Q.EXISTS_TAC `restr L y` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `restr L y` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ1_TAC >> REWRITE_TAC [],
           (* goal 11.1.2 (of 2) *)
           Q.EXISTS_TAC `restr L (G' Q)` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `restr L (G' P)` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. restr L (G' t)` >> BETA_TAC >> REWRITE_TAC [] \\
-          MATCH_MP_TAC CONTEXT6 >> ASM_REWRITE_TAC [] ],
+          MATCH_MP_TAC EXPR6 >> art [] ],
         (* goal 11.2 (of 2) *)
         RES_TAC \\
         Q.EXISTS_TAC `restr L E2` \\
-        CONJ_TAC >- ( MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> art [] ) \\
         POP_ASSUM MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC >> RW_TAC std_ss [] >| (* 2 sub-goals here *)
         [ (* goal 11.2.1 (of 2) *)
           Q.EXISTS_TAC `restr L y` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `restr L y` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ1_TAC >> REWRITE_TAC [],
           (* goal 11.2.2 (of 2) *)
           Q.EXISTS_TAC `restr L (G' Q)` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `restr L (G' P)` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. restr L (G' t)` >> BETA_TAC >> REWRITE_TAC [] \\
-          MATCH_MP_TAC CONTEXT6 >> ASM_REWRITE_TAC [] ] ],
-      (* goal 12 (of 14) *)
+          MATCH_MP_TAC EXPR6 >> art [] ] ],
+      (* goal 12 (of 16) *)
       IMP_RES_TAC TRANS_RESTR >> FULL_SIMP_TAC std_ss [] >| (* 2 sub-goals here *)
       [ (* goal 12.1 (of 2) *)
         RES_TAC \\
@@ -545,93 +546,105 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
         [ (* goal 12.1.1 (of 2) *)
           Q.EXISTS_TAC `restr L y` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `restr L y` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ1_TAC >> REWRITE_TAC [],
           (* goal 12.1.2 (of 2) *)
           Q.EXISTS_TAC `restr L (G' Q)` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `restr L (G' P)` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. restr L (G' t)` >> BETA_TAC >> REWRITE_TAC [] \\
-          MATCH_MP_TAC CONTEXT6 >> ASM_REWRITE_TAC [] ],
+          MATCH_MP_TAC EXPR6 >> art [] ],
         (* goal 12.2 (of 2) *)
         RES_TAC \\
         Q.EXISTS_TAC `restr L E1` \\
-        CONJ_TAC >- ( MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> art [] ) \\
         POP_ASSUM MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC >> RW_TAC std_ss [] >| (* 2 sub-goals here *)
         [ (* goal 12.2.1 (of 2) *)
           Q.EXISTS_TAC `restr L y` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `restr L y` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ1_TAC >> REWRITE_TAC [],
           (* goal 12.2.2 (of 2) *)
           Q.EXISTS_TAC `restr L (G' Q)` \\
           Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-				ASM_REWRITE_TAC [] ) \\
+				art [] ) \\
           Q.EXISTS_TAC `restr L (G' P)` \\
           CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RESTR \\
-			ASM_REWRITE_TAC [] ) \\
+			art [] ) \\
           DISJ2_TAC \\
           Q.EXISTS_TAC `\t. restr L (G' t)` >> BETA_TAC >> REWRITE_TAC [] \\
-          MATCH_MP_TAC CONTEXT6 >> ASM_REWRITE_TAC [] ] ],
-      (* goal 13 (of 14) *)
+          MATCH_MP_TAC EXPR6 >> art [] ] ],
+      (* goal 13 (of 16) *)
       IMP_RES_TAC TRANS_RELAB \\
       FULL_SIMP_TAC std_ss [] \\
       RES_TAC \\
       Q.EXISTS_TAC `relab E2 rf` \\
-      CONJ_TAC >- ( MATCH_MP_TAC RELABELING >> ASM_REWRITE_TAC [] ) \\
+      CONJ_TAC >- ( MATCH_MP_TAC RELABELING >> art [] ) \\
       POP_ASSUM MP_TAC \\
       REWRITE_TAC [O_DEF] >> BETA_TAC >> RW_TAC std_ss [] >| (* 2 sub-goals here *)
       [ (* goal 13.1 (of 2) *)
         Q.EXISTS_TAC `relab y rf` \\
         Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB \\
-			      ASM_REWRITE_TAC [] ) \\
+			      art [] ) \\
         Q.EXISTS_TAC `relab y rf` \\
-        CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB >> art [] ) \\
         DISJ1_TAC >> REWRITE_TAC [],
         (* goal 13.2 (of 2) *)
         Q.EXISTS_TAC `relab (G' Q) rf` \\
         Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB \\
-			      ASM_REWRITE_TAC [] ) \\
+			      art [] ) \\
         Q.EXISTS_TAC `relab (G' P) rf` \\
-        CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB >> art [] ) \\
         DISJ2_TAC \\
         Q.EXISTS_TAC `\t. relab (G' t) rf` >> BETA_TAC >> REWRITE_TAC [] \\
-        MATCH_MP_TAC CONTEXT7 >> ASM_REWRITE_TAC [] ],
-      (* goal 14 (of 14) *)
+        MATCH_MP_TAC EXPR7 >> art [] ],
+      (* goal 14 (of 16) *)
       IMP_RES_TAC TRANS_RELAB \\
       FULL_SIMP_TAC std_ss [] \\
       RES_TAC \\
       Q.EXISTS_TAC `relab E1 rf` \\
-      CONJ_TAC >- ( MATCH_MP_TAC RELABELING >> ASM_REWRITE_TAC [] ) \\
+      CONJ_TAC >- ( MATCH_MP_TAC RELABELING >> art [] ) \\
       POP_ASSUM MP_TAC \\
       REWRITE_TAC [O_DEF] >> BETA_TAC >> RW_TAC std_ss [] >| (* 2 sub-goals here *)
       [ (* goal 14.1 (of 2) *)
         Q.EXISTS_TAC `relab y rf` \\
         Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB \\
-			      ASM_REWRITE_TAC [] ) \\
+			      art [] ) \\
         Q.EXISTS_TAC `relab y rf` \\
-        CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB >> art [] ) \\
         DISJ1_TAC >> REWRITE_TAC [],
         (* goal 14.2 (of 2) *)
         Q.EXISTS_TAC `relab (G' Q) rf` \\
         Rev CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB \\
-			      ASM_REWRITE_TAC [] ) \\
+			      art [] ) \\
         Q.EXISTS_TAC `relab (G' P) rf` \\
-        CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB >> ASM_REWRITE_TAC [] ) \\
+        CONJ_TAC >- ( MATCH_MP_TAC STRONG_EQUIV_SUBST_RELAB >> art [] ) \\
         DISJ2_TAC \\
         Q.EXISTS_TAC `\t. relab (G' t) rf` >> BETA_TAC >> REWRITE_TAC [] \\
-        MATCH_MP_TAC CONTEXT7 >> ASM_REWRITE_TAC [] ] ]);
+        MATCH_MP_TAC EXPR7 >> art [] ],
+      (* goal 15 (of 16) *)
+      IMP_RES_TAC TRANS_REC >> RES_TAC \\
+      Q.EXISTS_TAC `E2` \\
+      CONJ_TAC >- ( MATCH_MP_TAC REC >> art [] ) \\
+      POP_ASSUM MP_TAC \\
+      REWRITE_TAC [O_DEF] >> BETA_TAC >> RW_TAC std_ss [],
+      (* goal 16 (of 16) *)
+      IMP_RES_TAC TRANS_REC >> RES_TAC \\
+      Q.EXISTS_TAC `E1` \\
+      CONJ_TAC >- ( MATCH_MP_TAC REC >> art [] ) \\
+      POP_ASSUM MP_TAC \\
+      REWRITE_TAC [O_DEF] >> BETA_TAC >> RW_TAC std_ss [] ]);
 
 (******************************************************************************)
 (*                                                                            *)
@@ -661,7 +674,7 @@ val WEAK_UNIQUE_SOLUTIONS_LEMMA = store_thm (
       IMP_RES_TAC TRANS_PREFIX \\
       FULL_SIMP_TAC std_ss [] \\
       NTAC 2 (POP_ASSUM K_TAC) \\
-      Q.EXISTS_TAC `G` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `G` >> art [] \\
       SIMP_TAC std_ss [Action_distinct_label] \\
       REWRITE_TAC [PREFIX],
       (* goal 3 (of 7) *)
@@ -675,13 +688,13 @@ val WEAK_UNIQUE_SOLUTIONS_LEMMA = store_thm (
       [ (* goal 4.1 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         FULL_SIMP_TAC std_ss [] \\
-        Q.EXISTS_TAC `G` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `G` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM1 \\
         REWRITE_TAC [PREFIX],
         (* goal 4.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         FULL_SIMP_TAC std_ss [] \\
-        Q.EXISTS_TAC `G'` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `G'` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM2 \\
         REWRITE_TAC [PREFIX] ],
       (* goal 5 (of 7) *)
@@ -689,13 +702,13 @@ val WEAK_UNIQUE_SOLUTIONS_LEMMA = store_thm (
       [ (* goal 4.1 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         FULL_SIMP_TAC std_ss [] \\
-        Q.EXISTS_TAC `G` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `G` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM1 \\
         REWRITE_TAC [PREFIX],
         (* goal 4.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         FULL_SIMP_TAC std_ss [Action_distinct_label] \\
-        Q.EXISTS_TAC `e2` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `e2` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM2 \\
         REWRITE_TAC [PREFIX] ],
       (* goal 6 (of 7) *)
@@ -703,13 +716,13 @@ val WEAK_UNIQUE_SOLUTIONS_LEMMA = store_thm (
       [ (* goal 4.1 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         FULL_SIMP_TAC std_ss [Action_distinct_label] \\
-        Q.EXISTS_TAC `e1` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `e1` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM1 \\
         REWRITE_TAC [PREFIX],
         (* goal 4.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         FULL_SIMP_TAC std_ss [] \\
-        Q.EXISTS_TAC `G` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `G` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM2 \\
         REWRITE_TAC [PREFIX] ],
       (* goal 7 (of 7) *)
@@ -717,13 +730,13 @@ val WEAK_UNIQUE_SOLUTIONS_LEMMA = store_thm (
       [ (* goal 4.1 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         FULL_SIMP_TAC std_ss [Action_distinct_label] \\
-        Q.EXISTS_TAC `e1` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `e1` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM1 \\
         REWRITE_TAC [PREFIX],
         (* goal 4.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         FULL_SIMP_TAC std_ss [Action_distinct_label] \\
-        Q.EXISTS_TAC `e2` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `e2` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM2 \\
         REWRITE_TAC [PREFIX] ] ]);
 
@@ -744,8 +757,8 @@ val WEAK_UNIQUE_SOLUTIONS_LEMMA_EPS = store_thm (
  >> Q.SPEC_TAC (`GP`, `GP`)
  >> HO_MATCH_MP_TAC EPS_strongind_right
  >> rpt STRIP_TAC (* 2 sub-goals here *)
- >- ( Q.EXISTS_TAC `G` >> ASM_REWRITE_TAC [] \\
-      Q.UNABBREV_TAC `GP` >> ASM_REWRITE_TAC [EPS_REFL] )
+ >- ( Q.EXISTS_TAC `G` >> art [] \\
+      Q.UNABBREV_TAC `GP` >> art [EPS_REFL] )
  >> RES_TAC
  >> Q.UNABBREV_TAC `GP`
  >> Q.PAT_X_ASSUM `!P''. Abbrev (G P = G P'') ==> X` K_TAC
@@ -753,7 +766,7 @@ val WEAK_UNIQUE_SOLUTIONS_LEMMA_EPS = store_thm (
  >> IMP_RES_TAC (Q.SPEC `H` WEAK_UNIQUE_SOLUTIONS_LEMMA) (* lemma used here *)
  >> FULL_SIMP_TAC std_ss []
  >> Q.EXISTS_TAC `H''`
- >> ASM_REWRITE_TAC [EQ_SYM]
+ >> art [EQ_SYM]
  >> GEN_TAC
  >> `EPS (G Q) (H Q) /\ EPS (H Q) (H'' Q)` by PROVE_TAC [ONE_TAU]
  >> IMP_RES_TAC EPS_TRANS);
@@ -775,24 +788,24 @@ val GSEQ_EPS_lemma = Q.prove (
       POP_ASSUM (ASSUME_TAC o BETA_RULE o (Q.SPEC `Q`)) \\
       IMP_RES_TAC (Q.SPECL [`H Q`, `(H o E) Q`] WEAK_EQUIV_EPS') \\
       NTAC 2 (POP_ASSUM K_TAC) \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1` >> art [] \\
       REWRITE_TAC [O_DEF] >> BETA_TAC \\
       `WEAK_EQUIV (H' Q) E1` by PROVE_TAC [WEAK_EQUIV_SYM] \\
-      Q.EXISTS_TAC `H' Q` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [WEAK_EQUIV_REFL],
+      Q.EXISTS_TAC `H' Q` >> art [] \\
+      Q.EXISTS_TAC `E2` >> art [] \\
+      Q.EXISTS_TAC `H'` >> art [WEAK_EQUIV_REFL],
       (* goal 2 (of 2) *)
       IMP_RES_TAC (Q.SPECL [`H Q`, `(H o E) Q`] WEAK_EQUIV_EPS) \\
       IMP_RES_TAC (Q.SPEC `H o E` WEAK_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
       NTAC 4 (POP_ASSUM K_TAC) \\
       POP_ASSUM (ASSUME_TAC o BETA_RULE o (Q.SPEC `P`)) \\
       IMP_RES_TAC (Q.SPECL [`H P`, `(H o E) P`] WEAK_EQUIV_EPS') \\
-      Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1'` >> art [] \\
       REWRITE_TAC [O_DEF] >> BETA_TAC \\
       `WEAK_EQUIV E2 Q'` by PROVE_TAC [WEAK_EQUIV_SYM] \\
-      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `H' P` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [WEAK_EQUIV_REFL] ]);
+      Q.EXISTS_TAC `E2` >> art [] \\
+      Q.EXISTS_TAC `H' P` >> art [] \\
+      Q.EXISTS_TAC `H'` >> art [WEAK_EQUIV_REFL] ]);
 
 (* Proposition 7.13 in Milner's book [1]:
    Let the expression E contains at most the variable X, and let X be guarded and sequential
@@ -810,7 +823,7 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
  >> REWRITE_TAC [WEAK_EQUIV]
  >> Q.EXISTS_TAC `\x y. ?H. GSEQ H /\ WEAK_EQUIV x (H P) /\ WEAK_EQUIV y (H Q)`
  >> BETA_TAC >> CONJ_TAC
- >- ( Q.EXISTS_TAC `E` >> ASM_REWRITE_TAC [] )
+ >- ( Q.EXISTS_TAC `E` >> art [] )
  >> REWRITE_TAC [WEAK_BISIM]
  >> Q.X_GEN_TAC `P'`
  >> Q.X_GEN_TAC `Q'`
@@ -844,13 +857,13 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label'] \\
       `?Q4. WEAK_TRANS Q' (label l) Q4 /\ WEAK_EQUIV Q4 Q3`
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label'] \\
-      Q.EXISTS_TAC `Q4` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `Q4` >> art [] \\
       Q.PAT_X_ASSUM `X E3 Q''` MP_TAC \\
       REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
       Q.PAT_X_ASSUM `R y' y` MP_TAC \\
       Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
       `WEAK_EQUIV y Q4` by PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM] \\
-      Q.EXISTS_TAC `H'''` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `H'''` >> art [] \\
       PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM],
 (*
  (case 4)                              (case 1)
@@ -900,12 +913,12 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label'] \\
       `?P4. WEAK_TRANS P' (label l) P4 /\ WEAK_EQUIV P4 P3`
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label'] \\
-      Q.EXISTS_TAC `P4` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `P4` >> art [] \\
       Q.PAT_X_ASSUM `X P'' E3` MP_TAC \\
       REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
       Q.PAT_X_ASSUM `R y' y` MP_TAC \\
       Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
-      Q.EXISTS_TAC `H'''` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `H'''` >> art [] \\
       PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM],
 (*
  (case 3)                              (case 2)
@@ -939,9 +952,9 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
       POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
       `?Q3. EPS (H Q) Q3 /\ WEAK_EQUIV Q3 (H' Q)` by PROVE_TAC [WEAK_EQUIV_EPS'] \\
       `?Q4. EPS Q' Q4 /\ WEAK_EQUIV Q4 Q3` by PROVE_TAC [WEAK_EQUIV_EPS'] \\
-      Q.EXISTS_TAC `Q4` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `Q4` >> art [] \\
       Q.UNABBREV_TAC `R` >> BETA_TAC \\
-      Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `H'` >> art [] \\
       PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM],
       (* goal 4 (of 4) *)
       `?E1. EPS (H Q) E1 /\ WEAK_EQUIV E2 E1` by PROVE_TAC [WEAK_EQUIV_TRANS_tau] \\
@@ -951,9 +964,9 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
       POP_ASSUM (ASSUME_TAC o (Q.SPEC `P`)) \\
       `?P3. EPS (H P) P3 /\ WEAK_EQUIV P3 (H' P)` by PROVE_TAC [WEAK_EQUIV_EPS'] \\
       `?P4. EPS P' P4 /\ WEAK_EQUIV P4 P3` by PROVE_TAC [WEAK_EQUIV_EPS'] \\
-      Q.EXISTS_TAC `P4` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `P4` >> art [] \\
       Q.UNABBREV_TAC `R` >> BETA_TAC \\
-      Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `H'` >> art [] \\
       PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM] ]);
 
 (******************************************************************************)
@@ -979,7 +992,7 @@ val OBS_UNIQUE_SOLUTIONS_LEMMA = store_thm (
       IMP_RES_TAC TRANS_PREFIX \\
       FULL_SIMP_TAC std_ss [] \\
       NTAC 2 (POP_ASSUM K_TAC) \\
-      Q.EXISTS_TAC `G` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `G` >> art [] \\
       SIMP_TAC std_ss [Action_distinct_label] \\
       REWRITE_TAC [PREFIX],
       (* goal 3 (of 4) *)
@@ -991,11 +1004,11 @@ val OBS_UNIQUE_SOLUTIONS_LEMMA = store_thm (
       (* goal 4 (of 4) *)
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 4.1 (of 2) *)
-        RES_TAC >> Q.EXISTS_TAC `H` >> ASM_REWRITE_TAC [] \\
-        GEN_TAC >> MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [],
+        RES_TAC >> Q.EXISTS_TAC `H` >> art [] \\
+        GEN_TAC >> MATCH_MP_TAC SUM1 >> art [],
         (* goal 4.2 (of 2) *)
-        RES_TAC >> Q.EXISTS_TAC `H` >> ASM_REWRITE_TAC [] \\
-        GEN_TAC >> MATCH_MP_TAC SUM2 >> ASM_REWRITE_TAC [] ] ]);
+        RES_TAC >> Q.EXISTS_TAC `H` >> art [] \\
+        GEN_TAC >> MATCH_MP_TAC SUM2 >> art [] ] ]);
 
 (* The EPS version of OBS_UNIQUE_SOLUTIONS_LEMMA.
    NOTE: the WEAK_TRANS version cannot be derived, because of the missing of SG in the middle.
@@ -1014,8 +1027,8 @@ val OBS_UNIQUE_SOLUTIONS_LEMMA_EPS = store_thm (
  >> Q.SPEC_TAC (`GP`, `GP`)
  >> HO_MATCH_MP_TAC EPS_strongind_right
  >> rpt STRIP_TAC (* 2 sub-goals here *)
- >- ( Q.EXISTS_TAC `G` >> ASM_REWRITE_TAC [] \\
-      Q.UNABBREV_TAC `GP` >> ASM_REWRITE_TAC [EPS_REFL] )
+ >- ( Q.EXISTS_TAC `G` >> art [] \\
+      Q.UNABBREV_TAC `GP` >> art [EPS_REFL] )
  >> RES_TAC
  >> Q.UNABBREV_TAC `GP`
  >> Q.PAT_X_ASSUM `!P''. Abbrev (G P = G P'') ==> X` K_TAC
@@ -1023,7 +1036,7 @@ val OBS_UNIQUE_SOLUTIONS_LEMMA_EPS = store_thm (
  >> IMP_RES_TAC (Q.SPEC `H` OBS_UNIQUE_SOLUTIONS_LEMMA) (* lemma used here *)
  >> FULL_SIMP_TAC std_ss []
  >> Q.EXISTS_TAC `H''`
- >> ASM_REWRITE_TAC [EQ_SYM]
+ >> art [EQ_SYM]
  >> GEN_TAC
  >> `EPS (G Q) (H Q) /\ EPS (H Q) (H'' Q)` by PROVE_TAC [ONE_TAU]
  >> IMP_RES_TAC EPS_TRANS);
@@ -1046,24 +1059,24 @@ val SEQ_EPS_lemma = Q.prove (
       POP_ASSUM (ASSUME_TAC o BETA_RULE o (Q.SPEC `Q`)) \\
       IMP_RES_TAC (Q.SPECL [`H Q`, `(H o E) Q`] OBS_CONGR_EPS') \\
       NTAC 2 (POP_ASSUM K_TAC) \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1` >> art [] \\
       REWRITE_TAC [O_DEF] >> BETA_TAC \\
       `WEAK_EQUIV (H' Q) E1` by PROVE_TAC [WEAK_EQUIV_SYM] \\
-      Q.EXISTS_TAC `H' Q` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [WEAK_EQUIV_REFL],
+      Q.EXISTS_TAC `H' Q` >> art [] \\
+      Q.EXISTS_TAC `E2` >> art [] \\
+      Q.EXISTS_TAC `H'` >> art [WEAK_EQUIV_REFL],
       (* goal 2 (of 2) *)
       IMP_RES_TAC (Q.SPECL [`H Q`, `(H o E) Q`] OBS_CONGR_EPS) \\
       IMP_RES_TAC (Q.SPEC `H o E` OBS_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
       NTAC 4 (POP_ASSUM K_TAC) \\
       POP_ASSUM (ASSUME_TAC o BETA_RULE o (Q.SPEC `P`)) \\
       IMP_RES_TAC (Q.SPECL [`H P`, `(H o E) P`] OBS_CONGR_EPS') \\
-      Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1'` >> art [] \\
       REWRITE_TAC [O_DEF] >> BETA_TAC \\
       `WEAK_EQUIV E2 Q'` by PROVE_TAC [WEAK_EQUIV_SYM] \\
-      Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `H' P` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [WEAK_EQUIV_REFL] ]);
+      Q.EXISTS_TAC `E2` >> art [] \\
+      Q.EXISTS_TAC `H' P` >> art [] \\
+      Q.EXISTS_TAC `H'` >> art [WEAK_EQUIV_REFL] ]);
 
 (* Proposition 7.13 in Milner's book [1]:
    Let the expression E contains at most the variable X, and let X be guarded and sequential
@@ -1115,13 +1128,13 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
 				by PROVE_TAC [OBS_CONGR_WEAK_TRANS'] \\
         `?Q4. WEAK_TRANS Q' (label l) Q4 /\ WEAK_EQUIV Q4 Q3`
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label'] \\
-        Q.EXISTS_TAC `Q4` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `Q4` >> art [] \\
         Q.PAT_X_ASSUM `X E3 Q''` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
         Q.PAT_X_ASSUM `R y' y` MP_TAC \\
         Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
         `WEAK_EQUIV y Q4` by PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM] \\
-        Q.EXISTS_TAC `H'''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `H'''` >> art [] \\
         PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM],
 (*
  (goal 1.4)                            (goal 1.1)
@@ -1171,12 +1184,12 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
 				by PROVE_TAC [OBS_CONGR_WEAK_TRANS'] \\
         `?P4. WEAK_TRANS P' (label l) P4 /\ WEAK_EQUIV P4 P3`
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label'] \\
-        Q.EXISTS_TAC `P4` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `P4` >> art [] \\
         Q.PAT_X_ASSUM `X P'' E3` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
         Q.PAT_X_ASSUM `R y' y` MP_TAC \\
         Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
-        Q.EXISTS_TAC `H'''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `H'''` >> art [] \\
         PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM],
 (*
  (goal 1.3)                            (goal 1.2)
@@ -1210,9 +1223,9 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
         `?Q3. EPS (H Q) Q3 /\ WEAK_EQUIV Q3 (H' Q)` by PROVE_TAC [OBS_CONGR_EPS'] \\
         `?Q4. EPS Q' Q4 /\ WEAK_EQUIV Q4 Q3` by PROVE_TAC [WEAK_EQUIV_EPS'] \\
-        Q.EXISTS_TAC `Q4` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `Q4` >> art [] \\
         Q.UNABBREV_TAC `R` >> BETA_TAC \\
-        Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `H'` >> art [] \\
         PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM],
         (* goal 4 (of 4) *)
         `?E1. EPS (H Q) E1 /\ WEAK_EQUIV E2 E1` by PROVE_TAC [WEAK_EQUIV_TRANS_tau] \\
@@ -1222,9 +1235,9 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         POP_ASSUM (ASSUME_TAC o (Q.SPEC `P`)) \\
         `?P3. EPS (H P) P3 /\ WEAK_EQUIV P3 (H' P)` by PROVE_TAC [OBS_CONGR_EPS'] \\
         `?P4. EPS P' P4 /\ WEAK_EQUIV P4 P3` by PROVE_TAC [WEAK_EQUIV_EPS'] \\
-        Q.EXISTS_TAC `P4` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `P4` >> art [] \\
         Q.UNABBREV_TAC `R` >> BETA_TAC \\
-        Q.EXISTS_TAC `H'` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `H'` >> art [] \\
         PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM] ],
       (* goal 2 (of 2) *)
       Q.ABBREV_TAC `R = \x y. ?H. SEQ H /\ WEAK_EQUIV x (H P) /\ WEAK_EQUIV y (H Q)` \\
@@ -1248,12 +1261,12 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         `WEAK_TRANS (E Q) u Q'` by PROVE_TAC [WEAK_TRANS] \\
         `?Q''. WEAK_TRANS Q u Q'' /\ WEAK_EQUIV Q'' Q'`
 				by PROVE_TAC [OBS_CONGR_WEAK_TRANS'] \\
-        Q.EXISTS_TAC `Q''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `Q''` >> art [] \\
         Q.PAT_X_ASSUM `X E2 Q'` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
         Q.PAT_X_ASSUM `R y' y` MP_TAC \\
         Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
-        Q.EXISTS_TAC `H''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `H''` >> art [] \\
         PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM],
 (*
   (goal 2.1)
@@ -1291,12 +1304,12 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         `WEAK_TRANS (E P) u P'` by PROVE_TAC [WEAK_TRANS] \\
         `?P''. WEAK_TRANS P u P'' /\ WEAK_EQUIV P'' P'`
 				by PROVE_TAC [OBS_CONGR_WEAK_TRANS'] \\
-        Q.EXISTS_TAC `P''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `P''` >> art [] \\
         Q.PAT_X_ASSUM `X P' E1` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
         Q.PAT_X_ASSUM `R y' y` MP_TAC \\
         Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
-        Q.EXISTS_TAC `H''` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `H''` >> art [] \\
         PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM] ] ]); 
 (*
   (goal 2.2)
@@ -1329,7 +1342,7 @@ val unfolding_lemma1 = store_thm (
     REPEAT STRIP_TAC
  >> REWRITE_TAC [o_DEF]
  >> BETA_TAC
- >> irule contracts_precongruence_applied >- ASM_REWRITE_TAC []
+ >> irule contracts_precongruence_applied >- art []
  >> Q.SPEC_TAC (`n`, `n`)
  >> Induct >- REWRITE_TAC [FUNPOW, contracts_REFL]
  >> REWRITE_TAC [FUNPOW_SUC]
@@ -1359,67 +1372,67 @@ val unfolding_lemma2 = store_thm (
  >> BETA_TAC >> REWRITE_TAC [ETA_AX]
  >> rpt STRIP_TAC (* 6 sub-goals here *)
  >| [ (* goal 1 (of 6) *)
-      Q.EXISTS_TAC `\t. P'` >> ASM_REWRITE_TAC [GCONTEXT2],
+      Q.EXISTS_TAC `\t. P'` >> art [GCONTEXT2],
       (* goal 2 (of 6) *)
       IMP_RES_TAC TRANS_PREFIX \\
-      Q.EXISTS_TAC `e` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `e` >> art [] \\
       GEN_TAC >> REWRITE_TAC [PREFIX],
       (* goal 3 (of 6) *)
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 3.1 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         IMP_RES_TAC WGS_IS_GCONTEXT \\
-        Q.EXISTS_TAC `E` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `E` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM1 >> REWRITE_TAC [PREFIX],
         (* goal 3.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
         IMP_RES_TAC WGS_IS_GCONTEXT \\
-        Q.EXISTS_TAC `E'` >> ASM_REWRITE_TAC [] \\
+        Q.EXISTS_TAC `E'` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM2 >> REWRITE_TAC [PREFIX] ],
       (* goal 4 (of 6) *)
       IMP_RES_TAC TRANS_PAR >| (* 3 sub-goals here *)
       [ (* goal 4.1 (of 3) *)
         RES_TAC \\
         Q.EXISTS_TAC `\t. par (C' t) (E' t)` >> BETA_TAC \\
-	CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT5 >> ASM_REWRITE_TAC [] \\
-		      MATCH_MP_TAC WGS_IS_GCONTEXT >> ASM_REWRITE_TAC [] ) \\
+	CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT5 >> art [] \\
+		      MATCH_MP_TAC WGS_IS_GCONTEXT >> art [] ) \\
 	FULL_SIMP_TAC std_ss [] \\
-        GEN_TAC >> MATCH_MP_TAC PAR1 >> ASM_REWRITE_TAC [],
+        GEN_TAC >> MATCH_MP_TAC PAR1 >> art [],
 	(* goal 4.2 (of 3) *)
         RES_TAC \\
         Q.EXISTS_TAC `\t. par (E t) (C' t)` >> BETA_TAC \\
-	CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT5 >> ASM_REWRITE_TAC [] \\
-		      MATCH_MP_TAC WGS_IS_GCONTEXT >> ASM_REWRITE_TAC [] ) \\
+	CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT5 >> art [] \\
+		      MATCH_MP_TAC WGS_IS_GCONTEXT >> art [] ) \\
 	FULL_SIMP_TAC std_ss [] \\
-        GEN_TAC >> MATCH_MP_TAC PAR2 >> ASM_REWRITE_TAC [],
+        GEN_TAC >> MATCH_MP_TAC PAR2 >> art [],
 	(* goal 4.3 (of 3) *)
 	RES_TAC \\
         Q.EXISTS_TAC `\t. par (C'' t) (C' t)` >> BETA_TAC \\
-	CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT5 >> ASM_REWRITE_TAC [] ) \\
+	CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT5 >> art [] ) \\
 	FULL_SIMP_TAC std_ss [] \\
         GEN_TAC >> MATCH_MP_TAC PAR3 \\
-	Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [] ],
+	Q.EXISTS_TAC `l` >> art [] ],
       (* goal 5 (of 6) *)
       IMP_RES_TAC TRANS_RESTR >| (* 2 sub-goals here *)
       [ (* goal 5.1 (of 2) *)
 	FULL_SIMP_TAC std_ss [] >> RES_TAC \\
 	Q.EXISTS_TAC `\t. restr L (C' t)` >> BETA_TAC \\
-	CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT6 >> ASM_REWRITE_TAC [] ) \\
-	ASM_REWRITE_TAC [] \\
-	GEN_TAC >> MATCH_MP_TAC RESTR >> ASM_REWRITE_TAC [],
+	CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT6 >> art [] ) \\
+	art [] \\
+	GEN_TAC >> MATCH_MP_TAC RESTR >> art [],
 	(* goal 5.2 (of 2) *)
 	FULL_SIMP_TAC std_ss [] >> RES_TAC \\
 	Q.EXISTS_TAC `\t. restr L (C' t)` >> BETA_TAC \\
-	CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT6 >> ASM_REWRITE_TAC [] ) \\
-	ASM_REWRITE_TAC [] \\
-	GEN_TAC >> MATCH_MP_TAC RESTR >> ASM_REWRITE_TAC [] \\
-	Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [] ],
+	CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT6 >> art [] ) \\
+	art [] \\
+	GEN_TAC >> MATCH_MP_TAC RESTR >> art [] \\
+	Q.EXISTS_TAC `l` >> art [] ],
       (* goal 6 (of 6) *)
       IMP_RES_TAC TRANS_RELAB >> RES_TAC \\
       Q.EXISTS_TAC `\t. relab (C' t) rf` >> BETA_TAC \\
-      CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT7 >> ASM_REWRITE_TAC [] ) \\
-      ASM_REWRITE_TAC [] \\
-      GEN_TAC >> MATCH_MP_TAC RELABELING >> ASM_REWRITE_TAC [] ]);
+      CONJ_TAC >- ( MATCH_MP_TAC GCONTEXT7 >> art [] ) \\
+      art [] \\
+      GEN_TAC >> MATCH_MP_TAC RELABELING >> art [] ]);
 
 (* In this proof, we combine C and E into a single WGS and call previous lemma *)
 val unfolding_lemma3 = store_thm (
@@ -1432,10 +1445,10 @@ val unfolding_lemma3 = store_thm (
  >> Know `C (E P) = (C o E) P` >- SIMP_TAC std_ss [o_DEF]
  >> DISCH_TAC
  >> Q.PAT_X_ASSUM `TRANS (C (E P)) x P'` MP_TAC
- >> ASM_REWRITE_TAC [] >> DISCH_TAC
+ >> art [] >> DISCH_TAC
  >> IMP_RES_TAC unfolding_lemma2
  >> POP_ASSUM K_TAC
- >> Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC []
+ >> Q.EXISTS_TAC `C'` >> art []
  >> GEN_TAC >> POP_ASSUM MP_TAC
  >> KILL_TAC
  >> REWRITE_TAC [o_DEF] >> BETA_TAC
@@ -1450,7 +1463,7 @@ val unfolding_lemma4 = store_thm (
     NTAC 2 GEN_TAC
  >> Induct_on `n`
  >- ( REWRITE_TAC [o_DEF, FUNPOW] >> BETA_TAC >> rpt STRIP_TAC \\
-      Q.EXISTS_TAC `C` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `C` >> art [] \\
       POP_ASSUM MP_TAC \\
       SIMP_TAC arith_ss [] \\
       REWRITE_TAC [GSYM NULL_LENGTH, NULL_EQ] \\
@@ -1467,13 +1480,13 @@ val unfolding_lemma4 = store_thm (
       `LENGTH (epsilon :'b Action list) <= n` by FULL_SIMP_TAC arith_ss [LENGTH] \\
       Q.PAT_X_ASSUM `!xs P' P. X ==> X'`
 	(MP_TAC o (Q.SPECL [`[] :'b Action list`, `P'`, `(E :('a, 'b) context) P`])) \\
-      RW_TAC std_ss [] >> ASM_REWRITE_TAC [] \\
+      RW_TAC std_ss [] >> art [] \\
       Q.EXISTS_TAC `C' o E` \\
       CONJ_TAC >- ( IMP_RES_TAC WGS_IS_GCONTEXT >> MATCH_MP_TAC GCONTEXT_combin \\
-		    ASM_REWRITE_TAC [] ) \\
+		    art [] ) \\
       CONJ_TAC >- ( KILL_TAC >> REWRITE_TAC [o_DEF] >> RW_TAC std_ss [] ) \\
       GEN_TAC >> REWRITE_TAC [FUNPOW_SUC_alt', o_DEF] >> BETA_TAC \\
-      ASM_REWRITE_TAC [] )
+      art [] )
  >> FULL_SIMP_TAC list_ss []
  >> `LENGTH (FRONT (h::t)) <= n` by PROVE_TAC [LENGTH_FRONT_CONS]
  >> Q.ABBREV_TAC `xs = FRONT (h::t)`
@@ -1483,14 +1496,14 @@ val unfolding_lemma4 = store_thm (
  >> RW_TAC std_ss []
  >> IMP_RES_TAC (Q.SPECL [`C'`, `E`] unfolding_lemma3)
  >> NTAC 5 (POP_ASSUM K_TAC)
- >> Q.EXISTS_TAC `C''` >> ASM_REWRITE_TAC []
+ >> Q.EXISTS_TAC `C''` >> art []
  >> GEN_TAC
  >> ONCE_REWRITE_TAC [TRACE_cases2]
  >> REWRITE_TAC [NULL]
  >> Q.EXISTS_TAC `C' (E Q)`
- >> Q.UNABBREV_TAC `x` >> ASM_REWRITE_TAC []
+ >> Q.UNABBREV_TAC `x` >> art []
  >> REWRITE_TAC [FUNPOW_SUC_alt']
- >> Q.UNABBREV_TAC `xs` >> ASM_REWRITE_TAC []);
+ >> Q.UNABBREV_TAC `xs` >> art []);
 
 (* Lemma 3.9 of [2] *)
 val UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA = store_thm (
@@ -1512,11 +1525,11 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA = store_thm (
  >- ( Q.UNABBREV_TAC `C''` >> BETA_TAC \\
       Induct_on `n` >| (* 2 sub-goals here *)
       [ (* goal 1.1 (of 2) *)
-        ASM_REWRITE_TAC [o_DEF, FUNPOW, ETA_AX],
+        art [o_DEF, FUNPOW, ETA_AX],
         (* goal 1.2 (of 2) *)
         REWRITE_TAC [FUNPOW_SUC_alt, o_ASSOC] \\
         MATCH_MP_TAC GCONTEXT_combin \\
-        ASM_REWRITE_TAC [] ] )
+        art [] ] )
  >> DISCH_TAC
  (* Part 2: property of C'' on P and Q *)
  >> `!n. (C P) contracts (C'' n P)`
@@ -1535,19 +1548,19 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA = store_thm (
       Q.UNABBREV_TAC `C''` \\
       Q.PAT_X_ASSUM `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
       Know `?C'. GCONTEXT C' /\ (E2 = C' P) /\ !Q. TRACE ((C o FUNPOW E n) Q) xs' (C' Q)`
-      >- ( MATCH_MP_TAC unfolding_lemma4 >> ASM_REWRITE_TAC [] ) \\
+      >- ( MATCH_MP_TAC unfolding_lemma4 >> art [] ) \\
       STRIP_TAC >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
       `(C Q) contracts ((C o FUNPOW E n) Q)` by PROVE_TAC [] \\
       FULL_SIMP_TAC std_ss [] \\ (* to replace E2 *)
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
       Know `WEAK_TRANS (C (FUNPOW E n Q)) (label l) (C' Q)`
       >- ( REWRITE_TAC [WEAK_TRANS_AND_TRACE, Action_distinct_label] \\
-	   Q.EXISTS_TAC `xs'` >> ASM_REWRITE_TAC [] \\
+	   Q.EXISTS_TAC `xs'` >> art [] \\
 	   MATCH_MP_TAC UNIQUE_LABEL_NOT_NULL \\
-	   Q.EXISTS_TAC `label l` >> ASM_REWRITE_TAC [] ) >> DISCH_TAC \\
+	   Q.EXISTS_TAC `label l` >> art [] ) >> DISCH_TAC \\
       REWRITE_TAC [O_DEF] >> BETA_TAC \\
       IMP_RES_TAC contracts_WEAK_TRANS_label' \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [],
+      Q.EXISTS_TAC `E1` >> art [],
       (* goal 2 (of 2) *)
       IMP_RES_TAC WEAK_TRANS_AND_TRACE \\
       FULL_SIMP_TAC std_ss [] \\
@@ -1558,17 +1571,17 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA = store_thm (
       Q.UNABBREV_TAC `C''` \\
       Q.PAT_X_ASSUM `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
       Know `?C'. GCONTEXT C' /\ (E2 = C' P) /\ !Q. TRACE ((C o FUNPOW E n) Q) xs' (C' Q)`
-      >- ( MATCH_MP_TAC unfolding_lemma4 >> ASM_REWRITE_TAC [] ) \\
+      >- ( MATCH_MP_TAC unfolding_lemma4 >> art [] ) \\
       STRIP_TAC >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
       `(C Q) contracts ((C o FUNPOW E n) Q)` by PROVE_TAC [] \\
       FULL_SIMP_TAC std_ss [] \\ (* to replace E2 *)
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
       Know `EPS (C (FUNPOW E n Q)) (C' Q)` (* diff here *)
       >- ( REWRITE_TAC [EPS_AND_TRACE] \\
-	   Q.EXISTS_TAC `xs'` >> ASM_REWRITE_TAC [] ) >> DISCH_TAC \\
+	   Q.EXISTS_TAC `xs'` >> art [] ) >> DISCH_TAC \\
       REWRITE_TAC [O_DEF] >> BETA_TAC \\
       IMP_RES_TAC contracts_EPS' \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] ]);
+      Q.EXISTS_TAC `E1` >> art [] ]);
 
 (* Theorem 3.10 of [2], the proof relies on above lemma, and "contracts_IMP_WEAK_EQUIV",
    the definition of contraction is not used.
@@ -1584,7 +1597,7 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS = store_thm (
  >- ( Q.EXISTS_TAC `E` \\
       CONJ_TAC >- IMP_RES_TAC WGS_IS_GCONTEXT \\
       IMP_RES_TAC contracts_IMP_WEAK_EQUIV \\
-      ASM_REWRITE_TAC [] )
+      art [] )
  >> REWRITE_TAC [WEAK_BISIM]
  >> BETA_TAC >> rpt STRIP_TAC (* 4 sub-goals here *)
  >| [ (* goal 1 (of 4) *)
@@ -1605,9 +1618,9 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS = store_thm (
       Q.PAT_X_ASSUM `!l R. WEAK_TRANS (C P) (label l) R ==> X` K_TAC \\
       RES_TAC \\
       Q.PAT_X_ASSUM `WEAK_TRANS (C Q) (label l) y ==> X` K_TAC \\
-      Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
-      `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1'` >> art [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
+      `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2 (C' P)` by PROVE_TAC [contracts_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS],
       (* goal 2 (of 4) *)
@@ -1628,9 +1641,9 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS = store_thm (
       Q.PAT_X_ASSUM `!l R. WEAK_TRANS (C Q) (label l) R ==> X` K_TAC \\
       RES_TAC \\
       Q.PAT_X_ASSUM `WEAK_TRANS (C P) (label l) y ==> X` K_TAC \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
-      `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1` >> art [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
+      `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2' (C' Q)` by PROVE_TAC [contracts_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS],
       (* goal 3 (of 4) *)
@@ -1638,7 +1651,7 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS = store_thm (
 			    (ASSUME ``WEAK_EQUIV E' ((C :('a, 'b) context) P)``)) \\
       IMP_RES_TAC EPS_IMP_WEAK_TRANS (* 2 sub-goals here *)
       >- ( Q.EXISTS_TAC `E''` >> REWRITE_TAC [EPS_REFL] \\
-           Q.EXISTS_TAC `C` >> ASM_REWRITE_TAC [] ) \\
+           Q.EXISTS_TAC `C` >> art [] ) \\
       ASSUME_TAC (Q.SPECL [`P`, `Q`] UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA) \\
       `!R. WEAK_TRANS (C P) tau R ==>
            ?C'. GCONTEXT C' /\ R contracts (C' P) /\
@@ -1651,9 +1664,9 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS = store_thm (
       Q.PAT_X_ASSUM `!R. WEAK_TRANS (C P) tau R ==> X` K_TAC \\
       RES_TAC \\
       Q.PAT_X_ASSUM `EPS (C Q) y ==> X` K_TAC \\
-      Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
-      `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1'` >> art [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
+      `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2 (C' P)` by PROVE_TAC [contracts_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS],
       (* goal 4 (of 4) *)
@@ -1661,7 +1674,7 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS = store_thm (
 			    (ASSUME ``WEAK_EQUIV E'' ((C :('a, 'b) context) Q)``)) \\
       IMP_RES_TAC EPS_IMP_WEAK_TRANS (* 2 sub-goals here *)
       >- ( Q.EXISTS_TAC `E'` >> REWRITE_TAC [EPS_REFL] \\
-           Q.EXISTS_TAC `C` >> ASM_REWRITE_TAC [] ) \\
+           Q.EXISTS_TAC `C` >> art [] ) \\
       ASSUME_TAC (Q.SPECL [`Q`, `P`] UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA) \\
       `!R. WEAK_TRANS (C Q) tau R ==>
            ?C'. GCONTEXT C' /\ R contracts (C' Q) /\
@@ -1674,9 +1687,9 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS = store_thm (
       Q.PAT_X_ASSUM `!R. WEAK_TRANS (C Q) tau R ==> X` K_TAC \\
       RES_TAC \\
       Q.PAT_X_ASSUM `EPS (C P) y ==> X` K_TAC \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
-      `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1` >> art [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
+      `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2' (C' Q)` by PROVE_TAC [contracts_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS] ]);
 
@@ -1694,7 +1707,7 @@ val unfolding_lemma1' = store_thm (
     REPEAT STRIP_TAC
  >> REWRITE_TAC [o_DEF]
  >> BETA_TAC
- >> irule expands_precongruence_applied >- ASM_REWRITE_TAC []
+ >> irule expands_precongruence_applied >- art []
  >> Q.SPEC_TAC (`n`, `n`)
  >> Induct >- REWRITE_TAC [FUNPOW, expands_REFL]
  >> REWRITE_TAC [FUNPOW_SUC]
@@ -1722,11 +1735,11 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA = store_thm (
  >- ( Q.UNABBREV_TAC `C''` >> BETA_TAC \\
       Induct_on `n` >| (* 2 sub-goals here *)
       [ (* goal 1.1 (of 2) *)
-        ASM_REWRITE_TAC [o_DEF, FUNPOW, ETA_AX],
+        art [o_DEF, FUNPOW, ETA_AX],
         (* goal 1.2 (of 2) *)
         REWRITE_TAC [FUNPOW_SUC_alt, o_ASSOC] \\
         MATCH_MP_TAC GCONTEXT_combin \\
-        ASM_REWRITE_TAC [] ] )
+        art [] ] )
  >> DISCH_TAC
  (* Part 2: property of C'' on P and Q *)
  >> `!n. (C P) expands (C'' n P)`
@@ -1745,20 +1758,20 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA = store_thm (
       Q.UNABBREV_TAC `C''` \\
       Q.PAT_X_ASSUM `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
       Know `?C'. GCONTEXT C' /\ (E2 = C' P) /\ !Q. TRACE ((C o FUNPOW E n) Q) xs' (C' Q)`
-      >- ( MATCH_MP_TAC unfolding_lemma4 >> ASM_REWRITE_TAC [] ) \\
+      >- ( MATCH_MP_TAC unfolding_lemma4 >> art [] ) \\
       STRIP_TAC >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
       `(C Q) expands ((C o FUNPOW E n) Q)` by PROVE_TAC [] \\
       FULL_SIMP_TAC std_ss [] \\ (* to replace E2 *)
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
       Know `WEAK_TRANS (C (FUNPOW E n Q)) (label l) (C' Q)`
       >- ( REWRITE_TAC [WEAK_TRANS_AND_TRACE, Action_distinct_label] \\
-	   Q.EXISTS_TAC `xs'` >> ASM_REWRITE_TAC [] \\
+	   Q.EXISTS_TAC `xs'` >> art [] \\
 	   MATCH_MP_TAC UNIQUE_LABEL_NOT_NULL \\
-	   Q.EXISTS_TAC `label l` >> ASM_REWRITE_TAC [] ) >> DISCH_TAC \\
+	   Q.EXISTS_TAC `label l` >> art [] ) >> DISCH_TAC \\
       REWRITE_TAC [O_DEF] >> BETA_TAC \\
       IMP_RES_TAC expands_WEAK_TRANS' \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
-      MATCH_MP_TAC expands_IMP_WEAK_EQUIV >> ASM_REWRITE_TAC [], (* extra steps *)
+      Q.EXISTS_TAC `E1` >> art [] \\
+      MATCH_MP_TAC expands_IMP_WEAK_EQUIV >> art [], (* extra steps *)
       (* goal 2 (of 2) *)
       IMP_RES_TAC WEAK_TRANS_AND_TRACE \\
       FULL_SIMP_TAC std_ss [] \\
@@ -1769,18 +1782,18 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA = store_thm (
       Q.UNABBREV_TAC `C''` \\
       Q.PAT_X_ASSUM `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
       Know `?C'. GCONTEXT C' /\ (E2 = C' P) /\ !Q. TRACE ((C o FUNPOW E n) Q) xs' (C' Q)`
-      >- ( MATCH_MP_TAC unfolding_lemma4 >> ASM_REWRITE_TAC [] ) \\
+      >- ( MATCH_MP_TAC unfolding_lemma4 >> art [] ) \\
       STRIP_TAC >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
       `(C Q) expands ((C o FUNPOW E n) Q)` by PROVE_TAC [] \\
       FULL_SIMP_TAC std_ss [] \\ (* to replace E2 *)
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
       Know `EPS (C (FUNPOW E n Q)) (C' Q)` (* diff here *)
       >- ( REWRITE_TAC [EPS_AND_TRACE] \\
-	   Q.EXISTS_TAC `xs'` >> ASM_REWRITE_TAC [] ) >> DISCH_TAC \\
+	   Q.EXISTS_TAC `xs'` >> art [] ) >> DISCH_TAC \\
       REWRITE_TAC [O_DEF] >> BETA_TAC \\
       IMP_RES_TAC expands_EPS' \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
-      MATCH_MP_TAC expands_IMP_WEAK_EQUIV >> ASM_REWRITE_TAC [] ]); (* extra steps *)
+      Q.EXISTS_TAC `E1` >> art [] \\
+      MATCH_MP_TAC expands_IMP_WEAK_EQUIV >> art [] ]); (* extra steps *)
 
 (* The proof is essentially the same with UNIQUE_SOLUTIONS_OF_CONTRACTIONS *)
 val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
@@ -1794,7 +1807,7 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
  >- ( Q.EXISTS_TAC `E` \\
       CONJ_TAC >- IMP_RES_TAC WGS_IS_GCONTEXT \\
       IMP_RES_TAC expands_IMP_WEAK_EQUIV \\
-      ASM_REWRITE_TAC [] )
+      art [] )
  >> REWRITE_TAC [WEAK_BISIM]
  >> BETA_TAC >> rpt STRIP_TAC (* 4 sub-goals here *)
  >| [ (* goal 1 (of 4) *)
@@ -1815,9 +1828,9 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
       Q.PAT_X_ASSUM `!l R. WEAK_TRANS (C P) (label l) R ==> X` K_TAC \\
       RES_TAC \\
       Q.PAT_X_ASSUM `WEAK_TRANS (C Q) (label l) y ==> X` K_TAC \\
-      Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
-      `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1'` >> art [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
+      `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2 (C' P)` by PROVE_TAC [expands_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS],
       (* goal 2 (of 4) *)
@@ -1838,9 +1851,9 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
       Q.PAT_X_ASSUM `!l R. WEAK_TRANS (C Q) (label l) R ==> X` K_TAC \\
       RES_TAC \\
       Q.PAT_X_ASSUM `WEAK_TRANS (C P) (label l) y ==> X` K_TAC \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
-      `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1` >> art [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
+      `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2' (C' Q)` by PROVE_TAC [expands_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS],
       (* goal 3 (of 4) *)
@@ -1848,7 +1861,7 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
 			    (ASSUME ``WEAK_EQUIV E' ((C :('a, 'b) context) P)``)) \\
       IMP_RES_TAC EPS_IMP_WEAK_TRANS (* 2 sub-goals here *)
       >- ( Q.EXISTS_TAC `E''` >> REWRITE_TAC [EPS_REFL] \\
-           Q.EXISTS_TAC `C` >> ASM_REWRITE_TAC [] ) \\
+           Q.EXISTS_TAC `C` >> art [] ) \\
       ASSUME_TAC (Q.SPECL [`P`, `Q`] UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA) \\
       `!R. WEAK_TRANS (C P) tau R ==>
            ?C'. GCONTEXT C' /\ R expands (C' P) /\
@@ -1861,9 +1874,9 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
       Q.PAT_X_ASSUM `!R. WEAK_TRANS (C P) tau R ==> X` K_TAC \\
       RES_TAC \\
       Q.PAT_X_ASSUM `EPS (C Q) y ==> X` K_TAC \\
-      Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
-      `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1'` >> art [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
+      `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2 (C' P)` by PROVE_TAC [expands_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS],
       (* goal 4 (of 4) *)
@@ -1871,7 +1884,7 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
 			    (ASSUME ``WEAK_EQUIV E'' ((C :('a, 'b) context) Q)``)) \\
       IMP_RES_TAC EPS_IMP_WEAK_TRANS (* 2 sub-goals here *)
       >- ( Q.EXISTS_TAC `E'` >> REWRITE_TAC [EPS_REFL] \\
-           Q.EXISTS_TAC `C` >> ASM_REWRITE_TAC [] ) \\
+           Q.EXISTS_TAC `C` >> art [] ) \\
       ASSUME_TAC (Q.SPECL [`Q`, `P`] UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA) \\
       `!R. WEAK_TRANS (C Q) tau R ==>
            ?C'. GCONTEXT C' /\ R expands (C' Q) /\
@@ -1884,9 +1897,9 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
       Q.PAT_X_ASSUM `!R. WEAK_TRANS (C Q) tau R ==> X` K_TAC \\
       RES_TAC \\
       Q.PAT_X_ASSUM `EPS (C P) y ==> X` K_TAC \\
-      Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
-      Q.EXISTS_TAC `C'` >> ASM_REWRITE_TAC [] \\
-      `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> ASM_REWRITE_TAC [] \\
+      Q.EXISTS_TAC `E1` >> art [] \\
+      Q.EXISTS_TAC `C'` >> art [] \\
+      `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2' (C' Q)` by PROVE_TAC [expands_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS] ]);
 

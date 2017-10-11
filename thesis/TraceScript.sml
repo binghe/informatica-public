@@ -10,7 +10,7 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open relationTheory arithmeticTheory listTheory;
+open pred_setTheory relationTheory arithmeticTheory listTheory;
 open CCSLib CCSTheory StrongEQTheory WeakEQTheory;
 
 val _ = new_theory "Trace";
@@ -123,6 +123,172 @@ val WEAK_TRANS_IN_NODES = store_thm ((* NEW *)
     REPEAT STRIP_TAC
  >> MATCH_MP_TAC Reach_NODES
  >> IMP_RES_TAC WEAK_TRANS_Reach);
+
+(******************************************************************************)
+(*                                                                            *)
+(*                      Free and Bound names used in CCS                      *)
+(*                                                                            *)
+(******************************************************************************)
+
+val DELETE_ELEMENT_def = Define `
+   (DELETE_ELEMENT e [] = []) /\
+   (DELETE_ELEMENT e (x :: l) =
+    if (e = x) then DELETE_ELEMENT e l else x :: DELETE_ELEMENT e l)`;
+
+val NOT_IN_DELETE_ELEMENT = store_thm (
+   "NOT_IN_DELETE_ELEMENT", 
+  ``!e L. ~MEM e (DELETE_ELEMENT e L)``,
+    GEN_TAC >> Induct_on `L`
+ >- REWRITE_TAC [DELETE_ELEMENT_def, MEM]
+ >> GEN_TAC >> REWRITE_TAC [DELETE_ELEMENT_def]
+ >> Cases_on `e = h` >> fs []);
+
+val DELETE_ELEMENT_FILTER = store_thm (
+   "DELETE_ELEMENT_FILTER", 
+  ``!e L. DELETE_ELEMENT e L = FILTER ((<>) e) L``,
+    GEN_TAC >> Induct_on `L`
+ >- REWRITE_TAC [DELETE_ELEMENT_def, FILTER]
+ >> GEN_TAC >> REWRITE_TAC [DELETE_ELEMENT_def, FILTER]
+ >> Cases_on `e = h` >> fs []);
+
+val LENGTH_DELETE_ELEMENT_LEQ = store_thm (
+   "LENGTH_DELETE_ELEMENT_LEQ",
+  ``!e L. LENGTH (DELETE_ELEMENT e L) <= LENGTH L``,
+    rpt GEN_TAC
+ >> REWRITE_TAC [DELETE_ELEMENT_FILTER]
+ >> MP_TAC (Q.SPECL [`\y. e <> y`, `\y. T`] LENGTH_FILTER_LEQ_MONO)
+ >> BETA_TAC >> simp []
+ >> STRIP_TAC
+ >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `L`))
+ >> Know `FILTER (\y. T) L = L`
+ >- ( KILL_TAC \\
+      Induct_on `L` >- REWRITE_TAC [FILTER] \\
+      GEN_TAC >> REWRITE_TAC [FILTER] >> simp [] )
+ >> DISCH_TAC >> fs []);
+
+val LENGTH_DELETE_ELEMENT_LE = store_thm (
+   "LENGTH_DELETE_ELEMENT_LE",
+  ``!e L. MEM e L ==> LENGTH (DELETE_ELEMENT e L) < LENGTH L``,
+    rpt GEN_TAC >> Induct_on `L`
+ >- REWRITE_TAC [MEM]
+ >> GEN_TAC >> REWRITE_TAC [MEM, DELETE_ELEMENT_def]
+ >> Cases_on `e = h` >> fs []
+ >> MP_TAC (Q.SPECL [`h`, `L`] LENGTH_DELETE_ELEMENT_LEQ)
+ >> KILL_TAC >> RW_TAC arith_ss []);
+
+val EVERY_DELETE_ELEMENT = store_thm (
+   "EVERY_DELETE_ELEMENT",
+  ``!e L P. P e /\ EVERY P (DELETE_ELEMENT e L) ==> EVERY P L``,
+    GEN_TAC >> Induct_on `L`
+ >- RW_TAC std_ss [DELETE_ELEMENT_def]
+ >> rpt GEN_TAC >> REWRITE_TAC [DELETE_ELEMENT_def]
+ >> Cases_on `e = h` >> fs []);
+
+val DELETE_ELEMENT_APPEND = store_thm (
+   "DELETE_ELEMENT_APPEND",
+  ``!a L L'. DELETE_ELEMENT a (L ++ L') = DELETE_ELEMENT a L ++ DELETE_ELEMENT a L'``,
+    REWRITE_TAC [DELETE_ELEMENT_FILTER]
+ >> REWRITE_TAC [GSYM FILTER_APPEND_DISTRIB]);
+
+(*
+You might define the sublist relation: (from Michael Norrish)
+Sublist [] l = T
+  Sublist _ [] = F
+  Sublist (h1::t1) (h2::t2) = if h1 = h2 then Sublist t1 t2 else Sublist (h1::t1) t2
+
+And show that
+
+  Sublist (DELETE_ELEMENT e l) l
+*)
+
+(* (size :(α, β) CCS -> num) *)
+val size_def = Define `
+    size (p :('a, 'b) CCS) = CCS_size (\x. 0) (\x. 0) p`;
+
+(* (constants :('a, 'b) CCS -> 'a list) collects all constants used in "rec" *)
+val constants_def = Define `
+   (constants (nil :('a, 'b) CCS) = ([] :'a list)) /\
+   (constants (prefix u p)	  = constants p) /\
+   (constants (sum p q)		  = (constants p) ++ (constants q)) /\
+   (constants (par p q)		  = (constants p) ++ (constants q)) /\
+   (constants (restr L p)	  = constants p) /\
+   (constants (relab p rf)	  = constants p) /\
+   (constants (var x)		  = []) /\
+   (constants (rec x p)		  = [x])`;
+
+(* (FN :('a, 'b) CCS -> 'a list -> 'b Label set) *)
+val FN_definition = `
+   (FN (nil :('a, 'b) CCS) J  = (EMPTY :'b Label set)) /\
+   (FN (prefix (label l) p) J = l INSERT (FN p J)) /\	(* here! *)
+   (FN (prefix tau p) J	      = FN p J) /\
+   (FN (sum p q) J	      = (FN p J) UNION (FN q J)) /\
+   (FN (par p q) J	      = (FN p J) UNION (FN q J)) /\
+   (FN (restr L p) J	      = (FN p J) DIFF (L UNION (IMAGE COMPL_LAB L))) /\
+   (FN (relab p rf) J	      = IMAGE (REP_Relabeling rf) (FN p J)) /\
+   (FN (var X) J	      = EMPTY) /\
+   (FN (lts r ts) J	      = EMPTY) /\ (* LTS has no contribution in names *)
+   (FN (rec X p) J	      = if (MEM X J) then FN (CCS_Subst p (rec X p) X) (DELETE_ELEMENT X J)
+					     else EMPTY)`;
+
+(* (BN :('a, 'b) CCS -> 'a list -> 'b Label set) *)
+val BN_definition = `
+   (BN (nil :('a, 'b) CCS) J  = (EMPTY :'b Label set)) /\
+   (BN (prefix u p) J	      = BN p J) /\
+   (BN (sum p q) J	      = (BN p J) UNION (BN q J)) /\
+   (BN (par p q) J	      = (BN p J) UNION (BN q J)) /\
+   (BN (restr L p) J	      = (BN p J) UNION L) /\	(* here! *)
+   (BN (relab p rf) J	      = BN p J) /\
+   (BN (var X) J	      = EMPTY) /\
+   (BN (lts r ts) J	      = EMPTY) /\ (* LTS has no contribution in names *)
+   (BN (rec X p) J	      = if (MEM X J) then FN (CCS_Subst p (rec X p) X) (DELETE_ELEMENT X J)
+					     else EMPTY)`;
+
+(* This is how we get the correct tactics (FN_tac):
+ - val FN_defn = Hol_defn "FN" FN_definition;
+ - Defn.tgoal FN_defn;
+ *)
+local
+    val tactic = (* the use of `($< LEX $<)` is learnt from Ramana Kumar *)
+	WF_REL_TAC `inv_image ($< LEX $<) (\x. (LENGTH (SND x), size (FST x)))` \\
+	rpt STRIP_TAC >- ( IMP_RES_TAC LENGTH_DELETE_ELEMENT_LE >> art [] ) \\
+	REWRITE_TAC [size_def, CCS_size_def] >> simp [];
+in
+    val FN_def = TotalDefn.tDefine "FN" FN_definition tactic;
+    val FN_ind = DB.fetch "-" "FN_ind"; (* but what's this? *)
+    val BN_def = TotalDefn.tDefine "BN" BN_definition tactic;
+end;
+
+(* (free_names :('a, 'b) CCS -> 'b Label set) collects all visible labels in the prefix *)
+val free_names_def = Define `
+    free_names p = FN p (constants p)`;
+
+(* (bound_names :('a, 'b) CCS -> 'b Label set) collects all visible labels in the restr *)
+val bound_names_def = Define `
+    bound_names p = BN p (constants p)`;
+
+(* some lemmas related to free/bound names *)
+val FN_UNIV1 = store_thm ("FN_UNIV1",
+  ``!p. free_names p <> (UNIV :'b Label set) ==> ?a. a NOTIN free_names p``,
+    PROVE_TAC [EQ_UNIV]);
+
+val FN_UNIV2 = store_thm ("FN_UNIV2",
+  ``!p q. free_names p UNION free_names q <> (UNIV :'b Label set) ==>
+	  ?a. a NOTIN free_names p /\ a NOTIN free_names q``,
+    PROVE_TAC [EQ_UNIV, IN_UNION]);
+
+(* TODO:
+val FN_TRANS = store_thm ("FN_TRANS",
+  ``!p l p'. TRANS p (label l) p' ==> l IN free_names p``,
+    cheat);
+
+val FN_NO_TRANS = store_thm (
+   "FN_NO_TRANS", ``!p l. l NOTIN free_names p ==> !p'. ~TRANS p (label l) p'``,
+    PROVE_TAC [FN_TRANS]);
+
+val FN_NO_WEAK_TRANS = store_thm (
+   "FN_NO_WEAK_TRANS", ``!p l. l NOTIN free_names p ==> !p'. ~WEAK_TRANS p (label l) p'``,
+    cheat);
+ *)
 
 (******************************************************************************)
 (*                                                                            *)

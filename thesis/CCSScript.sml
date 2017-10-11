@@ -348,7 +348,19 @@ val CCS_Subst_def = Define `
 
 (* Note that in the rec clause, if Y = X then all occurrences of Y in E are X
    and bound, so there exist no free variables X in E to be replaced with E'.
-   Hence, the term rec Y E is returned. *)
+   Hence, the term rec Y E is returned.
+
+   Below are two typical cases by CCS_Subst: *)
+
+(* |- ∀X E E'. CCS_Subst (rec X E) E' X = rec X E (1st fixed point of CCS_Subst) *)
+val CCS_Subst_rec = save_thm (
+   "CCS_Subst_rec", Q_GENL [`X`, `E`, `E'`]
+			(REWRITE_CONV [CCS_Subst_def] ``CCS_Subst (rec X E) E' X``));
+
+(* |- ∀X E. CCS_Subst (var X) E X = E		  (2nd fixed point of CCS_Subst) *)
+val CCS_Subst_var = save_thm (
+   "CCS_Subst_var", Q_GENL [`X`, `E`]
+			(REWRITE_CONV [CCS_Subst_def] ``CCS_Subst (var X) E X``));
 
 (* |- !t1 t2. ((T => t1 | t2) = t1) /\ ((F => t1 | t2) = t2) *)
 val CCS_COND_CLAUSES = save_thm (
