@@ -75,7 +75,7 @@ val IDENTITY_EXPANSION = store_thm (
    "IDENTITY_EXPANSION", ``EXPANSION (\x y. x = y)``,
     PURE_ONCE_REWRITE_TAC [EXPANSION_ALT]
  >> BETA_TAC
- >> !! STRIP_TAC >> rfs []
+ >> rpt STRIP_TAC >> rfs []
  >> IMP_RES_TAC TRANS_IMP_WEAK_TRANS);
 
 val EXPANSION_EPS = store_thm (

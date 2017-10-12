@@ -390,17 +390,12 @@ val (EXPR_rules, EXPR_ind, EXPR_cases) = Hol_reln `
     (!L e.   EXPR e    ==> EXPR (\t. restr L (e t))) /\	    (* EXPR6 *)
     (!rf e.  EXPR e    ==> EXPR (\t. relab (e t) rf)) /\    (* EXPR7 *)
     (!X e.   EXPR e /\ EXPR (\t. CCS_Subst (e t) (rec X (e t)) X)
-		       ==> EXPR (\t. rec X (e t))) `;	    (* EXPR8 *)
+		       ==> EXPR (\t. rec X (e t))) `;	    (* EXPR8: need to check *)
 
 val [EXPR1, EXPR2, EXPR3, EXPR4, EXPR5, EXPR6, EXPR7, EXPR8] =
     map save_thm
         (combine (["EXPR1", "EXPR2", "EXPR3", "EXPR4",
 		   "EXPR5", "EXPR6", "EXPR7", "EXPR8"], CONJUNCTS EXPR_rules));
-
-(* Some typical expressions containing constants (TODO) *)
-val var_IS_EXPR = store_thm (
-   "var_IS_EXPR", ``!X. EXPR (\t. var X)``,
-    REWRITE_TAC [EXPR2]);
 
 val CONTEXT_IS_EXPR = store_thm (
    "CONTEXT_IS_EXPR", ``!e. CONTEXT e ==> EXPR e``,
@@ -1386,7 +1381,7 @@ val WGS1 = store_thm ("WGS1",
 val WGS_IS_GCONTEXT = store_thm (
    "WGS_IS_GCONTEXT", ``!e. WGS e ==> GCONTEXT e``,
     Induct_on `WGS`
- >> !! STRIP_TAC (* 6 sub-goals here *)
+ >> rpt STRIP_TAC (* 6 sub-goals here *)
  >| [ REWRITE_TAC [GCONTEXT2],
       MATCH_MP_TAC GCONTEXT3 >> ASM_REWRITE_TAC [],
       MATCH_MP_TAC GCONTEXT4 >> ASM_REWRITE_TAC [],
@@ -1396,7 +1391,7 @@ val WGS_IS_GCONTEXT = store_thm (
 
 val WGS_IS_CONTEXT = store_thm (
    "WGS_IS_CONTEXT", ``!e. WGS e ==> CONTEXT e``,
-    !! STRIP_TAC
+    rpt STRIP_TAC
  >> MATCH_MP_TAC GCONTEXT_IS_CONTEXT
  >> IMP_RES_TAC WGS_IS_GCONTEXT);
 

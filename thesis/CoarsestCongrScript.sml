@@ -110,7 +110,7 @@ val HENNESSY_LEMMA_LR = store_thm ((* NEW *)
  >> Cases_on `?E. TRANS p tau E /\ WEAK_EQUIV E q` (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       DISJ2_TAC >> DISJ1_TAC \\ (* CHOOSE ``p ~~c tau..q`` *)
-      REWRITE_TAC [OBS_CONGR] >> !! STRIP_TAC >| (* 2 sub-goals here *)
+      REWRITE_TAC [OBS_CONGR] >> rpt STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 1.1 (of 2) *)
         Cases_on `u` \\ (* 2 sub-goals here, sharing initial tacticals *)
         PAT_X_ASSUM ``WEAK_EQUIV p q``
@@ -132,7 +132,7 @@ val HENNESSY_LEMMA_LR = store_thm ((* NEW *)
       Cases_on `?E. TRANS q tau E /\ WEAK_EQUIV p E` >| (* 2 sub-goals here *)
       [ (* goal 2.1 (of 2) *)
         NTAC 2 DISJ2_TAC \\ (* CHOOSE ``tau..p ~~c q`` *)
-        REWRITE_TAC [OBS_CONGR] >> !! STRIP_TAC >| (* 2 sub-goals here *)
+        REWRITE_TAC [OBS_CONGR] >> rpt STRIP_TAC >| (* 2 sub-goals here *)
         [ (* goal 2.1.1 (of 2) *)
           IMP_RES_TAC TRANS_PREFIX >> ONCE_ASM_REWRITE_TAC [] \\
           PAT_X_ASSUM ``?E. TRANS q tau E /\ WEAK_EQUIV p E`` STRIP_ASSUME_TAC \\
@@ -723,7 +723,7 @@ val KLOP_EXISTS_LEMMA = store_thm ((* NEW *)
  >- ( GEN_TAC >> ASM_REWRITE_TAC [] \\
       RW_TAC std_ss [IN_DEF] >| (* 2 sub-goals here *)
       [ (* goal 1 (of 2) *)
-        MATCH_MP_TAC SELECT_ELIM_THM \\ (* eliminated `Q (@P)` here !! *)
+        MATCH_MP_TAC SELECT_ELIM_THM \\ (* eliminated `Q (@P)` here *)
         RW_TAC std_ss [] \\
         Q.EXISTS_TAC `y` >> ASM_REWRITE_TAC [],
         (* goal 2 (of 2) *)
@@ -864,8 +864,8 @@ val Klop_def = Define `
     Klop (l: 'b Label) (n :'a ordinal) =
 	 ABS_graph ({m | m <= n}, {({p}, label l, {q}) | p <= n /\ q < p})`;
 
-val Klop0_cases = store_thm ((* NEW *)
-   "Klop0_cases",
+val Klop_0 = store_thm ((* NEW *)
+   "Klop_0",
   ``!(a :'b Label). Klop a 0 = ABS_graph ({0}, EMPTY)``,
     GEN_TAC >> REWRITE_TAC [Klop_def]
  >> SIMP_TAC std_ss []
@@ -896,28 +896,15 @@ val Klop0_cases = store_thm ((* NEW *)
  >> Cases_on `x'` >> FULL_SIMP_TAC std_ss [ordleq0]
  >> REV_FULL_SIMP_TAC std_ss [ordlt_ZERO]);
 
-val K0_no_trans = store_thm ((* NEW *)
-   "K0_no_trans", ``!(a :'b Label) u E. ~(TRANS (lts 0 (Klop a 0)) u E)``,
-    rpt GEN_TAC
- >> REWRITE_TAC [Klop0_cases]
- >> ONCE_REWRITE_TAC [TRANS_cases]
- >> SIMP_TAC std_ss [CCS_distinct', CCS_11]
- >> GEN_TAC >> DISJ2_TAC
- >> REWRITE_TAC [labeled_directed_edges_def, graph_edges_def]
- >> Know `hypergraph (({0}, EMPTY) :('a ordinal, 'b Action) REP_graph)`
- >- ( REWRITE_TAC [hypergraph_def] >> SIMP_TAC std_ss [NOT_IN_EMPTY] )
- >> DISCH_TAC
- >> FULL_SIMP_TAC std_ss [graph_REP_ABS, REP_edges_def]
- >> REWRITE_TAC [IMAGE_EMPTY, NOT_IN_EMPTY]);
-
-val Klop1_cases = store_thm ((* NEW *)
-   "Klop1_cases",
-  ``!(a :'b Label) (n :'a ordinal) (u :'b Action) (E :('a, 'b) CCS).
-     TRANS (lts (ordSUC n) (Klop a (ordSUC n))) u E =
-	((u = label a) /\ (E = lts n (Klop a (ordSUC n)))) \/ TRANS (lts n (Klop a (ordSUC n))) u E``,
+val Klop_case1 = store_thm ((* NEW *)
+   "Klop_case1",
+  ``!(a :'b Label) (n :'a ordinal) N (u :'b Action) (E :('a, 'b) CCS).
+     ordSUC n <= N ==>
+       (TRANS (lts (ordSUC n) (Klop a N)) u E =
+	((u = label a) /\ (E = lts n (Klop a N))) \/ TRANS (lts n (Klop a N)) u E)``,
     rpt GEN_TAC
  >> REWRITE_TAC [Klop_def]
- >> Know `hypergraph (({m | m <= ordSUC n}, {({p}, label a, {q}) | p <= ordSUC n /\ q < p})
+ >> Know `hypergraph (({m | m <= N}, {({p}, label a, {q}) | p <= N /\ q < p})
 		      :('a ordinal, 'b Action) REP_graph)`
     >- ( REWRITE_TAC [hypergraph_def] \\
 	 GEN_TAC >> RW_TAC std_ss [GSPECIFICATION] \\
@@ -930,7 +917,7 @@ val Klop1_cases = store_thm ((* NEW *)
 	 MATCH_MP_TAC ordle_TRANS \\
 	 Q.EXISTS_TAC `q` >> art [] \\
 	 REWRITE_TAC [ordle_lteq] >> DISJ1_TAC >> art [] )
- >> DISCH_TAC
+ >> rpt STRIP_TAC
  >> EQ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       DISCH_TAC \\
@@ -944,7 +931,9 @@ val Klop1_cases = store_thm ((* NEW *)
       fs [labeled_directed_edges_def, graph_edges_def, graph_REP_ABS, REP_edges_def] \\
       Q.EXISTS_TAC `({n}, label a, {q})` \\
       fs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def] \\
-      CONJ_TAC >- ( REWRITE_TAC [ordle_lteq] >> DISJ1_TAC >> REWRITE_TAC [ordlt_SUC] ) \\
+      CONJ_TAC >- ( MATCH_MP_TAC ordle_TRANS \\
+		    Q.EXISTS_TAC `ordSUC n` >> art [] \\
+		    REWRITE_TAC [ordle_lteq] >> DISJ1_TAC >> REWRITE_TAC [ordlt_SUC] ) \\
       fs [ordlt_SUC_DISCRETE],
       (* goal 2 (of 2) *)
       rpt STRIP_TAC >> art [] >| (* 2 sub-goals here *)
@@ -963,6 +952,264 @@ val Klop1_cases = store_thm ((* NEW *)
 	Q.EXISTS_TAC `({ordSUC n}, u, {E''})` \\
 	fs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def] \\
 	REWRITE_TAC [ordlt_SUC_DISCRETE] >> art [] ] ]);
+
+val Klop_case2 = store_thm ((* NEW *)
+   "Klop_case2",
+  ``!(a :'b Label) (n :'a ordinal) N (u :'b Action) (E :('a, 'b) CCS).
+     0 < n /\ islimit n /\ n <= N ==>
+	(TRANS (lts n (Klop a N)) u E = ?m. m < n /\ TRANS (lts m (Klop a N)) u E)``,
+    rpt STRIP_TAC
+ >> RW_TAC std_ss [Klop_def]
+ >> Know `hypergraph (({m | m <= N}, {({p}, label a, {q}) | p <= N /\ q < p})
+		      :('a ordinal, 'b Action) REP_graph)`
+ >- ( REWRITE_TAC [hypergraph_def] \\
+      GEN_TAC >> RW_TAC std_ss [GSPECIFICATION] \\
+      POP_ASSUM MP_TAC \\
+      Cases_on `x` >> FULL_SIMP_TAC std_ss [] \\
+      Cases_on `e` >> Cases_on `r'` \\
+      FULL_SIMP_TAC std_ss [ends_def, inits_def, ters_def, SUBSET_DEF, UNION_DEF,
+			    GSPECIFICATION, IN_SING] \\
+      RW_TAC std_ss [] >- art [] \\
+      MATCH_MP_TAC ordle_TRANS \\
+      Q.EXISTS_TAC `q` >> art [] \\
+      REWRITE_TAC [ordle_lteq] >> DISJ1_TAC >> art [] )
+ >> DISCH_TAC
+ >> EQ_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      rpt STRIP_TAC \\
+      POP_ASSUM (STRIP_ASSUME_TAC o (SIMP_RULE std_ss [CCS_distinct', CCS_11]) o
+		 (ONCE_REWRITE_RULE [TRANS_cases])) \\
+      rfs [labeled_directed_edges_def, graph_edges_def, graph_REP_ABS, REP_edges_def] \\
+      rfs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def] \\
+      fs [] \\
+      IMP_RES_TAC islimit_SUC_lt \\
+      Q.EXISTS_TAC `ordSUC q` >> art [] \\
+      MATCH_MP_TAC LTS \\
+      fs [labeled_directed_edges_def, graph_edges_def, graph_REP_ABS, REP_edges_def] \\
+      Q.EXISTS_TAC `({ordSUC q}, label a, {q})` \\
+      fs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def] \\
+      IMP_RES_TAC ordlte_TRANS \\  
+      REWRITE_TAC [ordle_lteq] >> art [],
+      (* goal 2 (of 2) *)
+      rpt STRIP_TAC \\
+      POP_ASSUM (STRIP_ASSUME_TAC o (SIMP_RULE std_ss [CCS_distinct', CCS_11]) o
+		 (ONCE_REWRITE_RULE [TRANS_cases])) \\
+      rfs [labeled_directed_edges_def, graph_edges_def, graph_REP_ABS, REP_edges_def] \\
+      rfs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def] \\
+      MATCH_MP_TAC LTS \\
+      fs [labeled_directed_edges_def, graph_edges_def, graph_REP_ABS, REP_edges_def] \\
+      Q.EXISTS_TAC `({n}, label a, {q})` \\
+      fs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def] \\
+      IMP_RES_TAC ordlt_TRANS ]);
+
+val Klop_cases = save_thm ((* NEW *)
+   "Klop_cases", LIST_CONJ [Klop_case1, Klop_case2]);
+
+val Klop_rule0 = store_thm ((* NEW *)
+   "Klop_rule0",
+  ``!(a :'b Label) u E (N :'a ordinal). ~(TRANS (lts 0 (Klop a N)) u E)``,
+    RW_TAC std_ss [Klop_def]
+ >> Know `hypergraph (({m | m <= N}, {({p}, label a, {q}) | p <= N /\ q < p})
+		      :('a ordinal, 'b Action) REP_graph)`
+ >- ( REWRITE_TAC [hypergraph_def] \\
+      GEN_TAC >> RW_TAC std_ss [GSPECIFICATION] \\
+      POP_ASSUM MP_TAC \\
+      Cases_on `x` >> FULL_SIMP_TAC std_ss [] \\
+      Cases_on `e` >> Cases_on `r'` \\
+      FULL_SIMP_TAC std_ss [ends_def, inits_def, ters_def, SUBSET_DEF, UNION_DEF,
+			    GSPECIFICATION, IN_SING] \\
+      RW_TAC std_ss [] >- art [] \\
+      MATCH_MP_TAC ordle_TRANS \\
+      Q.EXISTS_TAC `q` >> art [] \\
+      REWRITE_TAC [ordle_lteq] >> DISJ1_TAC >> art [] )
+ >> DISCH_TAC
+ >> CCONTR_TAC >> fs []
+ >> POP_ASSUM (STRIP_ASSUME_TAC o (SIMP_RULE std_ss [CCS_distinct', CCS_11]) o
+	       (ONCE_REWRITE_RULE [TRANS_cases]))
+ >> rfs [labeled_directed_edges_def, graph_edges_def, graph_REP_ABS, REP_edges_def]
+ >> rfs [labeled_directed_def, init_def, label_def, ter_def, ters_def, inits_def]
+ >> PROVE_TAC [ordlt_ZERO]);
+
+(* Transition rules for Klop processes *)
+val Klop_rule1 = store_thm ((* NEW *)
+   "Klop_rule1",
+  ``!(a :'b Label) (n :'a ordinal) N. (ordSUC n) <= N ==> 
+	TRANS (lts (ordSUC n) (Klop a N)) (label a) (lts n (Klop a N))``,
+    rpt STRIP_TAC
+ >> IMP_RES_TAC Klop_case1 >> art []);
+
+val Klop_rule2 = store_thm ((* NEW *)
+   "Klop_rule2",
+  ``!(a :'b Label) (n :'a ordinal) m u (E :('a, 'b) CCS) N.
+	0 < n /\ islimit n /\ n <= N /\ m < n /\ TRANS (lts m (Klop a N)) u E ==>
+		TRANS (lts n (Klop a N)) u E``,
+    rpt STRIP_TAC
+ >> IMP_RES_TAC Klop_case2);
+
+val Klop_rules = save_thm ((* NEW *)
+   "Klop_rules", LIST_CONJ [Klop_rule0, Klop_rule1, Klop_rule2]);
+
+val Klop_PROP0 = store_thm ((* NEW *)
+   "Klop_PROP0", ``!(a :'b Label) (n :'a ordinal) N. n <= N ==> STABLE (lts n (Klop a N))``,
+    GEN_TAC
+ >> HO_MATCH_MP_TAC simple_ord_induction
+ >> rpt STRIP_TAC (* 3 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      REWRITE_TAC [STABLE] \\
+      RW_TAC std_ss [Klop_rule0],
+      (* goal 2 (of 3) *)
+      fs [STABLE] >> rpt STRIP_TAC \\
+      `n <= N` by PROVE_TAC [ordlt_SUC, ordle_TRANS, ordle_lteq] \\
+      RES_TAC \\
+      PAT_X_ASSUM ``TRANS (lts (ordSUC n) (Klop a N)) u E'``
+	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [MATCH_MP Klop_case1 (ASSUME ``ordSUC n <= N``)]))
+      >- fs [Action_distinct] >> rfs [],
+      (* goal 3 (of 3) *)
+      fs [STABLE] >> rpt STRIP_TAC \\
+      `?m. m < n /\ TRANS (lts m (Klop a N)) tau E'`
+	  by PROVE_TAC [Q.SPECL [`a`, `n`, `N`, `tau`, `E'`] Klop_case2] \\
+      Q.PAT_X_ASSUM `!n'. n' < n ==> X`
+	  (ASSUME_TAC o (fn thm => MATCH_MP thm (ASSUME ``(m :'a ordinal) < n``))) \\
+      `m <= N` by PROVE_TAC [ordle_lteq, ordle_TRANS] \\
+      RES_TAC ]);
+
+(* Any transition of Klop processes is still a Klop process. Together with Prop 0,
+   this also implies that Klop processes are tau-free. *)
+val Klop_PROP1_LR = store_thm ((* NEW *)
+   "Klop_PROP1_LR",
+  ``!(a :'b Label) (n :'a ordinal) (E :('a, 'b) CCS) N. n <= N ==>
+	TRANS (lts n (Klop a N)) (label a) E ==> ?m. m < n /\ (E = lts m (Klop a N))``,
+    GEN_TAC
+ >> HO_MATCH_MP_TAC simple_ord_induction
+ >> rpt STRIP_TAC (* 3 sub-goals here *)
+ >| [ (* goal 1 (of 3) *)
+      PROVE_TAC [Klop_rule0],
+      (* goal 2 (of 3) *)
+      Q.PAT_X_ASSUM `TRANS (lts (ordSUC n) (Klop a N)) (label a) E`
+	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [MATCH_MP Klop_case1 (ASSUME ``ordSUC n <= N``)]))
+      >- ( Q.EXISTS_TAC `n` >> art [ordlt_SUC] ) \\
+      `n <= N` by PROVE_TAC [ordlt_SUC, ordle_TRANS, ordle_lteq] \\
+      RES_TAC \\
+      Q.EXISTS_TAC `m` >> art [] \\
+      MATCH_MP_TAC ordlt_TRANS \\ 
+      `n < ordSUC n` by PROVE_TAC [ordlt_SUC] \\
+      Q.EXISTS_TAC `n` >> art [],
+      (* goal 3 (of 3) *)
+      MP_TAC (Q.SPECL [`a`, `n`, `N`, `label a`, `E`] Klop_case2) \\
+      RW_TAC std_ss [] \\
+      RES_TAC \\
+      POP_ASSUM K_TAC \\
+      `m <= N` by PROVE_TAC [ordle_TRANS, ordle_lteq] \\
+      Q.PAT_X_ASSUM `!n'. n' < n ==> X`
+	(STRIP_ASSUME_TAC o (fn thm => MATCH_MP thm (ASSUME ``(m :'a ordinal) < n``))) \\
+      POP_ASSUM
+	(STRIP_ASSUME_TAC o (fn thm => MATCH_MP thm (ASSUME ``(m :'a ordinal) <= N``))) \\
+      RES_TAC \\
+      NTAC 2 (POP_ASSUM K_TAC) \\
+      `m' < n` by PROVE_TAC [ordlt_TRANS] \\
+      Q.EXISTS_TAC `m'` >> art [] ]);
+
+val Klop_PROP1_RL = store_thm ((* NEW *)
+   "Klop_PROP1_RL",
+  ``!(a :'b Label) (n :'a ordinal) (E :('a, 'b) CCS) N. n <= N ==>
+	(?m. m < n /\ (E = lts m (Klop a N))) ==> TRANS (lts n (Klop a N)) (label a) E``,
+    GEN_TAC
+ >> HO_MATCH_MP_TAC simple_ord_induction
+ >> rpt STRIP_TAC (* 3 sub-goals here *)
+ >| [ (* goal 1 (of 3) *)
+      PROVE_TAC [ordlt_ZERO],
+      (* goal 2 (of 3) *)
+      `n <= N` by PROVE_TAC [ordlt_SUC, ordle_TRANS, ordle_lteq] \\
+      REWRITE_TAC [MATCH_MP Klop_case1 (ASSUME ``ordSUC n <= N``)] \\
+      PAT_X_ASSUM ``m < ordSUC n``
+	(STRIP_ASSUME_TAC o (REWRITE_RULE [ordlt_SUC_DISCRETE])) >| (* 2 sub-goals here *)
+      [ (* goal 2.1 (of 2) *)
+        DISJ2_TAC >> RES_TAC,
+        (* goal 2.2 (of 2) *)
+        DISJ1_TAC >> art [] ],
+      (* goal 3 (of 3) *)
+      `ordSUC m < n` by PROVE_TAC [islimit_SUC_lt] \\
+      ASSUME_TAC (Q.SPECL [`a`, `m`, `N`] Klop_rule1) \\
+      `ordSUC m <= N` by PROVE_TAC [ordlt_TRANS, ordle_lteq] \\
+      PROVE_TAC [Klop_rule2] ]);
+
+(* Klop processes are closed under transition *)
+val Klop_PROP1 = store_thm ((* NEW *)
+   "Klop_PROP1",
+  ``!(a :'b Label) (n :'a ordinal) (E :('a, 'b) CCS) N. n <= N ==>
+     (TRANS (lts n (Klop a N)) (label a) E = (?m. m < n /\ (E = lts m (Klop a N))))``,
+    rpt STRIP_TAC
+ >> EQ_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      PROVE_TAC [Klop_PROP1_LR],
+      (* goal 2 (of 2) *)
+      PROVE_TAC [Klop_PROP1_RL] ]);
+
+(* Klop processes are closed under weak transition *)
+val Klop_PROP1' = store_thm ((* NEW *)
+   "Klop_PROP1'",
+  ``!(a :'b Label) (n :'a ordinal) (E :('a, 'b) CCS) N. n <= N ==>
+	(WEAK_TRANS (lts n (Klop a N)) (label a) E = (?m. m < n /\ (E = lts m (Klop a N))))``,
+    rpt STRIP_TAC
+ >> EQ_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      DISCH_TAC \\
+      IMP_RES_TAC WEAK_TRANS_cases1 >| (* 2 sub-goals here *)
+      [ (* goal 1.1 (of 2) *)
+        ASSUME_TAC (MATCH_MP (Q.SPECL [`a`, `n`, `N`] Klop_PROP0)
+			     (ASSUME ``(n :'a ordinal) <= N``)) \\
+        IMP_RES_TAC STABLE_NO_TRANS_TAU,
+        (* goal 1.2 (of 2) *)
+        IMP_RES_TAC (MATCH_MP Klop_PROP1_LR (ASSUME ``(n :'a ordinal) <= N``)) \\
+        IMP_RES_TAC EPS_cases1 >| (* 2 sub-goals here *)
+        [ (* goal 1.2.1 (of 2) *)
+          Q.EXISTS_TAC `m` >> PROVE_TAC [],
+          (* goal 1.2.2 (of 2) *)
+          `m <= N` by PROVE_TAC [ordle_TRANS, ordle_lteq] \\
+          ASSUME_TAC (MATCH_MP (Q.SPECL [`a`, `m`, `N`] Klop_PROP0)
+			       (ASSUME ``(m :'a ordinal) <= N``)) \\
+          PROVE_TAC [STABLE_NO_TRANS_TAU] ] ],
+      (* goal 2 (of 2) *)
+      STRIP_TAC \\
+      MATCH_MP_TAC TRANS_IMP_WEAK_TRANS \\
+      RW_TAC std_ss [MATCH_MP (Q.SPECL [`a`, `n`, `E`, `N`] Klop_PROP1_RL)
+			      (ASSUME ``(n :'a ordinal) <= N``)] ]);
+
+(* Klop processes are strongly distinct with each other *)
+val Klop_PROP2 = store_thm ((* NEW *)
+   "Klop_PROP2",
+  ``!(a :'b Label) (n :'a ordinal) m N. m < n /\ n <= N ==>
+	~(STRONG_EQUIV (lts m (Klop a N)) (lts n (Klop a N)))``,
+    GEN_TAC
+ >> HO_MATCH_MP_TAC ord_induction
+ >> rpt STRIP_TAC
+ >> `TRANS (lts n (Klop a N)) (label a) (lts m (Klop a N))` by PROVE_TAC [Klop_PROP1]
+ >> PAT_X_ASSUM ``STRONG_EQUIV (lts m (Klop a N)) (lts n (Klop a N))``
+	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [PROPERTY_STAR]))
+ >> RES_TAC
+ >> `m <= N` by PROVE_TAC [ordle_TRANS, ordle_lteq]
+ >> PAT_X_ASSUM ``TRANS (lts m (Klop a N)) (label a) E1``
+	(STRIP_ASSUME_TAC o (REWRITE_RULE [MATCH_MP Klop_PROP1
+						    (ASSUME ``(m :'a ordinal) <= N``)]))
+ >> PROVE_TAC []);
+
+(* Klop processes are weakly distinct with each other *)
+val Klop_PROP2' = store_thm ((* NEW *)
+   "Klop_PROP2'",
+  ``!(a :'b Label) (n :'a ordinal) m N. m < n /\ n <= N ==>
+	~(WEAK_EQUIV (lts m (Klop a N)) (lts n (Klop a N)))``,
+    GEN_TAC
+ >> HO_MATCH_MP_TAC ord_induction
+ >> rpt STRIP_TAC
+ >> `TRANS (lts n (Klop a N)) (label a) (lts m (Klop a N))` by PROVE_TAC [Klop_PROP1]
+ >> PAT_X_ASSUM ``WEAK_EQUIV (lts m (Klop a N)) (lts n (Klop a N))``
+	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [OBS_PROPERTY_STAR]))
+ >> RES_TAC
+ >> `m <= N` by PROVE_TAC [ordle_TRANS, ordle_lteq]
+ >> PAT_X_ASSUM ``WEAK_TRANS (lts m (Klop a N)) (label a) E1``
+	(STRIP_ASSUME_TAC o (REWRITE_RULE [MATCH_MP Klop_PROP1'
+						    (ASSUME ``(m :'a ordinal) <= N``)]))
+ >> PROVE_TAC []);
 
 (* Not used in the project, but this is a beatiful result *)
 val ONE_ONE_IMP_NOTIN = store_thm ((* NEW *)

@@ -13,7 +13,6 @@ sig
   val fix			: Q.tmquote list -> tactic
   val set			: Q.tmquote list -> tactic
   val take			: Q.tmquote list -> tactic
-  val !!			: tactic -> tactic
   val Know			: Q.tmquote -> tactic
   val Suff			: Q.tmquote -> tactic
   val K_TAC			: 'a -> tactic

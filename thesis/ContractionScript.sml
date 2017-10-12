@@ -41,7 +41,7 @@ val IDENTITY_CONTRACTION = store_thm (
    "IDENTITY_CONTRACTION", ``CONTRACTION (\x y. x = y)``,
     PURE_ONCE_REWRITE_TAC [CONTRACTION]
  >> BETA_TAC
- >> !! STRIP_TAC >> rfs [] (* 2 sub-goals *)
+ >> rpt STRIP_TAC >> rfs [] (* 2 sub-goals *)
  >| [ (* goal 1 (of 2) *)
       Q.EXISTS_TAC `E2` >> REWRITE_TAC [WEAK_EQUIV_REFL] \\
       IMP_RES_TAC TRANS_IMP_WEAK_TRANS,
