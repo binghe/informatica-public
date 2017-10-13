@@ -1200,6 +1200,31 @@ val OBS_contracts_IMP_WEAK_EQUIV = store_thm (
  >> IMP_RES_TAC OBS_contracts_IMP_contracts
  >> IMP_RES_TAC contracts_IMP_WEAK_EQUIV);
 
+(* Know relations:
+   1.       `expands` << `contracts`      << WEAK_EQUIV
+   2. `OBS_contracts` << `contracts`
+   3. `OBS_contracts`        << OBS_CONGR << WEAK_EQUIV *)
+val OBS_contracts_IMP_OBS_CONGR = store_thm (
+   "OBS_contracts_IMP_OBS_CONGR", ``!E E'. OBS_contracts E E' ==> OBS_CONGR E E'``,
+    rpt STRIP_TAC
+ >> REWRITE_TAC [OBS_CONGR]
+ >> rpt STRIP_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      IMP_RES_TAC OBS_contracts_TRANS_LEFT \\
+      Q.EXISTS_TAC `E2` \\
+      CONJ_TAC >- IMP_RES_TAC TRANS_IMP_WEAK_TRANS \\
+      IMP_RES_TAC contracts_IMP_WEAK_EQUIV,
+      (* goal 2 (of 2) *)
+      IMP_RES_TAC OBS_contracts_TRANS_RIGHT \\
+      Q.EXISTS_TAC `E1` >> art [] ]);
+
+(* another way to prove this *)
+val OBS_contracts_IMP_WEAK_EQUIV' = store_thm (
+   "OBS_contracts_IMP_WEAK_EQUIV'", ``!E E'. OBS_contracts E E' ==> WEAK_EQUIV E E'``,
+    rpt STRIP_TAC
+ >> MATCH_MP_TAC OBS_CONGR_IMP_WEAK_EQUIV
+ >> IMP_RES_TAC OBS_contracts_IMP_OBS_CONGR);
+
 val OBS_contracts_EPS' = store_thm (
    "OBS_contracts_EPS'",
   ``!E E'. OBS_contracts (E :('a, 'b) CCS) (E' :('a, 'b) CCS) ==>
