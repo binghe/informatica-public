@@ -264,9 +264,9 @@ val (expands_rules, expands_coind, expands_cases) = Hol_coreln `
       ==> $expands E E')`;
 
 val _ = set_fixity "expands" (Infixl 500);
-val _ = Unicode.unicode_version {u = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D49, tmnm = "expands"}
-val _ = TeX_notation {hol = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D49,
-                      TeX = ("\\HOLTokenExpands{}", 1)}
+val _ = Unicode.unicode_version { u = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D49, tmnm = "expands" };
+val _ = TeX_notation { hol = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D49,
+                       TeX = ("\\HOLTokenExpands{}", 1) };
 
 (* a shorter version of `expands_cases` with only 3 branches *)
 val expands_cases' = store_thm (
@@ -851,10 +851,6 @@ val expands_SUBST_GCONTEXT = store_thm (
 val expands_precongruence = store_thm (
    "expands_precongruence", ``precongruence1 $expands``,
     PROVE_TAC [precongruence1_def, expands_SUBST_GCONTEXT]);
-
-val expands_precongruence_applied = save_thm (
-   "expands_precongruence_applied",
-    REWRITE_RULE [precongruence1_def] expands_precongruence);
 
 (******************************************************************************)
 (*                                                                            *)

@@ -25,27 +25,27 @@ val OBS_CONGR = new_definition ("OBS_CONGR",
   ``OBS_CONGR (E :('a, 'b) CCS) (E' :('a, 'b) CCS) =
        (!(u :'b Action).
 	 (!E1. TRANS E u E1 ==>
-	       (?E2. WEAK_TRANS E' u E2 /\ WEAK_EQUIV E1 E2)) /\
+	       ?E2. WEAK_TRANS E' u E2 /\ WEAK_EQUIV E1 E2) /\
 	 (!E2. TRANS E' u E2 ==>
-	       (?E1. WEAK_TRANS E  u E1 /\ WEAK_EQUIV E1 E2)))``);
+	       ?E1. WEAK_TRANS E  u E1 /\ WEAK_EQUIV E1 E2))``);
 
 val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
 			    tok = "~~c", term_name = "OBS_CONGR" };
 
-val _ = Unicode.unicode_version { u = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3,
+val _ = Unicode.unicode_version { u = UTF8.chr 0x2248 ^ UTF8.chr 0x1D9C,
 				  tmnm = "OBS_CONGR" };
-val _ = TeX_notation { hol = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3, (* ~~ ^ r *)
+val _ = TeX_notation { hol = UTF8.chr 0x2248 ^ UTF8.chr 0x1D9C, (* ~~ ^ c *)
 		       TeX = ("\\HOLTokenObsCongr", 1) };
 
-val OBS_CONGR_HALF_LEFT = store_thm (
-   "OBS_CONGR_HALF_LEFT",
+val OBS_CONGR_TRANS_LEFT = store_thm (
+   "OBS_CONGR_TRANS_LEFT",
   ``!E E'. OBS_CONGR (E :('a, 'b) CCS) (E' :('a, 'b) CCS) ==>
 	   !u E1. TRANS E u E1 ==>
 		  ?E2. WEAK_TRANS E' u E2 /\ WEAK_EQUIV E1 E2``,
     PROVE_TAC [OBS_CONGR]);
 
-val OBS_CONGR_HALF_RIGHT = store_thm (
-   "OBS_CONGR_HALF_RIGHT",
+val OBS_CONGR_TRANS_RIGHT = store_thm (
+   "OBS_CONGR_TRANS_RIGHT",
   ``!E E'. OBS_CONGR (E :('a, 'b) CCS) (E' :('a, 'b) CCS) ==>
 	   !u E2. TRANS E' u E2 ==>
 		  ?E1. WEAK_TRANS E  u E1 /\ WEAK_EQUIV E1 E2``,
@@ -244,7 +244,7 @@ val OBS_CONGR_equivalence = store_thm ((* NEW *)
 
 (* Proposition 6 (Milner's book, page 154). *)
 val PROP6 = store_thm ("PROP6",
-  ``!E E'. WEAK_EQUIV E E' ==> (!u. OBS_CONGR (prefix u E) (prefix u E'))``,
+  ``!E E'. WEAK_EQUIV E E' ==> !u. OBS_CONGR (prefix u E) (prefix u E')``,
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [OBS_CONGR]
  >> REPEAT STRIP_TAC (* 2 sub-goals here *)
@@ -266,7 +266,7 @@ val PROP6 = store_thm ("PROP6",
 (* Observation congruence is substitutive under the prefix operator. *)
 val OBS_CONGR_SUBST_PREFIX = store_thm (
    "OBS_CONGR_SUBST_PREFIX",
-  ``!E E'. OBS_CONGR E E' ==> (!u. OBS_CONGR (prefix u E) (prefix u E'))``,
+  ``!E E'. OBS_CONGR E E' ==> !u. OBS_CONGR (prefix u E) (prefix u E')``,
     REPEAT STRIP_TAC
  >> IMP_RES_TAC OBS_CONGR_IMP_WEAK_EQUIV
  >> IMP_RES_TAC PROP6
@@ -275,39 +275,34 @@ val OBS_CONGR_SUBST_PREFIX = store_thm (
 (* Observation congruence is substitutive under binary summation. *)
 val OBS_CONGR_PRESD_BY_SUM = store_thm (
    "OBS_CONGR_PRESD_BY_SUM",
-  ``!p q r s.
-         OBS_CONGR p q /\ OBS_CONGR r s ==>
-         OBS_CONGR (sum p r) (sum q s)``,
-    REPEAT STRIP_TAC
+  ``!E1 E1' E2 E2'. OBS_CONGR E1 E1' /\ OBS_CONGR E2 E2' ==>
+		    OBS_CONGR (sum E1 E2) (sum E1' E2')``,
+    rpt STRIP_TAC
  >> REWRITE_TAC [OBS_CONGR]
- >> REPEAT STRIP_TAC (* 2 sub-goals here *)
+ >> rpt STRIP_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 1.1 (of 2) *)
-        IMP_RES_TAC (REWRITE_RULE [OBS_CONGR] (ASSUME ``OBS_CONGR p q``)) \\
-        IMP_RES_TAC WEAK_SUM1 \\
-        POP_ASSUM (ASSUME_TAC o (Q.SPEC `s`)) \\
-        Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
-        (* goal 1.2 (of 2) *)
-        IMP_RES_TAC (REWRITE_RULE [OBS_CONGR] (ASSUME ``OBS_CONGR r s``)) \\
-        IMP_RES_TAC WEAK_SUM2 \\
-        POP_ASSUM (ASSUME_TAC o (Q.SPEC `q`)) \\
-        Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] ],
+	IMP_RES_TAC OBS_CONGR_TRANS_LEFT \\
+	Q.EXISTS_TAC `E2''` >> art [] \\
+	MATCH_MP_TAC WEAK_SUM1 >> art [],
+	(* goal 1.2 (of 2) *)
+	IMP_RES_TAC OBS_CONGR_TRANS_LEFT \\ 
+	Q.EXISTS_TAC `E2''` >> art [] \\
+        MATCH_MP_TAC WEAK_SUM2 >> art [] ],
       (* goal 2 (of 2) *)
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
-      [ (* goal 1.1 (of 2) *)
-        IMP_RES_TAC (REWRITE_RULE [OBS_CONGR] (ASSUME ``OBS_CONGR p q``)) \\
-        IMP_RES_TAC WEAK_SUM1 \\
-        POP_ASSUM (ASSUME_TAC o (Q.SPEC `r`)) \\
-        Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [],
-        (* goal 1.2 (of 2) *)
-        IMP_RES_TAC (REWRITE_RULE [OBS_CONGR] (ASSUME ``OBS_CONGR r s``)) \\
-        IMP_RES_TAC WEAK_SUM2 \\
-        POP_ASSUM (ASSUME_TAC o (Q.SPEC `p`)) \\
-        Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] ] ]);
+      [ (* goal 2.1 (of 2) *)
+	IMP_RES_TAC OBS_CONGR_TRANS_RIGHT \\
+	Q.EXISTS_TAC `E1''` >> art [] \\
+	MATCH_MP_TAC WEAK_SUM1 >> art [],
+	(* goal 2.2 (of 2) *)
+	IMP_RES_TAC OBS_CONGR_TRANS_RIGHT \\ 
+	Q.EXISTS_TAC `E1''` >> art [] \\
+        MATCH_MP_TAC WEAK_SUM2 >> art [] ] ]);
 
 (* Observation congruence is substitutive under binary summation on the left:
-   |- !E E'. OBS_CONGR E E' ==> (!E''. OBS_CONGR (sum E'' E) (sum E'' E'))
+   |- !E E'. OBS_CONGR E E' ==> !E''. OBS_CONGR (sum E'' E) (sum E'' E')
  *)
 val OBS_CONGR_SUBST_SUM_L = save_thm (
    "OBS_CONGR_SUBST_SUM_L",
@@ -319,7 +314,7 @@ val OBS_CONGR_SUBST_SUM_L = save_thm (
 			 (ASSUME ``OBS_CONGR E E'``))))));
 
 (* Observation congruence is substitutive under binary summation on the right:
-   |- !E E'. OBS_CONGR E E' ==> (!E''. OBS_CONGR (sum E E'') (sum E' E''))
+   |- !E E'. OBS_CONGR E E' ==> !E''. OBS_CONGR (sum E E'') (sum E' E'')
  *)
 val OBS_CONGR_SUBST_SUM_R = save_thm (
    "OBS_CONGR_SUBST_SUM_R",
@@ -636,7 +631,7 @@ val OBS_CONGR_WEAK_TRANS = store_thm ((* NEW *)
  >> Cases_on `u` (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       POP_ASSUM (STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS_TAU])) \\
-      IMP_RES_TAC OBS_CONGR_HALF_LEFT \\
+      IMP_RES_TAC OBS_CONGR_TRANS_LEFT \\
       IMP_RES_TAC WEAK_EQUIV_EPS \\
       Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [] \\
       MATCH_MP_TAC EPS_WEAK_EPS \\

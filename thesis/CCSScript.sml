@@ -133,11 +133,11 @@ val COMPL_THM = store_thm ("COMPL_THM",
 	  (~(l = coname s) ==> ~(COMPL l = name s))``,
     Induct_on `l`
  >| [ (* case 1 *)
-      REPEAT GEN_TAC >> CONJ_TAC >|
+      rpt GEN_TAC >> CONJ_TAC >|
       [ REWRITE_TAC [Label_11, COMPL_LAB_def],
         REWRITE_TAC [Label_distinct, COMPL_LAB_def, Label_distinct'] ] ,
       (* case 2 *)
-      REPEAT GEN_TAC >> CONJ_TAC >|
+      rpt GEN_TAC >> CONJ_TAC >|
       [ REWRITE_TAC [Label_distinct, COMPL_LAB_def, Label_distinct'],
         REWRITE_TAC [Label_11, COMPL_LAB_def] ] ]);
 
@@ -207,7 +207,7 @@ val Relab_label = store_thm ("Relab_label",
     Induct_on `u`
  >- REWRITE_TAC [relabel_def, Action_distinct]
  >> REWRITE_TAC [relabel_def]
- >> REPEAT STRIP_TAC
+ >> rpt STRIP_TAC
  >> EXISTS_TAC ``a :'b Label``
  >> REWRITE_TAC []);
 
@@ -231,14 +231,14 @@ val Apply_Relab_COMPL_THM = store_thm ("Apply_Relab_COMPL_THM",
   ``!labl (s: 'b). Apply_Relab labl (coname s) = COMPL (Apply_Relab labl (name s))``,
     Induct
  >- REWRITE_TAC [Apply_Relab_def, COMPL_LAB_def]
- >> REPEAT GEN_TAC
+ >> rpt GEN_TAC
  >> REWRITE_TAC [Apply_Relab_def]
  >> COND_CASES_TAC
- >- ASM_REWRITE_TAC [Label_distinct', COMPL_LAB_def, COMPL_COMPL_LAB]
+ >- art [Label_distinct', COMPL_LAB_def, COMPL_COMPL_LAB]
  >> ASM_CASES_TAC ``SND (h :'b Label # 'b Label) = name s``
- >- ASM_REWRITE_TAC [COMPL_LAB_def]
+ >- art [COMPL_LAB_def]
  >> IMP_RES_TAC COMPL_THM
- >> ASM_REWRITE_TAC []);
+ >> art []);
 
 val IS_RELABELING = store_thm (
    "IS_RELABELING",
@@ -249,11 +249,11 @@ val IS_RELABELING = store_thm (
  >> REWRITE_TAC [Is_Relabeling_def, Apply_Relab_def]
  >> GEN_TAC
  >> COND_CASES_TAC
- >- ASM_REWRITE_TAC [Label_distinct', COMPL_LAB_def, COMPL_COMPL_LAB]
+ >- art [Label_distinct', COMPL_LAB_def, COMPL_COMPL_LAB]
  >> ASM_CASES_TAC ``SND (h :'b Label # 'b Label) = name s``
- >- ASM_REWRITE_TAC [COMPL_LAB_def]
+ >- art [COMPL_LAB_def]
  >> IMP_RES_TAC COMPL_THM
- >> ASM_REWRITE_TAC [Apply_Relab_COMPL_THM]);
+ >> art [Apply_Relab_COMPL_THM]);
 
 (* Defining a relabelling function through substitution-like notation.
    RELAB: (Label # Label) list -> Relabeling
@@ -440,9 +440,9 @@ val TRANS_IMP_NO_NIL = store_thm ("TRANS_IMP_NO_NIL",
 (* Above theorem can be proved without using TRANS_ind *)
 val TRANS_IMP_NO_NIL' = store_thm ("TRANS_IMP_NO_NIL'",
   ``!E u E'. TRANS E u E' ==> ~(E = nil)``,
-    REPEAT GEN_TAC
+    rpt GEN_TAC
  >> ONCE_REWRITE_TAC [TRANS_cases]
- >> REPEAT STRIP_TAC
+ >> rpt STRIP_TAC
  >> PROVE_TAC [CCS_distinct']);
 
 (* An agent variable has no transitions.
@@ -485,16 +485,16 @@ val SUM_cases = save_thm (
 
 val TRANS_SUM_EQ = store_thm ("TRANS_SUM_EQ",
   ``!E E' u E''. TRANS (sum E E') u E'' = TRANS E u E'' \/ TRANS E' u E''``,
-    REPEAT GEN_TAC
+    rpt GEN_TAC
  >> EQ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       DISCH_TAC \\
       IMP_RES_TAC SUM_cases \\
-      ASM_REWRITE_TAC [],
+      art [],
       (* goal 2 (of 2) *)
       STRIP_TAC >| (* 2 sub-goals here *)
-      [ MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [],
-        MATCH_MP_TAC SUM2 >> ASM_REWRITE_TAC [] ] ]);
+      [ MATCH_MP_TAC SUM1 >> art [],
+        MATCH_MP_TAC SUM2 >> art [] ] ]);
 
 (* for CCS_TRANS_CONV *)
 val TRANS_SUM_EQ' = store_thm (
@@ -507,22 +507,22 @@ val TRANS_SUM = save_thm (
 
 val TRANS_COMM_EQ = store_thm ("TRANS_COMM_EQ",
   ``!E E' E'' u. TRANS (sum E E') u E'' = TRANS (sum E' E) u E''``,
-    REPEAT GEN_TAC
+    rpt GEN_TAC
  >> EQ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       DISCH_TAC \\
       IMP_RES_TAC TRANS_SUM >|
       [ MATCH_MP_TAC SUM2, MATCH_MP_TAC SUM1 ] \\
-      ASM_REWRITE_TAC [],
+      art [],
       (* goal 2 (of 2) *)
       DISCH_TAC \\
       IMP_RES_TAC TRANS_SUM >|
       [ MATCH_MP_TAC SUM2, MATCH_MP_TAC SUM1 ] \\
-      ASM_REWRITE_TAC [] ]);
+      art [] ]);
 
 val TRANS_ASSOC_EQ = store_thm ("TRANS_ASSOC_EQ",
   ``!E E' E'' E1 u. TRANS (sum (sum E E') E'') u E1 = TRANS (sum E (sum E' E'')) u E1``,
-    REPEAT GEN_TAC
+    rpt GEN_TAC
  >> EQ_TAC
  >| [ (* goal 1 (of 2) *)
       DISCH_TAC \\
@@ -533,21 +533,21 @@ val TRANS_ASSOC_EQ = store_thm ("TRANS_ASSOC_EQ",
 	  MATCH_MP_TAC SUM1,
 	  MATCH_MP_TAC SUM2 >> MATCH_MP_TAC SUM1,
 	  MATCH_MP_TAC SUM2 >> MATCH_MP_TAC SUM1 ] \\
-        ASM_REWRITE_TAC [],
+        art [],
 	(* goal 1.2 (of 2) *)
         MATCH_MP_TAC SUM2 >> MATCH_MP_TAC SUM2 \\
-        ASM_REWRITE_TAC [] ],
+        art [] ],
       (* goal 2 (of 2) *)
       DISCH_TAC \\
       IMP_RES_TAC TRANS_SUM >|
       [ MATCH_MP_TAC SUM1 >> MATCH_MP_TAC SUM1 \\
-        ASM_REWRITE_TAC [],
+        art [],
         IMP_RES_TAC TRANS_SUM >| (* 4 sub-goals here *)
         [ MATCH_MP_TAC SUM1 >> MATCH_MP_TAC SUM1,
 	  MATCH_MP_TAC SUM1 >> MATCH_MP_TAC SUM2,
 	  MATCH_MP_TAC SUM2,
 	  MATCH_MP_TAC SUM2 ] \\
-	ASM_REWRITE_TAC [] ] ]);
+	art [] ] ]);
 
 val TRANS_ASSOC_RL = save_thm (
    "TRANS_ASSOC_RL", EQ_IMP_RL TRANS_ASSOC_EQ);
@@ -555,7 +555,7 @@ val TRANS_ASSOC_RL = save_thm (
 val TRANS_SUM_NIL_EQ = store_thm (
    "TRANS_SUM_NIL_EQ",
   ``!E u E'. TRANS (sum E nil) u E' = TRANS E u E'``,
-    REPEAT GEN_TAC
+    rpt GEN_TAC
  >> EQ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       DISCH_TAC \\
@@ -563,19 +563,19 @@ val TRANS_SUM_NIL_EQ = store_thm (
       IMP_RES_TAC NIL_NO_TRANS,
       (* goal 2 (of 2) *)
       DISCH_TAC \\
-      MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [] ]);
+      MATCH_MP_TAC SUM1 >> art [] ]);
 
 (* |- ∀E u E'. E + nil --u-> E' ⇒ E --u-> E' *)
 val TRANS_SUM_NIL = save_thm ("TRANS_SUM_NIL", EQ_IMP_LR TRANS_SUM_NIL_EQ);
 
 val TRANS_P_SUM_P_EQ = store_thm ("TRANS_P_SUM_P_EQ",
   ``!E u E'. TRANS (sum E E) u E' = TRANS E u E'``,
-    REPEAT GEN_TAC
+    rpt GEN_TAC
  >> EQ_TAC
  >| [ DISCH_TAC \\
       IMP_RES_TAC TRANS_SUM,
       DISCH_TAC \\
-      MATCH_MP_TAC SUM1 >> ASM_REWRITE_TAC [] ]);
+      MATCH_MP_TAC SUM1 >> art [] ]);
 
 val TRANS_P_SUM_P = save_thm ("TRANS_P_SUM_P", EQ_IMP_LR TRANS_P_SUM_P_EQ);
 
@@ -595,45 +595,45 @@ val TRANS_PAR_EQ = store_thm ("TRANS_PAR_EQ",
 		 (?E1. (E'' = par E E1) /\ TRANS E' u E1) \/
 		 (?E1 E2 l. (u = tau) /\ (E'' = par E1 E2) /\
 			    TRANS E (label l) E1 /\ TRANS E' (label (COMPL l)) E2)``,
-    REPEAT GEN_TAC
+    rpt GEN_TAC
  >> EQ_TAC (* 2 sub-goals here *)
  >| [ (* case 1 (LR) *)
       STRIP_TAC \\
       IMP_RES_TAC PAR_cases >| (* 3 sub-goals here *)
       [ (* goal 1.1 *)
 	DISJ1_TAC \\
-	Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [],
+	Q.EXISTS_TAC `E1` >> art [],
 	(* goal 1.2 *)
 	DISJ2_TAC \\
 	DISJ1_TAC \\
-	Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [],
+	Q.EXISTS_TAC `E1` >> art [],
 	(* goal 1.3 *)
 	DISJ2_TAC \\
 	DISJ2_TAC \\
 	take [`E1`, `E2`, `l`] \\
-	ASM_REWRITE_TAC [] ],
+	art [] ],
       (* case 2 (RL) *)
       STRIP_TAC (* 3 sub-goals here, but they share the first and last steps *)
-   >> ASM_REWRITE_TAC []
-   >| [ MATCH_MP_TAC PAR1 >> ASM_REWRITE_TAC [],
-        MATCH_MP_TAC PAR2 >> ASM_REWRITE_TAC [],
+   >> art []
+   >| [ MATCH_MP_TAC PAR1 >> art [],
+        MATCH_MP_TAC PAR2 >> art [],
         MATCH_MP_TAC PAR3 \\
-        Q.EXISTS_TAC `l` >> ASM_REWRITE_TAC [] ] ]);
+        Q.EXISTS_TAC `l` >> art [] ] ]);
 
 val TRANS_PAR = save_thm ("TRANS_PAR", EQ_IMP_LR TRANS_PAR_EQ);
 
 val TRANS_PAR_P_NIL = store_thm ("TRANS_PAR_P_NIL",
   ``!E u E'. TRANS (par E nil) u E' ==> (?E''. TRANS E u E'' /\ (E' = par E'' nil))``,
-    REPEAT STRIP_TAC
+    rpt STRIP_TAC
  >> IMP_RES_TAC TRANS_PAR
- >| [ Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [],
+ >| [ Q.EXISTS_TAC `E1` >> art [],
       IMP_RES_TAC NIL_NO_TRANS,
       IMP_RES_TAC NIL_NO_TRANS ]);
 
 val TRANS_PAR_NO_SYNCR = store_thm ("TRANS_PAR_NO_SYNCR",
   ``!(l :'b Label) l'. ~(l = COMPL l') ==>
 	   (!E E' E''. ~(TRANS (par (prefix (label l) E) (prefix (label l') E')) tau E''))``,
-    REPEAT STRIP_TAC
+    rpt STRIP_TAC
  >> IMP_RES_TAC TRANS_PAR (* 3 sub-goals here *)
  >| [ IMP_RES_TAC TRANS_PREFIX >> IMP_RES_TAC Action_distinct,
       IMP_RES_TAC TRANS_PREFIX >> IMP_RES_TAC Action_distinct,
@@ -663,7 +663,7 @@ val TRANS_RESTR_EQ = store_thm ("TRANS_RESTR_EQ",
       and a3 = ASSUME ``TRANS E'' u E'''``
       and a4 = ASSUME ``TRANS E u E''``
   in
-    REPEAT GEN_TAC
+    rpt GEN_TAC
  >> EQ_TAC >| (* two goals here *)
     [ (* case 1 (LR) *)
       STRIP_TAC \\
@@ -671,20 +671,20 @@ val TRANS_RESTR_EQ = store_thm ("TRANS_RESTR_EQ",
       Q.EXISTS_TAC `E'''` \\
       Q.EXISTS_TAC `l` >|
       [ (* goal 1.1 *)
-	ASM_REWRITE_TAC [REWRITE_RULE [a1] a3],
+	art [REWRITE_RULE [a1] a3],
 	(* goal 1.2 *)
-	ASM_REWRITE_TAC [REWRITE_RULE [a2] a3] ],
+	art [REWRITE_RULE [a2] a3] ],
       (* case 2 (RL) *)
       STRIP_TAC >| (* two sub-goals here *)
       [ (* sub-goal 2.1 *)
-	ASM_REWRITE_TAC [] \\
+	art [] \\
 	MATCH_MP_TAC RESTR \\
-	ASM_REWRITE_TAC [REWRITE_RULE [a1] a4],
+	art [REWRITE_RULE [a1] a4],
 	(* sub-goal 2.2 *)
-	ASM_REWRITE_TAC [] \\
+	art [] \\
 	MATCH_MP_TAC RESTR \\
         Q.EXISTS_TAC `l` \\
-	ASM_REWRITE_TAC [REWRITE_RULE [a2] a4] ] ]
+	art [REWRITE_RULE [a2] a4] ] ]
   end);
 
 val TRANS_RESTR = save_thm (
@@ -696,7 +696,7 @@ val TRANS_P_RESTR = store_thm (
   let
       val thm = REWRITE_RULE [CCS_11] (ASSUME ``restr (L :'b Label set) E' = restr L E''``)
   in
-      REPEAT STRIP_TAC \\
+      rpt STRIP_TAC \\
       IMP_RES_TAC TRANS_RESTR >| (* 2 sub-goals here *)
       [ FILTER_ASM_REWRITE_TAC (fn t => not (t = ``(u :'b Action) = tau``)) [thm],
         FILTER_ASM_REWRITE_TAC (fn t => not (t = ``(u :'b Action) = label l``)) [thm] ]
@@ -704,20 +704,20 @@ val TRANS_P_RESTR = store_thm (
 
 val RESTR_NIL_NO_TRANS = store_thm ("RESTR_NIL_NO_TRANS",
   ``!(L :'b Label set) u E. ~(TRANS (restr L nil) u E)``,
-    REPEAT STRIP_TAC
+    rpt STRIP_TAC
  >> IMP_RES_TAC TRANS_RESTR (* two sub-goals here, but same proofs *)
  >> IMP_RES_TAC NIL_NO_TRANS);
 
 val TRANS_IMP_NO_RESTR_NIL = store_thm ("TRANS_IMP_NO_RESTR_NIL",
   ``!E u E'. TRANS E u E' ==> !L. ~(E = restr L nil)``,
-    REPEAT STRIP_TAC
+    rpt STRIP_TAC
  >> ASSUME_TAC (REWRITE_RULE [ASSUME ``E = restr L nil``]
 			     (ASSUME ``TRANS E u E'``))
  >> IMP_RES_TAC RESTR_NIL_NO_TRANS);
 
 val TRANS_RESTR_NO_NIL = store_thm ("TRANS_RESTR_NO_NIL",
   ``!E L u E'. TRANS (restr L E) u (restr L E') ==> ~(E = nil)``,
-    REPEAT STRIP_TAC
+    rpt STRIP_TAC
  >> IMP_RES_TAC TRANS_RESTR
  >> ASSUME_TAC (REWRITE_RULE [ASSUME ``E = nil``]
 			     (ASSUME ``TRANS E u E''``))
@@ -726,7 +726,7 @@ val TRANS_RESTR_NO_NIL = store_thm ("TRANS_RESTR_NO_NIL",
 val RESTR_LABEL_NO_TRANS = store_thm ("RESTR_LABEL_NO_TRANS",
   ``!(l :'b Label) L. (l IN L) \/ ((COMPL l) IN L) ==>
 		      (!E u E'. ~(TRANS (restr L (prefix (label l) E)) u E'))``,
-    REPEAT STRIP_TAC (* 2 goals here *)
+    rpt STRIP_TAC (* 2 goals here *)
  >| [ (* goal 1 *)
       IMP_RES_TAC TRANS_RESTR >| (* 2 sub-goals here *)
       [ (* goal 1.1 *)
@@ -767,12 +767,12 @@ val TRANS_RELAB_EQ = store_thm ("TRANS_RELAB_EQ",
   ``!E rf u E'. TRANS (relab E rf) u E' =
 		(?u' E''. (u = relabel rf u') /\
 			  (E' = relab E'' rf) /\ TRANS E u' E'')``,
-    REPEAT GEN_TAC
+    rpt GEN_TAC
  >> EQ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       DISCH_TAC	\\
       IMP_RES_TAC RELAB_cases \\
-      take [`u'`, `E'''`] >> ASM_REWRITE_TAC [],
+      take [`u'`, `E'''`] >> art [],
       (* goal 2 (of 2) *)
       STRIP_TAC \\
       PURE_ONCE_ASM_REWRITE_TAC [] \\
@@ -786,7 +786,7 @@ val TRANS_RELAB_labl = save_thm ("TRANS_RELAB_labl",
 
 val RELAB_NIL_NO_TRANS = store_thm ("RELAB_NIL_NO_TRANS",
   ``!(rf :'b Relabeling) u E. ~(TRANS (relab nil rf) u E)``,
-    REPEAT STRIP_TAC
+    rpt STRIP_TAC
  >> IMP_RES_TAC TRANS_RELAB
  >> IMP_RES_TAC NIL_NO_TRANS);
 
@@ -800,11 +800,11 @@ val REC_cases = save_thm ("REC_cases", EQ_IMP_LR REC_cases_EQ);
 
 val TRANS_REC_EQ = store_thm ("TRANS_REC_EQ",
   ``!X E u E'. TRANS (rec X E) u E' = TRANS (CCS_Subst E (rec X E) X) u E'``,
-    REPEAT GEN_TAC
+    rpt GEN_TAC
  >> EQ_TAC
  >| [ (* goal 1 (of 2) *)
       PURE_ONCE_REWRITE_TAC [REC_cases_EQ] \\
-      REPEAT STRIP_TAC \\
+      rpt STRIP_TAC \\
       PURE_ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
       PURE_ONCE_REWRITE_TAC [REC] ]);

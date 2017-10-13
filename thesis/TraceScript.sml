@@ -209,12 +209,25 @@ val size_def = Define `
 val constants_def = Define `
    (constants (nil :('a, 'b) CCS) = ([] :'a list)) /\
    (constants (prefix u p)	  = constants p) /\
-   (constants (sum p q)		  = (constants p) ++ (constants q)) /\
-   (constants (par p q)		  = (constants p) ++ (constants q)) /\
+   (constants (sum p q)		  = constants p ++ constants q) /\
+   (constants (par p q)		  = constants p ++ constants q) /\
    (constants (restr L p)	  = constants p) /\
    (constants (relab p rf)	  = constants p) /\
    (constants (var x)		  = []) /\
-   (constants (rec x p)		  = [x])`;
+   (constants (rec x p)		  = [x]) /\		(* here! *)
+   (constants (lts r ts)	  = [])`;
+
+(* `pure CCS` has noLTS embeded, it's not used anywhere so far *)
+val pure_CCS_def = Define `
+   (pure_CCS (nil :('a, 'b) CCS)  = T) /\
+   (pure_CCS (prefix u p)	  = pure_CCS p) /\
+   (pure_CCS (sum p q)		  = pure_CCS p /\ pure_CCS q) /\
+   (pure_CCS (par p q)		  = pure_CCS p /\ pure_CCS q) /\
+   (pure_CCS (restr L p)	  = pure_CCS p) /\
+   (pure_CCS (relab p rf)	  = pure_CCS p) /\
+   (pure_CCS (var x)		  = T) /\
+   (pure_CCS (rec x p)		  = T) /\
+   (pure_CCS (lts r ts)		  = F)`;		(* here! *)
 
 (* (FN :('a, 'b) CCS -> 'a list -> 'b Label set) *)
 val FN_definition = `
@@ -259,7 +272,7 @@ in
 end;
 
 (* (free_names :('a, 'b) CCS -> 'b Label set) collects all visible labels in the prefix *)
-val free_names_def = Define `
+val free_names_def = Define ` (* also called "sorts" by Robin Milner *)
     free_names p = FN p (constants p)`;
 
 (* (bound_names :('a, 'b) CCS -> 'b Label set) collects all visible labels in the restr *)

@@ -1244,7 +1244,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
       rpt STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 2.1 (of 2) *)
         `?E2. WEAK_TRANS (E P) u E2 /\ WEAK_EQUIV E1 E2`
-				by PROVE_TAC [OBS_CONGR_HALF_LEFT] \\
+				by PROVE_TAC [OBS_CONGR_TRANS_LEFT] \\
         Q.PAT_X_ASSUM `WEAK_TRANS (E P) u E2`
 	  (STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS])) \\
         IMP_RES_TAC (Q.SPEC `E` OBS_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
@@ -1286,7 +1286,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
  *)
         (* goal 2.2 (of 2) *)
         `?E1. WEAK_TRANS (E Q) u E1 /\ WEAK_EQUIV E2 E1`
-				by PROVE_TAC [OBS_CONGR_HALF_LEFT] \\
+				by PROVE_TAC [OBS_CONGR_TRANS_LEFT] \\
         Q.PAT_X_ASSUM `WEAK_TRANS (E Q) u E1`
 	  (STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS])) \\
         IMP_RES_TAC (Q.SPEC `E` OBS_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
@@ -1339,15 +1339,15 @@ val unfolding_lemma1 = store_thm (
    "unfolding_lemma1",
   ``!E C P. GCONTEXT E /\ GCONTEXT C /\ P contracts (E P) ==>
 	!n. (C P) contracts (C o (FUNPOW E n)) P``,
-    REPEAT STRIP_TAC
+    rpt STRIP_TAC
  >> REWRITE_TAC [o_DEF]
  >> BETA_TAC
- >> irule contracts_precongruence_applied >- art []
+ >> irule contracts_SUBST_GCONTEXT >- art []
  >> Q.SPEC_TAC (`n`, `n`)
  >> Induct >- REWRITE_TAC [FUNPOW, contracts_REFL]
  >> REWRITE_TAC [FUNPOW_SUC]
  >> Q.ABBREV_TAC `Q = FUNPOW E n P`
- >> `(E P) contracts (E Q)` by PROVE_TAC [contracts_precongruence_applied]
+ >> `(E P) contracts (E Q)` by PROVE_TAC [contracts_SUBST_GCONTEXT]
  >> IMP_RES_TAC contracts_TRANS);
 
 (* This can be merged to HOL's arithmeticTheory *)
@@ -1704,15 +1704,15 @@ val unfolding_lemma1' = store_thm (
    "unfolding_lemma1'",
   ``!E C P. GCONTEXT E /\ GCONTEXT C /\ P expands (E P) ==>
 	!n. (C P) expands (C o (FUNPOW E n)) P``,
-    REPEAT STRIP_TAC
+    rpt STRIP_TAC
  >> REWRITE_TAC [o_DEF]
  >> BETA_TAC
- >> irule expands_precongruence_applied >- art []
+ >> irule expands_SUBST_GCONTEXT >- art []
  >> Q.SPEC_TAC (`n`, `n`)
  >> Induct >- REWRITE_TAC [FUNPOW, expands_REFL]
  >> REWRITE_TAC [FUNPOW_SUC]
  >> Q.ABBREV_TAC `Q = FUNPOW E n P`
- >> `(E P) expands (E Q)` by PROVE_TAC [expands_precongruence_applied]
+ >> `(E P) expands (E Q)` by PROVE_TAC [expands_SUBST_GCONTEXT]
  >> IMP_RES_TAC expands_TRANS);
 
 (* The proof has only minor differences with UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA *)
@@ -1902,6 +1902,33 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
       `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2' (C' Q)` by PROVE_TAC [expands_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS] ]);
+
+(* Another way to prove above theorem using UNIQUE_SOLUTIONS_OF_CONTRACTIONS, this method
+   works for any relation coarser than `contracts`, partial-ordering and precogruence of
+  `expands` are not needed. *)
+val UNIQUE_SOLUTIONS_OF_EXPANSIONS' = store_thm (
+   "UNIQUE_SOLUTIONS_OF_EXPANSIONS'",
+  ``!E. WGS E ==>
+	!P Q. P expands (E P) /\ Q expands (E Q) ==> WEAK_EQUIV P Q``,
+    rpt STRIP_TAC
+ >> IMP_RES_TAC expands_IMP_contracts
+ >> irule UNIQUE_SOLUTIONS_OF_CONTRACTIONS
+ >> Q.EXISTS_TAC `E` >> art []);
+
+(******************************************************************************)
+(*                                                                            *)
+(*        6. Unique solutions of obversational contracts (OBS_contracts)      *)
+(*                                                                            *)
+(******************************************************************************)
+
+val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS = store_thm (
+   "UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS",
+  ``!E. WGS E ==>
+	!P Q. OBS_contracts P (E P) /\ OBS_contracts Q (E Q) ==> WEAK_EQUIV P Q``,
+    rpt STRIP_TAC
+ >> IMP_RES_TAC OBS_contracts_IMP_contracts
+ >> irule UNIQUE_SOLUTIONS_OF_CONTRACTIONS
+ >> Q.EXISTS_TAC `E` >> art []);
 
 (* Bibliography:
  *
