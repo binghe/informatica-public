@@ -577,6 +577,7 @@ val TRACE_def = Define `TRACE = LRTC TRANS`;
 
 val _ = type_abbrev ("trace",
 		    ``:('a, 'b) CCS -> 'b Action list -> ('a, 'b) CCS -> bool``);
+val _ = overload_on ("Trans", ``TRACE :('a, 'b) trace``); (* share pp with TRANS *)
 
 local
     val trans = (REWRITE_RULE [SYM TRACE_def]) o (ISPEC ``TRANS``);
@@ -638,7 +639,8 @@ val TRACE_ONE = save_thm (
    "TRACE_ONE", trans LRTC_ONE);
 end;
 
-val _ = overload_on ("Trans", ``TRACE``); (* share the pp with TRANS *)
+val [TRACE_rule0, TRACE_rule1] =
+    map save_thm (combine (["TRACE_rule0", "TRACE_rule1"], CONJUNCTS TRACE_rules));
 
 (* The `transitivity` of TRACE relation *)
 val TRACE_trans_applied = store_thm (
@@ -652,7 +654,7 @@ val TRACE_REFL = store_thm ("TRACE_REFL", ``!E. TRACE E [] E``,
 val TRACE2 = store_thm ("TRACE2",
   ``!E x E1 xs E'. TRANS E x E1 /\ TRACE E1 xs E' ==> TRACE E (x :: xs) E'``,
     rpt STRIP_TAC
- >> MATCH_MP_TAC (CONJUNCT2 TRACE_rules)
+ >> MATCH_MP_TAC TRACE_rule1
  >> Q.EXISTS_TAC `E1`
  >> ASM_REWRITE_TAC []);
 
@@ -684,12 +686,18 @@ val NO_LABEL_def = Define `
 
 val NO_LABEL_cases = store_thm (
    "NO_LABEL_cases",
-  ``!(x :'b Action) xs. NO_LABEL (x :: xs) ==> (x = tau) /\ NO_LABEL xs``,
+  ``!(x :'b Action) xs. NO_LABEL (x :: xs) = (x = tau) /\ NO_LABEL xs``,
     REWRITE_TAC [NO_LABEL_def]
- >> rpt GEN_TAC >> REWRITE_TAC [MEM]
- >> Cases_on `x` >> SIMP_TAC list_ss [Action_distinct_label, IS_LABEL_def]
- >> Q.EXISTS_TAC `x'` >> DISJ1_TAC
- >> ACCEPT_TAC (REFL ``x' :'b Label``));
+ >> rpt GEN_TAC >> EQ_TAC (* 2 sub-goals here *)
+ >| [ (* goal 1 (of 2) *)
+      REWRITE_TAC [MEM] \\
+      Cases_on `x` >> SIMP_TAC list_ss [Action_distinct_label, IS_LABEL_def] \\
+      Q.EXISTS_TAC `x'` >> DISJ1_TAC \\
+      ACCEPT_TAC (REFL ``x' :'b Label``),
+      (* goal 2 (of 2) *)
+      REWRITE_TAC [MEM] \\
+      rpt STRIP_TAC >- rfs [Action_distinct_label] \\
+      METIS_TAC [] ]);
 
 val EPS_TRACE2 = Q.prove (
    `!E E'. EPS E E' ==> ?xs. TRACE E xs E' /\ NO_LABEL xs`,

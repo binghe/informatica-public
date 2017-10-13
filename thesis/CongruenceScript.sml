@@ -417,38 +417,72 @@ val CONTEXT_IS_EXPR = store_thm (
 
 val (WG_rules, WG_ind, WG_cases) = Hol_reln `
     (!p.                        WG (\t. p)) /\                   (* WG2 *)
-    (!a e.   EXPR e         ==> WG (\t. prefix a (e t))) /\      (* WG3 *)
+    (!a e.   CONTEXT e      ==> WG (\t. prefix a (e t))) /\      (* WG3 *)
     (!e1 e2. WG e1 /\ WG e2 ==> WG (\t. sum (e1 t) (e2 t))) /\   (* WG4 *)
     (!e1 e2. WG e1 /\ WG e2 ==> WG (\t. par (e1 t) (e2 t))) /\   (* WG5 *)
     (!L e.   WG e           ==> WG (\t. restr L (e t))) /\       (* WG6 *)
-    (!rf e.  WG e           ==> WG (\t. relab (e t) rf)) /\      (* WG7 *)
-    (!X e.   WG e  /\ WG (\t. CCS_Subst (e t) (rec X (e t)) X)
-			    ==> WG (\t. rec X (e t))) `;	 (* WG8 *)
+    (!rf e.  WG e           ==> WG (\t. relab (e t) rf)) `;      (* WG7 *)
 
-val [WG2, WG3, WG4, WG5, WG6, WG7, WG8] =
+val [WG2, WG3, WG4, WG5, WG6, WG7] =
     map save_thm
-        (combine (["WG2", "WG3", "WG4", "WG5", "WG6", "WG7", "WG8"], CONJUNCTS WG_rules));
+        (combine (["WG2", "WG3", "WG4", "WG5", "WG6", "WG7"], CONJUNCTS WG_rules));
 
 (** WG1 is derivable from WG3 *)
 val WG1 = store_thm ("WG1",
   ``!a :'b Action. WG (\t. prefix a t)``,
-    ASSUME_TAC EXPR1
+    ASSUME_TAC CONTEXT1
  >> IMP_RES_TAC WG3
  >> POP_ASSUM MP_TAC
  >> BETA_TAC >> art []);
 
 (* Weakly guarded expressions are also expressions *)
-val WG_IS_EXPR = store_thm (
-   "WG_IS_EXPR", ``!e. WG e ==> EXPR e``,
+val WG_IS_CONTEXT = store_thm (
+   "WG_IS_CONTEXT", ``!e. WG e ==> CONTEXT e``,
     Induct_on `WG`
  >> rpt STRIP_TAC (* 6 sub-goals here *)
- >| [ REWRITE_TAC [EXPR2],
-      MATCH_MP_TAC EXPR3 >> art [],
-      MATCH_MP_TAC EXPR4 >> art [],
-      MATCH_MP_TAC EXPR5 >> art [],
-      MATCH_MP_TAC EXPR6 >> art [],
-      MATCH_MP_TAC EXPR7 >> art [],
-      MATCH_MP_TAC EXPR8 >> art [] ]);
+ >| [ REWRITE_TAC [CONTEXT2],
+      MATCH_MP_TAC CONTEXT3 >> art [],
+      MATCH_MP_TAC CONTEXT4 >> art [],
+      MATCH_MP_TAC CONTEXT5 >> art [],
+      MATCH_MP_TAC CONTEXT6 >> art [],
+      MATCH_MP_TAC CONTEXT7 >> art [] ]);
+
+val WG_IS_EXPR = store_thm (
+   "WG_IS_EXPR", ``!e. WG e ==> EXPR e``,
+    rpt STRIP_TAC
+ >> IMP_RES_TAC WG_IS_CONTEXT
+ >> IMP_RES_TAC CONTEXT_IS_EXPR);
+
+val CONTEXT_WG_combin = store_thm (
+   "CONTEXT_WG_combin", ``!c e. CONTEXT c /\ WG e ==> WG (c o e)``,
+    rpt STRIP_TAC
+ >> NTAC 2 (POP_ASSUM MP_TAC)
+ >> Q.SPEC_TAC (`c`, `c`)
+ >> HO_MATCH_MP_TAC CONTEXT_ind
+ >> REWRITE_TAC [o_DEF]
+ >> BETA_TAC
+ >> REWRITE_TAC [ETA_AX]
+ >> rpt STRIP_TAC >> RES_TAC (* 6 sub-goals here *)
+ >| [ (* goal 1 (of 6) *)
+      REWRITE_TAC [WG2],
+      (* goal 2 (of 6) *)
+      IMP_RES_TAC WG_IS_CONTEXT \\
+      MP_TAC (Q.SPECL [`a`, `(\x. (c :('a, 'b) context) (e x))`] WG3) \\
+      BETA_TAC >> RW_TAC std_ss [],
+      (* goal 3 (of 6) *)
+      MP_TAC (Q.SPECL [`(\x. (c :('a, 'b) context) (e x))`,
+		       `(\x. (c' :('a, 'b) context) (e x))`] WG4) \\
+      BETA_TAC >> RW_TAC std_ss [],
+      (* goal 4 (of 6) *)
+      MP_TAC (Q.SPECL [`(\x. (c :('a, 'b) context) (e x))`,
+		       `(\x. (c' :('a, 'b) context) (e x))`] WG5) \\
+      BETA_TAC >> RW_TAC std_ss [],
+      (* goal 5 (of 6) *)
+      MP_TAC (Q.SPECL [`L`, `(\x. (c :('a, 'b) context) (e x))`] WG6) \\
+      BETA_TAC >> RW_TAC std_ss [],
+      (* goal 6 (of 6) *)
+      MP_TAC (Q.SPECL [`rf`, `(\x. (c :('a, 'b) context) (e x))`] WG7) \\
+      BETA_TAC >> RW_TAC std_ss [] ]);
 
 (******************************************************************************)
 (*                                                                            *)
@@ -491,8 +525,8 @@ val SG_IMP_WG = store_thm (
     Induct_on `SG`
  >> rpt STRIP_TAC (* 7 sub-goals here *)
  >| [ REWRITE_TAC [WG2],
-      MATCH_MP_TAC WG3 >> IMP_RES_TAC CONTEXT_IS_EXPR,
-      MATCH_MP_TAC WG3 >> IMP_RES_TAC WG_IS_EXPR,
+      MATCH_MP_TAC WG3 >> art [],
+      MATCH_MP_TAC WG3 >> IMP_RES_TAC SG_IS_CONTEXT,
       MATCH_MP_TAC WG4 >> art [],
       MATCH_MP_TAC WG5 >> art [],
       MATCH_MP_TAC WG6 >> art [],
