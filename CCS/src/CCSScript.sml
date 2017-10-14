@@ -758,6 +758,6 @@ val TRANS_REC_EQ = store_thm ("TRANS_REC_EQ",
 val TRANS_REC = save_thm ("TRANS_REC", EQ_IMP_LR TRANS_REC_EQ);
 
 val _ = export_theory ();
-val _ = DB.html_theory "CCS";
+val _ = html_theory "CCS";
 
 (* last updated: May 14, 2017 *)

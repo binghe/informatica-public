@@ -1994,6 +1994,6 @@ val STRONG_PAR_LAW = store_thm (
             ASM_REWRITE_TAC [PREF_PROC_def, PREFIX] ] ] ] ]);
 
 val _ = export_theory ();
-val _ = DB.html_theory "StrongLaws";
+val _ = html_theory "StrongLaws";
 
 (* last updated: May 14, 2017 *)

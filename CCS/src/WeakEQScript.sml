@@ -140,6 +140,6 @@ val _ = TeX_notation { hol = UTF8.chr 0x2248 ^ UTF8.chr 0x02B3, (* double-tilde 
                        TeX = ("\\HOLTokenRootedWeakEquiv", 1) };
 
 val _ = export_theory ();
-val _ = DB.html_theory "WeakEQ";
+val _ = html_theory "WeakEQ";
 
 (* last updated: May 14, 2017 *)

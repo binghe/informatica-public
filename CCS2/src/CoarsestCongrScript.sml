@@ -1092,6 +1092,6 @@ val COARSEST_CONGR_FINITE = store_thm ((* NEW *)
  *)
 
 val _ = export_theory ();
-val _ = DB.html_theory "CoarsestCongr";
+val _ = html_theory "CoarsestCongr";
 
 (* last updated: Jun 24, 2017 *)

@@ -433,6 +433,6 @@ val OBS_CONGR_IS_WEAK_CONGR = store_thm ((* NEW *)
  *)
 
 val _ = export_theory ();
-val _ = DB.html_theory "CoarsestCongr2";
+val _ = html_theory "CoarsestCongr2";
 
 (* last updated: Jun 24, 2017 *)

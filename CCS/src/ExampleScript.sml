@@ -423,7 +423,9 @@ in
 end;
 
 val _ = export_theory ();
-val _ = DB.html_theory "Example";
+val _ = html_theory "Example";
+
+open EmitTeX;
 
 (* Emit theory books in TeX *)
 if (OS.FileSys.isDir "../papers" handle e => false) then
