@@ -1380,13 +1380,11 @@ val unfolding_lemma2 = store_thm (
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 3.1 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
-        IMP_RES_TAC WGS_IS_GCONTEXT \\
-        Q.EXISTS_TAC `E` >> art [] \\
+        Q.EXISTS_TAC `e1` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM1 >> REWRITE_TAC [PREFIX],
         (* goal 3.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
-        IMP_RES_TAC WGS_IS_GCONTEXT \\
-        Q.EXISTS_TAC `E'` >> art [] \\
+        Q.EXISTS_TAC `e2` >> art [] \\
         GEN_TAC >> MATCH_MP_TAC SUM2 >> REWRITE_TAC [PREFIX] ],
       (* goal 4 (of 6) *)
       IMP_RES_TAC TRANS_PAR >| (* 3 sub-goals here *)

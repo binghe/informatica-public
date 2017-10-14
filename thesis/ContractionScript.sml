@@ -10,7 +10,7 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open relationTheory listTheory;
+open relationTheory combinTheory listTheory;
 open CCSLib CCSTheory;
 open StrongEQTheory StrongLawsTheory;
 open WeakEQTheory WeakEQLib WeakLawsTheory;
@@ -156,7 +156,8 @@ val (contracts_rules, contracts_coind, contracts_cases) = Hol_coreln `
        (!E2. TRANS E' tau E2 ==> ?E1. EPS E E1 /\ WEAK_EQUIV E1 E2)
       ==> $contracts E E')`;
 
-val _ = set_fixity "contracts" (Infixl 500);
+val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
+			    tok = ">>", term_name = "contracts" };
 
 val _ = Unicode.unicode_version { u = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D47, tmnm = "contracts" };
 val _ = TeX_notation { hol = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D47,
@@ -1094,7 +1095,7 @@ val OBS_contracts = new_definition ("OBS_contracts",
 	       ?E1. WEAK_TRANS E u E1 /\ WEAK_EQUIV E1 E2))``);
 
 val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
-			    tok = ">>", term_name = "OBS_contracts" };
+			    tok = ">>>", term_name = "OBS_contracts" };
 
 val _ = Unicode.unicode_version { u = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D9C,
 				  tmnm = "OBS_contracts" };
@@ -1702,4 +1703,4 @@ val OBS_contracts_EPS' = store_thm (
 val _ = export_theory ();
 val _ = html_theory "Contraction";
 
-(* last updated: Sep 19, 2017 *)
+(* last updated: Oct 14, 2017 *)

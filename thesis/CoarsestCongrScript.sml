@@ -173,8 +173,8 @@ val HENNESSY_LEMMA = store_thm ((* NEW *)
 val WEAK_CONGR = new_definition ((* NEW *)
    "WEAK_CONGR", ``WEAK_CONGR = CC WEAK_EQUIV``);
 
-val WEAK_CONGR_ALT = save_thm (
-   "WEAK_CONGR_ALT", REWRITE_RULE [CC_def] WEAK_CONGR);
+val WEAK_CONGR_thm = save_thm (
+   "WEAK_CONGR_thm", REWRITE_RULE [CC_def] WEAK_CONGR);
 
 val WEAK_CONGR_congruence = store_thm ((* NEW *)
    "WEAK_CONGR_congruence", ``congruence WEAK_CONGR``,
@@ -198,17 +198,14 @@ val WEAK_CONGR_IMP_SUM_EQUIV = store_thm ((* NEW *)
    "WEAK_CONGR_IMP_SUM_EQUIV",
   ``!p q. WEAK_CONGR p q ==> SUM_EQUIV p q``,
     REWRITE_TAC [WEAK_CONGR, SUM_EQUIV, CC_def]
- >> BETA_TAC
- >> REPEAT STRIP_TAC
+ >> BETA_TAC >> rpt STRIP_TAC
  >> POP_ASSUM MP_TAC
  >> Know `CONTEXT (\(t :('a, 'b) CCS). t) /\ CONTEXT (\t. r)`
  >- REWRITE_TAC [CONTEXT1, CONTEXT2]
  >> DISCH_TAC
  >> POP_ASSUM (ASSUME_TAC o (MATCH_MP CONTEXT4))
- >> DISCH_TAC
- >> RES_TAC
- >> POP_ASSUM (MP_TAC o BETA_RULE)
- >> Rewr);
+ >> DISCH_TAC >> RES_TAC
+ >> POP_ASSUM (MP_TAC o BETA_RULE) >> Rewr);
 
 (******************************************************************************)
 (*                                                                            *)
@@ -1257,4 +1254,4 @@ val ONE_ONE_IMP_NOTIN = store_thm ((* NEW *)
 val _ = export_theory ();
 val _ = html_theory "CoarsestCongr";
 
-(* last updated: Jun 24, 2017 *)
+(* last updated: Oct 14, 2017 *)

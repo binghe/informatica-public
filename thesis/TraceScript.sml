@@ -863,4 +863,4 @@ val WEAK_TRANS_AND_TRACE = store_thm (
 val _ = export_theory ();
 val _ = html_theory "Trace";
 
-(* last updated: May 14, 2017 *)
+(* last updated: Oct 7, 2017 *)

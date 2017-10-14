@@ -330,6 +330,13 @@ val _ = add_rule { fixity = Suffix 2100,
                    term_name = "GCC" };
 val _ = TeX_notation { hol = "^g", TeX = ("\\HOLTokenSupG{}", 1) };
 
+val CC_precongruence = store_thm (
+   "CC_precongruence", ``!R. precongruence (CC R)``,
+    REWRITE_TAC [precongruence_def, CC_def]
+ >> RW_TAC std_ss []
+ >> `CONTEXT (c o ctx)` by PROVE_TAC [CONTEXT_combin]
+ >> RES_TAC >> FULL_SIMP_TAC std_ss [o_THM]);
+
 (* The built relation is indeed congruence *)
 val CC_congruence = store_thm (
    "CC_congruence", ``!R. equivalence R ==> congruence (CC R)``,
@@ -371,6 +378,12 @@ val CC_is_coarsest = store_thm (
    "CC_is_coarsest",
   ``!R R'. congruence R' /\ R' RSUBSET R ==> R' RSUBSET (CC R)``,
     REWRITE_TAC [congruence_def, precongruence_def, RSUBSET, CC_def]
+ >> RW_TAC std_ss []);
+
+val CC_is_coarsest' = store_thm (
+   "CC_is_coarsest'",
+  ``!R R'. precongruence R' /\ R' RSUBSET R ==> R' RSUBSET (CC R)``,
+    REWRITE_TAC [precongruence_def, RSUBSET, CC_def]
  >> RW_TAC std_ss []);
 
 (******************************************************************************)
@@ -1387,16 +1400,20 @@ val SG_GSEQ_combin = store_thm (
 (*                                                                            *)
 (******************************************************************************)
 
-(* The only difference from WG is at WGS4, in which the sum has prefixed args *)
+(* The only difference from WG is at WGS4, in which the sum has prefixed args,
+   and the underlying e1 & e2 can be simply GCONTEXT. *)
 val (WGS_rules, WGS_ind, WGS_cases) = Hol_reln `
     (!p.                          WGS (\t. p)) /\                   (* WGS2 *)
     (!a e.   GCONTEXT e       ==> WGS (\t. prefix a (e t))) /\      (* WGS3 *)
     (!a1 a2 e1 e2.
-	     WGS e1 /\ WGS e2 ==> WGS (\t. sum (prefix a1 (e1 t))   (* WGS4 *)
+	     GCONTEXT e1 /\ GCONTEXT e2
+			      ==> WGS (\t. sum (prefix a1 (e1 t))   (* WGS4 *)
 					       (prefix a2 (e2 t)))) /\
     (!e1 e2. WGS e1 /\ WGS e2 ==> WGS (\t. par (e1 t) (e2 t))) /\   (* WGS5 *)
     (!L e.   WGS e            ==> WGS (\t. restr L (e t))) /\       (* WGS6 *)
     (!rf e.  WGS e            ==> WGS (\t. relab (e t) rf)) `;      (* WGS7 *)
+
+val WGS_strongind = DB.fetch "-" "WGS_strongind";
 
 val [WGS2, WGS3, WGS4, WGS5, WGS6, WGS7] =
     map save_thm
@@ -1448,7 +1465,8 @@ val GCONTEXT_WGS_combin = store_thm (
       (* goal 3 (of 6) *)
       MP_TAC (Q.SPECL [`a1`, `a2`, `(\x. (c :('a, 'b) context) (e x))`,
 				   `(\x. (c' :('a, 'b) context) (e x))`] WGS4) \\
-      BETA_TAC >> RW_TAC std_ss [],
+      BETA_TAC \\
+      IMP_RES_TAC WGS_IS_GCONTEXT >> RW_TAC std_ss [],
       (* goal 4 (of 6) *)
       MP_TAC (Q.SPECL [`(\x. (c :('a, 'b) context) (e x))`,
 		       `(\x. (c' :('a, 'b) context) (e x))`] WGS5) \\
@@ -1463,4 +1481,4 @@ val GCONTEXT_WGS_combin = store_thm (
 val _ = export_theory ();
 val _ = html_theory "Congruence";
 
-(* last updated: Oct 2, 2017 *)
+(* last updated: Oct 12, 2017 *)
