@@ -52,6 +52,9 @@ val Label_11 = TypeBase.one_one_of ``:'b Label``;
 (* NEW: define the set of actions as the OPTION of Label *)
 val _ = type_abbrev ("Action", ``:'b Label option``);
 val _ = overload_on ("tau",    ``NONE :'b Action``);
+val _ = TeX_notation { hol = "tau",
+		       TeX = ("\\ensuremath{\\tau}", 1) };
+
 val _ = overload_on ("label",  ``SOME :'b Label -> 'b Action``);
 val _ = Unicode.unicode_version { u = UnicodeChars.tau, tmnm = "tau"};
 
@@ -299,11 +302,14 @@ val _ = overload_on ("TS",
 (* compact representation for single-action restriction *)
 val _ = overload_on ("nu", ``\(n :'b) P. restr {name n} P``);
 val _ = overload_on ("nu", ``restr``);
-
 val _ = Unicode.unicode_version { u = UnicodeChars.nu, tmnm = "nu" };
+val _ = TeX_notation { hol = "nu",
+		       TeX = ("\\ensuremath{\\nu}", 1) };
 
 val _ = overload_on ("+", ``sum``); (* priority: 500 *)
 val _ = set_mapped_fixity { fixity = Infix(LEFT, 600), tok = "||", term_name = "par" };
+val _ = TeX_notation { hol = "||",
+		       TeX = ("\\ensuremath{\\parallel}", 1) };
 val _ =
     add_rule { term_name = "prefix", fixity = Infix(RIGHT, 700),
 	pp_elements = [ BreakSpace(0,0), TOK "..", BreakSpace(0,0) ],
@@ -395,12 +401,8 @@ val (TRANS_rules, TRANS_ind, TRANS_cases) = Hol_reln `
     (!E u E' G.     (E, u, E') IN (TS G)
 		==> TRANS (lts E G) u (lts E' G)) `;			(* LTS *)
 
-val _ = overload_on ("Trans", ``TRANS``);
-val _ = overload_on ("Trans", (* pp setting used in literal LTS graphs *)
-      ``\(x :'a ordinal set) (u :'b Action) (y :'a ordinal set). (x, u, y)``);
-
 val _ =
-    add_rule { term_name = "Trans", fixity = Infix (NONASSOC, 450),
+    add_rule { term_name = "TRANS", fixity = Infix (NONASSOC, 450),
 	pp_elements = [ BreakSpace(1,0), TOK "--", HardSpace 0, TM, HardSpace 0, TOK "-->",
 			BreakSpace(1,0) ],
 	paren_style = OnlyIfNecessary,

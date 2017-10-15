@@ -156,8 +156,7 @@ val (contracts_rules, contracts_coind, contracts_cases) = Hol_coreln `
        (!E2. TRANS E' tau E2 ==> ?E1. EPS E E1 /\ WEAK_EQUIV E1 E2)
       ==> $contracts E E')`;
 
-val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
-			    tok = ">>", term_name = "contracts" };
+val _ = set_fixity "contracts" (Infix (NONASSOC, 450));
 
 val _ = Unicode.unicode_version { u = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D47, tmnm = "contracts" };
 val _ = TeX_notation { hol = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D47,
@@ -1093,9 +1092,6 @@ val OBS_contracts = new_definition ("OBS_contracts",
 	       ?E2. TRANS E' u E2 /\ E1 contracts E2) /\
 	 (!E2. TRANS E' u E2 ==>
 	       ?E1. WEAK_TRANS E u E1 /\ WEAK_EQUIV E1 E2))``);
-
-val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
-			    tok = ">>>", term_name = "OBS_contracts" };
 
 val _ = Unicode.unicode_version { u = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D9C,
 				  tmnm = "OBS_contracts" };

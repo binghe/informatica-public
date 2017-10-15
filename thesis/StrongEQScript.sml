@@ -25,7 +25,7 @@ val STRONG_SIM_def = Define
     !E E'. R E E' ==> !u E1. TRANS E u E1 ==> ?E2. TRANS E' u E2 /\ R E1 E2`;
 
 val STRONG_BISIM_def = Define
-   `STRONG_BISIM (R :('a, 'b) simulation) = STRONG_SIM R /\ STRONG_SIM (\x y. R y x)`;
+   `STRONG_BISIM (R :('a, 'b) simulation) = STRONG_SIM R /\ STRONG_SIM (inv R)`;
 
 val STRONG_BISIM = store_thm ("STRONG_BISIM",
   ``STRONG_BISIM (Bsm :('a, 'b) simulation) =
@@ -36,7 +36,7 @@ val STRONG_BISIM = store_thm ("STRONG_BISIM",
 	   (!E2. TRANS E' u E2 ==>
 		 ?E1. TRANS E u E1 /\ Bsm E1 E2)``,
     Rev EQ_TAC
- >- ( REWRITE_TAC [STRONG_BISIM_def, STRONG_SIM_def] >> METIS_TAC [] )
+ >- ( REWRITE_TAC [STRONG_BISIM_def, STRONG_SIM_def, inv_DEF] >> METIS_TAC [] )
  >> REWRITE_TAC [STRONG_BISIM_def]
  >> rpt STRIP_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
@@ -45,22 +45,21 @@ val STRONG_BISIM = store_thm ("STRONG_BISIM",
       RES_TAC \\
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
-      Q.ABBREV_TAC `Bsm' = (\x y. Bsm y x)` \\
-      `Bsm' E' E` by PROVE_TAC [] \\
+      Q.ABBREV_TAC `Bsm' = inv Bsm` \\
+      `Bsm' E' E` by PROVE_TAC [inv_DEF] \\
       Q.PAT_X_ASSUM `STRONG_SIM Bsm'`
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [STRONG_SIM_def])) \\
       RES_TAC \\
       Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [] \\
       Q.UNABBREV_TAC `Bsm'` \\
-      POP_ASSUM (MP_TAC o BETA_RULE) \\
+      POP_ASSUM (MP_TAC o BETA_RULE o (REWRITE_RULE [inv_DEF])) \\
       REWRITE_TAC [] ]);
 
 (* The identity relation is a strong bisimulation. *)
 val IDENTITY_STRONG_BISIM = store_thm (
    "IDENTITY_STRONG_BISIM",
-  ``STRONG_BISIM (\x y. x = y)``,
+  ``STRONG_BISIM Id``,
     PURE_ONCE_REWRITE_TAC [STRONG_BISIM]
- >> BETA_TAC
  >> REPEAT STRIP_TAC (* 2 sub-goals *)
  >| [ (* goal 1 *)
       ASSUME_TAC (REWRITE_RULE [ASSUME ``E:('a, 'b) CCS = E'``]
@@ -75,26 +74,24 @@ val IDENTITY_STRONG_BISIM = store_thm (
 (* The converse of a strong bisimulation is a strong bisimulation. *)
 val CONVERSE_STRONG_BISIM = store_thm (
    "CONVERSE_STRONG_BISIM",
-  ``!Bsm. STRONG_BISIM Bsm ==> STRONG_BISIM (\x y. Bsm y x)``,
+  ``!Bsm. STRONG_BISIM Bsm ==> STRONG_BISIM (inv Bsm)``,
     GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_BISIM]
- >> BETA_TAC
- >> REPEAT STRIP_TAC (* 2 sub-goals here *)
+ >> REWRITE_TAC [inv_DEF] >> BETA_TAC
+ >> rpt STRIP_TAC (* 2 sub-goals here *)
  >> RES_TAC (* enrich assumptions *)
  >| [ EXISTS_TAC ``E1':('a, 'b) CCS``,
       EXISTS_TAC ``E2':('a, 'b) CCS`` ]
- >> ASM_REWRITE_TAC []);
+ >> art []);
 
 (* The composition of two strong bisimulations is a strong bisimulation. *)
 val COMP_STRONG_BISIM = store_thm (
    "COMP_STRONG_BISIM",
-      ``!Bsm1 Bsm2.
-	 STRONG_BISIM Bsm1 /\ STRONG_BISIM Bsm2 ==>
-	 STRONG_BISIM (\x z. ?y. Bsm1 x y /\ Bsm2 y z)``,
-    REPEAT GEN_TAC
+  ``!Bsm1 Bsm2. STRONG_BISIM Bsm1 /\ STRONG_BISIM Bsm2 ==> STRONG_BISIM (Bsm2 O Bsm1)``,
+    rpt GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_BISIM]
- >> BETA_TAC
- >> REPEAT STRIP_TAC (* 2 sub-goals here *)
+ >> REWRITE_TAC [O_DEF] >> BETA_TAC
+ >> rpt STRIP_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       IMP_RES_TAC
 	(MP (SPECL [``E :('a, 'b) CCS``, ``y :('a, 'b) CCS``]
@@ -114,8 +111,8 @@ val COMP_STRONG_BISIM = store_thm (
 		(!E1. TRANS E u E1 ==> (?E2. TRANS E' u E2 /\ Bsm2 E1 E2)) /\
 		(!E2. TRANS E' u E2 ==> (?E1. TRANS E u E1 /\ Bsm2 E1 E2)))``))
 	  (ASSUME ``(Bsm2 :('a, 'b) simulation) y E'``)) \\
-      EXISTS_TAC ``E2' :('a, 'b) CCS`` >> ASM_REWRITE_TAC [] \\
-      EXISTS_TAC ``E2 :('a, 'b) CCS`` >> ASM_REWRITE_TAC [] ,
+      EXISTS_TAC ``E2' :('a, 'b) CCS`` >> art [] \\
+      EXISTS_TAC ``E2 :('a, 'b) CCS`` >> art [],
       (* goal 2 (of 2) *)
       IMP_RES_TAC
 	(MP (SPECL [``y :('a, 'b) CCS``, ``E' :('a, 'b) CCS``]
@@ -135,25 +132,24 @@ val COMP_STRONG_BISIM = store_thm (
 		(!E1. TRANS E u E1 ==> (?E2. TRANS E' u E2 /\ Bsm1 E1 E2)) /\
 		(!E2. TRANS E' u E2 ==> (?E1. TRANS E u E1 /\ Bsm1 E1 E2)))``))
 	  (ASSUME ``(Bsm1 :('a, 'b) simulation) E y``)) \\
-      EXISTS_TAC ``E1' :('a, 'b) CCS`` >> ASM_REWRITE_TAC [] \\
-      EXISTS_TAC ``E1 :('a, 'b) CCS`` >> ASM_REWRITE_TAC [] ]);
+      EXISTS_TAC ``E1' :('a, 'b) CCS`` >> art [] \\
+      EXISTS_TAC ``E1 :('a, 'b) CCS`` >> art [] ]);
 
 (* The union of two strong bisimulations is a strong bisimulation. *)
 val UNION_STRONG_BISIM = store_thm (
    "UNION_STRONG_BISIM",
-      ``!Bsm1 Bsm2.
-	 STRONG_BISIM Bsm1 /\ STRONG_BISIM Bsm2 ==>
-	 STRONG_BISIM (\x y. Bsm1 x y \/ Bsm2 x y)``,
-    REPEAT GEN_TAC
+  ``!Bsm1 Bsm2. STRONG_BISIM Bsm1 /\ STRONG_BISIM Bsm2 ==>
+		STRONG_BISIM (Bsm1 RUNION Bsm2)``,
+    rpt GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_BISIM]
- >> BETA_TAC
- >> REPEAT STRIP_TAC (* 4 sub-goals here *)
+ >> REWRITE_TAC [RUNION] >> BETA_TAC
+ >> rpt STRIP_TAC (* 4 sub-goals here *)
  >> RES_TAC
  >| [ EXISTS_TAC ``E2 :('a, 'b) CCS``,
       EXISTS_TAC ``E1 :('a, 'b) CCS``,
       EXISTS_TAC ``E2 :('a, 'b) CCS``,
       EXISTS_TAC ``E1 :('a, 'b) CCS``]
- >> ASM_REWRITE_TAC []);
+ >> art []);
 
 (* Define the strong equivalence relation for CCS processes.
 
@@ -181,7 +177,7 @@ val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
 			    tok = "~~", term_name = "STRONG_EQUIV" };
 
 val _ = Unicode.unicode_version { u = UTF8.chr 0x223C, tmnm = "STRONG_EQUIV"};
-val _ = TeX_notation { hol = UTF8.chr 0x223C,
+val _ = TeX_notation { hol = "~~",
 		       TeX = ("\\ensuremath{\\sim}", 1) }
 
 val STRONG_EQUIV_IS_STRONG_BISIM = store_thm (
@@ -217,8 +213,7 @@ val STRONG_EQUIV_REFL = store_thm (
    "STRONG_EQUIV_REFL", ``!E. STRONG_EQUIV E E``,
     GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_EQUIV]
- >> EXISTS_TAC ``\x y :('a, 'b) CCS. x = y``
- >> BETA_TAC
+ >> Q.EXISTS_TAC `Id`
  >> REWRITE_TAC [IDENTITY_STRONG_BISIM]);
 
 (* Strong equivalence is a symmetric relation. *)
@@ -228,10 +223,9 @@ val STRONG_EQUIV_SYM = store_thm (
     REPEAT GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_EQUIV]
  >> REPEAT STRIP_TAC
- >> EXISTS_TAC ``\x y. (Bsm :('a, 'b) simulation) y x``
- >> BETA_TAC
- >> IMP_RES_TAC CONVERSE_STRONG_BISIM
- >> ASM_REWRITE_TAC [] );
+ >> Q.EXISTS_TAC `inv Bsm`
+ >> CONJ_TAC >- ( REWRITE_TAC [inv_DEF] >> BETA_TAC >> art [] )
+ >> IMP_RES_TAC CONVERSE_STRONG_BISIM);
 
 (* Syntactic equivalence implies strong equivalence. *)
 val EQUAL_IMP_STRONG_EQUIV = store_thm (
@@ -242,17 +236,14 @@ val EQUAL_IMP_STRONG_EQUIV = store_thm (
 (* Strong equivalence is a transitive relation. *)
 val STRONG_EQUIV_TRANS = store_thm (
    "STRONG_EQUIV_TRANS",
-      ``!E E' E''.
-	 STRONG_EQUIV E E' /\ STRONG_EQUIV E' E'' ==> STRONG_EQUIV E E''``,
-    REPEAT GEN_TAC
+  ``!E E' E''. STRONG_EQUIV E E' /\ STRONG_EQUIV E' E'' ==> STRONG_EQUIV E E''``,
+    rpt GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [STRONG_EQUIV]
- >> REPEAT STRIP_TAC
- >> EXISTS_TAC ``\x z. ?y. (Bsm :('a, 'b) simulation) x y /\
-			   (Bsm' :('a, 'b) simulation) y z``
+ >> rpt STRIP_TAC
+ >> Q.EXISTS_TAC `Bsm' O Bsm`
  >> CONJ_TAC (* 2 sub-goals here *)
- >| [ BETA_TAC \\
-      EXISTS_TAC ``E':('a, 'b) CCS`` \\
-      ASM_REWRITE_TAC [],
+ >| [ REWRITE_TAC [O_DEF] >> BETA_TAC \\
+      Q.EXISTS_TAC `E'` >> art [],
       IMP_RES_TAC COMP_STRONG_BISIM ]);
 
 val STRONG_EQUIV_equivalence = store_thm ((* NEW *)
@@ -280,14 +271,14 @@ val PROPERTY_STAR = save_thm ((* NEW *)
    "PROPERTY_STAR", STRONG_EQUIV_cases);
 
 (* Half versions of PROPERTY_STAR *)
-val PROPERTY_STAR_TRANS = store_thm (
-   "PROPERTY_STAR_TRANS",
+val PROPERTY_STAR_LEFT = store_thm (
+   "PROPERTY_STAR_LEFT",
   ``!E E'. STRONG_EQUIV E E' ==>
 	!u E1. TRANS E u E1 ==> ?E2. TRANS E' u E2 /\ STRONG_EQUIV E1 E2``,
     PROVE_TAC [PROPERTY_STAR]);
 
-val PROPERTY_STAR_TRANS' = store_thm (
-   "PROPERTY_STAR_TRANS'",
+val PROPERTY_STAR_RIGHT = store_thm (
+   "PROPERTY_STAR_RIGHT",
   ``!E E'. STRONG_EQUIV E E' ==>
 	!u E2. TRANS E' u E2 ==> ?E1. TRANS E u E1 /\ STRONG_EQUIV E1 E2``,
     PROVE_TAC [PROPERTY_STAR]);

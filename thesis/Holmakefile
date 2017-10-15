@@ -11,7 +11,7 @@ ifdef POLY
 HOLHEAP = heap
 OBJNAMES = pairTheory sumTheory relationTheory pred_setTheory set_relationTheory \
 	listTheory rich_listTheory arithmeticTheory prim_recTheory optionTheory \
-	realTheory bagTheory testutils
+	realTheory testutils
 DEPS = $(patsubst %,$(dprot $(SIGOBJ)/%.uo),$(OBJNAMES))
 
 all: $(HOLHEAP)
@@ -26,12 +26,12 @@ munge.exe: GraphTheory.sig CCSTheory.sig StrongEQTheory.sig StrongLawsTheory.sig
 	   WeakEQTheory.sig WeakLawsTheory.sig ObsCongrTheory.sig ObsCongrLawsTheory.sig \
 	   CongruenceTheory.sig TraceTheory.sig CoarsestCongrTheory.sig \
 	   BisimulationUptoTheory.sig ExpansionTheory.sig ContractionTheory.sig \
-	   UniqueSolutionsTheory.sig
+	   UniqueSolutionsTheory.sig ExampleTheory.sig
 	$(HOLDIR)/bin/mkmunge.exe GraphTheory CCSTheory StrongEQTheory StrongLawsTheory \
 	   WeakEQTheory WeakLawsTheory ObsCongrTheory ObsCongrLawsTheory \
 	   CongruenceTheory TraceTheory CoarsestCongrTheory \
 	   BisimulationUptoTheory ExpansionTheory ContractionTheory \
-	   UniqueSolutionsTheory
+	   UniqueSolutionsTheory ExampleTheory
 
 #ifeq ($(KERNELID),otknl)
 #all: $(patsubst %Script.sml,%.ot.art,$(wildcard *Script.sml))

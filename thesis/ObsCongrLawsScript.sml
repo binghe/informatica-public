@@ -307,10 +307,10 @@ val TAU1 = store_thm ("TAU1",
       EXISTS_TAC ``prefix (tau :'b Action) E2`` \\
       ASM_REWRITE_TAC [EPS_REFL, PREFIX] ]);
 
-(* Prove TAU1_EQUIV:
+(* Prove WEAK_TAU1:
    |- !u E. WEAK_EQUIV (prefix u (prefix tau E)) (prefix u E)
  *)
-val TAU1_EQUIV = save_thm ("TAU1_EQUIV",
+val WEAK_TAU1 = save_thm ("WEAK_TAU1",
     OBS_CONGR_IMP_WEAK_EQUIV_RULE TAU1);
 
 (* Prove TAU2:
@@ -344,10 +344,10 @@ val TAU2 = store_thm ("TAU2",
       MATCH_MP_TAC SUM2 \\
       PURE_ONCE_ASM_REWRITE_TAC [] ]);
 
-(* Prove TAU2_EQUIV:
+(* Prove WEAK_TAU2:
    |- !E. WEAK_EQUIV (sum E (prefix tau E)) (prefix tau E)
  *)
-val TAU2_EQUIV = save_thm ("TAU2_EQUIV",
+val WEAK_TAU2 = save_thm ("WEAK_TAU2",
     OBS_CONGR_IMP_WEAK_EQUIV_RULE TAU2);
 
 (* Prove TAU3:
@@ -388,12 +388,12 @@ val TAU3 = store_thm ("TAU3",
       MATCH_MP_TAC SUM1 \\
       PURE_ONCE_ASM_REWRITE_TAC [] ]);
 
-(* Prove TAU3_EQUIV:
+(* Prove WEAK_TAU3:
    |- !u E E'.
        WEAK_EQUIV (sum (prefix u (sum E (prefix tau E'))) (prefix u E'))
                  (prefix u (sum E (prefix tau E')))
  *)
-val TAU3_EQUIV = save_thm ("TAU3_EQUIV",
+val WEAK_TAU3 = save_thm ("WEAK_TAU3",
     OBS_CONGR_IMP_WEAK_EQUIV_RULE TAU3);
 
 val _ = export_theory ();

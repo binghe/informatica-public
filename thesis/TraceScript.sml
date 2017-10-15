@@ -311,7 +311,6 @@ val FN_NO_WEAK_TRANS = store_thm (
 
 val STEP_defn = ``\E E'. ?u. TRANS E u E'``;
 val STEP_def = Define `STEP P n Q = NRC ^STEP_defn n P Q`;
-val _ = overload_on ("Trans", ``STEP``);
 
 local
     val trans = (REWRITE_RULE [GSYM STEP_def]) o BETA_RULE o (ISPEC STEP_defn);
@@ -570,14 +569,13 @@ val LRTC_APPEND_CASES = store_thm (
 val _ = overload_on ("epsilon", ``[] :'b Action list``);
 
 val _ = Unicode.unicode_version { u = UTF8.chr 0x03B5, tmnm = "epsilon"};
-val _ = TeX_notation { hol = UTF8.chr 0x03B5,
+val _ = TeX_notation { hol = "epsilon",
 		       TeX = ("\\ensuremath{\\epsilon}", 1) };
 
 val TRACE_def = Define `TRACE = LRTC TRANS`;
 
 val _ = type_abbrev ("trace",
 		    ``:('a, 'b) CCS -> 'b Action list -> ('a, 'b) CCS -> bool``);
-val _ = overload_on ("Trans", ``TRACE :('a, 'b) trace``); (* share pp with TRANS *)
 
 local
     val trans = (REWRITE_RULE [SYM TRACE_def]) o (ISPEC ``TRANS``);

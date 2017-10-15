@@ -2090,8 +2090,8 @@ val OBS_unfolding_lemma4 = store_thm (
  >> Q.UNABBREV_TAC `xs` >> art []);
 
 (* Lemma 3.9 of [2] *)
-val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS_LEMMA = store_thm (
-   "UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS_LEMMA",
+val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS_LEMMA = store_thm (
+   "UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS_LEMMA",
   ``!(P :('a, 'b) CCS) (Q :('a, 'b) CCS).
 	(?E. WG E /\ OBS_contracts P (E P) /\ OBS_contracts Q (E Q)) ==>
 	!(C :('a, 'b) context). CONTEXT C ==>
@@ -2116,9 +2116,9 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS_LEMMA = store_thm (
         art [] ] )
  >> DISCH_TAC
  (* Part 2: property of C'' on P and Q *)
- >> `!n. (C P) >> (C'' n P)`
+ >> `!n. OBS_contracts (C P) (C'' n P)`
 	by (Q.UNABBREV_TAC `C''` >> BETA_TAC >> PROVE_TAC [OBS_unfolding_lemma1])
- >> `!n. (C Q) >> (C'' n Q)`
+ >> `!n. OBS_contracts (C Q) (C'' n Q)`
 	by (Q.UNABBREV_TAC `C''` >> BETA_TAC >> PROVE_TAC [OBS_unfolding_lemma1])
  (* Part 3 *)
  >> rpt STRIP_TAC (* 2 sub-goals here *)
@@ -2167,8 +2167,8 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS_LEMMA = store_thm (
       IMP_RES_TAC OBS_contracts_EPS' \\
       Q.EXISTS_TAC `E1` >> art [] ]);
 
-val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS = store_thm (
-   "UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS",
+val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS = store_thm (
+   "UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS",
   ``!E. WG E ==> !P Q. OBS_contracts P (E P) /\ OBS_contracts Q (E Q) ==> WEAK_EQUIV P Q``,
     rpt STRIP_TAC
  >> REWRITE_TAC [WEAK_EQUIV]
@@ -2185,7 +2185,7 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS = store_thm (
 	(ASSUME_TAC o (Q.SPECL [`l`, `E1`]) o (MATCH_MP WEAK_EQUIV_TRANS_label)) \\
       RES_TAC \\
       Q.PAT_X_ASSUM `TRANS E' (label l) E1 ==> X` K_TAC \\
-      ASSUME_TAC (Q.SPECL [`P`, `Q`] UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS_LEMMA) \\
+      ASSUME_TAC (Q.SPECL [`P`, `Q`] UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS_LEMMA) \\
       `!l R. WEAK_TRANS (C P) (label l) R ==>
            ?C'. CONTEXT C' /\ R contracts (C' P) /\
 		(WEAK_EQUIV O (\x y. WEAK_TRANS x (label l) y)) (C Q) (C' Q)`
@@ -2208,7 +2208,7 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS = store_thm (
 	(ASSUME_TAC o (Q.SPECL [`l`, `E2`]) o (MATCH_MP WEAK_EQUIV_TRANS_label)) \\
       RES_TAC \\
       Q.PAT_X_ASSUM `TRANS E'' (label l) E2 ==> X` K_TAC \\
-      ASSUME_TAC (Q.SPECL [`Q`, `P`] UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS_LEMMA) \\
+      ASSUME_TAC (Q.SPECL [`Q`, `P`] UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS_LEMMA) \\
       `!l R. WEAK_TRANS (C Q) (label l) R ==>
            ?C'. CONTEXT C' /\ R contracts (C' Q) /\
 		(WEAK_EQUIV O (\x y. WEAK_TRANS x (label l) y)) (C P) (C' P)`
@@ -2232,7 +2232,7 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS = store_thm (
       IMP_RES_TAC EPS_IMP_WEAK_TRANS (* 2 sub-goals here *)
       >- ( Q.EXISTS_TAC `E''` >> REWRITE_TAC [EPS_REFL] \\
            Q.EXISTS_TAC `C` >> art [] ) \\
-      ASSUME_TAC (Q.SPECL [`P`, `Q`] UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS_LEMMA) \\
+      ASSUME_TAC (Q.SPECL [`P`, `Q`] UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS_LEMMA) \\
       `!R. WEAK_TRANS (C P) tau R ==>
            ?C'. CONTEXT C' /\ R contracts (C' P) /\
 		(WEAK_EQUIV O EPS) (C Q) (C' Q)` by METIS_TAC [] \\
@@ -2255,7 +2255,7 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS = store_thm (
       IMP_RES_TAC EPS_IMP_WEAK_TRANS (* 2 sub-goals here *)
       >- ( Q.EXISTS_TAC `E'` >> REWRITE_TAC [EPS_REFL] \\
            Q.EXISTS_TAC `C` >> art [] ) \\
-      ASSUME_TAC (Q.SPECL [`Q`, `P`] UNIQUE_SOLUTIONS_OF_OBS_CONTRACTS_LEMMA) \\
+      ASSUME_TAC (Q.SPECL [`Q`, `P`] UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS_LEMMA) \\
       `!R. WEAK_TRANS (C Q) tau R ==>
            ?C'. CONTEXT C' /\ R contracts (C' Q) /\
 		(WEAK_EQUIV O EPS) (C P) (C' P)` by METIS_TAC [] \\

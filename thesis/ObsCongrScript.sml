@@ -34,7 +34,7 @@ val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
 
 val _ = Unicode.unicode_version { u = UTF8.chr 0x2248 ^ UTF8.chr 0x1D9C,
 				  tmnm = "OBS_CONGR" };
-val _ = TeX_notation { hol = UTF8.chr 0x2248 ^ UTF8.chr 0x1D9C, (* ~~ ^ c *)
+val _ = TeX_notation { hol = "~~c",
 		       TeX = ("\\HOLTokenObsCongr", 1) };
 
 val OBS_CONGR_TRANS_LEFT = store_thm (
@@ -55,7 +55,7 @@ val OBS_CONGR_TRANS_RIGHT = store_thm (
 val OBS_CONGR_IMP_WEAK_EQUIV = store_thm (
    "OBS_CONGR_IMP_WEAK_EQUIV", ``!E E'. OBS_CONGR E E' ==> WEAK_EQUIV E E'``,
     REPEAT GEN_TAC
- >> ONCE_REWRITE_TAC [OBS_CONGR, OBS_PROPERTY_STAR]
+ >> ONCE_REWRITE_TAC [OBS_CONGR, WEAK_PROPERTY_STAR]
  >> REPEAT STRIP_TAC (* 4 sub-goals here, sharing initial & end tactical *)
  >> RES_TAC
  >| [ Q.EXISTS_TAC `E2`,
@@ -76,7 +76,7 @@ val WEAK_EQUIV_STABLE_IMP_CONGR = store_thm (
       ASSUME_TAC (REWRITE_RULE [ASSUME ``(u :'b Action) = label x``]
                                (ASSUME ``TRANS E u E1``)) \\
       IMP_RES_TAC
-        (CONJUNCT1 (ONCE_REWRITE_RULE [OBS_PROPERTY_STAR]
+        (CONJUNCT1 (ONCE_REWRITE_RULE [WEAK_PROPERTY_STAR]
 				      (ASSUME ``WEAK_EQUIV E E'``))) \\
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
@@ -84,7 +84,7 @@ val WEAK_EQUIV_STABLE_IMP_CONGR = store_thm (
       ASSUME_TAC (REWRITE_RULE [ASSUME ``(u :'b Action) = label x``]
                                (ASSUME ``TRANS E' u E2``)) \\
       IMP_RES_TAC
-        (CONJUNCT1 (ONCE_REWRITE_RULE [OBS_PROPERTY_STAR]
+        (CONJUNCT1 (ONCE_REWRITE_RULE [WEAK_PROPERTY_STAR]
 				      (ASSUME ``WEAK_EQUIV E E'``))) \\
       Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] ]);
 
@@ -174,7 +174,7 @@ val OBS_CONGR_WEAK_TRANS = store_thm ((* NEW *)
       IMP_RES_TAC (MATCH_MP OBS_CONGR_EPS (* lemma 1 used here *)
 			    (ASSUME ``OBS_CONGR E E'``)) \\
       IMP_RES_TAC (CONJUNCT1
-		       (PURE_ONCE_REWRITE_RULE [OBS_PROPERTY_STAR]
+		       (PURE_ONCE_REWRITE_RULE [WEAK_PROPERTY_STAR]
 					       (ASSUME ``WEAK_EQUIV E1' E2'``))) \\
       IMP_RES_TAC (REWRITE_RULE [WEAK_EQUIV_IS_WEAK_BISIM]
 		       (Q.SPECL [`WEAK_EQUIV`, `E2''`]

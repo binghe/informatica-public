@@ -309,26 +309,12 @@ val OBS_CONGR_congruence = store_thm (
     REWRITE_TAC [congruence_def, OBS_CONGR_equivalence]
  >> PROVE_TAC [precongruence_def, OBS_CONGR_SUBST_CONTEXT]);
 
-(* Building congruence closure from an equivalence relation *)
+(* Building (pre)congruence closure from any relation on CCS *)
 val CC_def = Define `
     CC R = (\g h. !c. CONTEXT c ==> R (c g) (c h))`;
 
-val _ = add_rule { fixity = Suffix 2100,
-                   block_style = (AroundEachPhrase, (Portable.CONSISTENT,0)),
-                   paren_style = OnlyIfNecessary,
-                   pp_elements = [TOK "^c"],
-                   term_name = "CC" };
-val _ = TeX_notation { hol = "^c", TeX = ("\\HOLTokenSupC{}", 1) };
-
 val GCC_def = Define `
     GCC R = (\g h. !c. GCONTEXT c ==> R (c g) (c h))`;
-
-val _ = add_rule { fixity = Suffix 2100,
-                   block_style = (AroundEachPhrase, (Portable.CONSISTENT,0)),
-                   paren_style = OnlyIfNecessary,
-                   pp_elements = [TOK "^g"],
-                   term_name = "GCC" };
-val _ = TeX_notation { hol = "^g", TeX = ("\\HOLTokenSupG{}", 1) };
 
 val CC_precongruence = store_thm (
    "CC_precongruence", ``!R. precongruence (CC R)``,
