@@ -39,9 +39,8 @@ val CONTRACTION = new_definition ("CONTRACTION",
 
 (* The identity relation is a CONTRACTION. *)
 val IDENTITY_CONTRACTION = store_thm (
-   "IDENTITY_CONTRACTION", ``CONTRACTION (\x y. x = y)``,
+   "IDENTITY_CONTRACTION", ``CONTRACTION Id``,
     PURE_ONCE_REWRITE_TAC [CONTRACTION]
- >> BETA_TAC
  >> rpt STRIP_TAC >> rfs [] (* 2 sub-goals *)
  >| [ (* goal 1 (of 2) *)
       Q.EXISTS_TAC `E2` >> REWRITE_TAC [WEAK_EQUIV_REFL] \\
@@ -56,7 +55,7 @@ val CONTRACTION_EPS = store_thm (
   ``!(Con: ('a, 'b) simulation). CONTRACTION Con ==>
      !E E'. Con E E' ==> !E1. EPS E E1 ==> ?E2. EPS E' E2 /\ Con E1 E2``,
     REPEAT STRIP_TAC
- >> Q.PAT_X_ASSUM `Con E E'` MP_TAC
+ >> qpat_x_assum `Con E E'` MP_TAC
  >> POP_ASSUM MP_TAC
  >> Q.SPEC_TAC (`E1`, `E1`)
  >> Q.SPEC_TAC (`E`, `E`)
@@ -221,8 +220,7 @@ val contracts_reflexive = store_thm (
     REWRITE_TAC [reflexive_def]
  >> GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [contracts_thm]
- >> EXISTS_TAC ``\x y :('a, 'b) CCS. x = y``
- >> BETA_TAC
+ >> Q.EXISTS_TAC `Id`
  >> REWRITE_TAC [IDENTITY_CONTRACTION]);
 
 (* the version for easier use *)
@@ -299,7 +297,7 @@ val CONTRACTION_EPS' = store_thm (
      !E E'. Con E E' ==>
 	!u E2. EPS E' E2 ==> ?E1. EPS E E1 /\ WEAK_EQUIV E1 E2``,
     REPEAT STRIP_TAC
- >> Q.PAT_X_ASSUM `Con E E'` MP_TAC
+ >> qpat_x_assum `Con E E'` MP_TAC
  >> POP_ASSUM MP_TAC
  >> Q.SPEC_TAC (`E2`, `E2`)
  >> Q.SPEC_TAC (`E'`, `E'`)
@@ -487,7 +485,7 @@ val contracts_SUBST_PREFIX = store_thm (
       (* goal 4 (of 4) *)
       IMP_RES_TAC TRANS_PREFIX >> ASM_REWRITE_TAC [] \\
       Q.EXISTS_TAC `E` \\
-      Q.PAT_X_ASSUM `tau = u` (REWRITE_TAC o wrap o SYM) \\
+      qpat_x_assum `tau = u` (REWRITE_TAC o wrap o SYM) \\
       CONJ_TAC >- ( MATCH_MP_TAC ONE_TAU >> REWRITE_TAC [PREFIX] ) \\
       IMP_RES_TAC contracts_IMP_WEAK_EQUIV ]);
 
@@ -536,14 +534,14 @@ val contracts_PRESD_BY_GUARDED_SUM = store_thm (
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 3.1 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
-        Q.PAT_X_ASSUM `tau = a1` (fs o wrap o SYM) \\
+        qpat_x_assum `tau = a1` (fs o wrap o SYM) \\
         Q.EXISTS_TAC `E1` \\
         Rev CONJ_TAC >- IMP_RES_TAC contracts_IMP_WEAK_EQUIV \\
         MATCH_MP_TAC ONE_TAU \\
         MATCH_MP_TAC SUM1 >> REWRITE_TAC [PREFIX],
         (* goal 3.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
-        Q.PAT_X_ASSUM `tau = a2` (fs o wrap o SYM) \\
+        qpat_x_assum `tau = a2` (fs o wrap o SYM) \\
         Q.EXISTS_TAC `E2` \\
         Rev CONJ_TAC >- IMP_RES_TAC contracts_IMP_WEAK_EQUIV \\
         MATCH_MP_TAC ONE_TAU \\
@@ -811,7 +809,7 @@ val contracts_SUBST_RELAB = store_thm (
       ASSUME_TAC (REWRITE_RULE [ASSUME ``E'' = relab E1 rf'``]
 			       (ASSUME ``TRANS E'' (label l) E1'``)) \\
       IMP_RES_TAC TRANS_RELAB \\
-      Q.PAT_X_ASSUM `label l = relabel rf' u'` (ASSUME_TAC o SYM) \\
+      qpat_x_assum `label l = relabel rf' u'` (ASSUME_TAC o SYM) \\
       IMP_RES_TAC Relab_label \\
       ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = label l'``]
 			       (ASSUME ``TRANS E1 u' E''''``)) \\
@@ -820,13 +818,13 @@ val contracts_SUBST_RELAB = store_thm (
       Rev CONJ_TAC
       >- ( take [`E''''`, `E2'`, `rf'`] >> ASM_REWRITE_TAC [] ) \\
       ASM_REWRITE_TAC [] \\
-      Q.PAT_X_ASSUM `relabel rf' u' = label l` (REWRITE_TAC o wrap o SYM) \\
+      qpat_x_assum `relabel rf' u' = label l` (REWRITE_TAC o wrap o SYM) \\
       MATCH_MP_TAC RELABELING >> ASM_REWRITE_TAC [],
       (* goal 2 (of 4) *)
       ASSUME_TAC (REWRITE_RULE [ASSUME ``E''' = relab E2 rf'``]
 			       (ASSUME ``TRANS E''' (label l) E2'``)) \\
       IMP_RES_TAC TRANS_RELAB \\
-      Q.PAT_X_ASSUM `label l = relabel rf' u'` (ASSUME_TAC o SYM) \\
+      qpat_x_assum `label l = relabel rf' u'` (ASSUME_TAC o SYM) \\
       IMP_RES_TAC Relab_label \\
       ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = label l'``]
 			       (ASSUME ``TRANS E2 u' E''''``)) \\
@@ -841,7 +839,7 @@ val contracts_SUBST_RELAB = store_thm (
       ASSUME_TAC (REWRITE_RULE [ASSUME ``E'' = relab E1 rf'``]
 			       (ASSUME ``TRANS E'' tau E1'``)) \\
       IMP_RES_TAC TRANS_RELAB \\
-      Q.PAT_X_ASSUM `tau = relabel rf' u'` (ASSUME_TAC o SYM) \\
+      qpat_x_assum `tau = relabel rf' u'` (ASSUME_TAC o SYM) \\
       IMP_RES_TAC Relab_tau \\
       ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = tau``]
 			       (ASSUME ``TRANS E1 u' E''''``)) \\ 
@@ -852,13 +850,13 @@ val contracts_SUBST_RELAB = store_thm (
       Rev CONJ_TAC
       >- ( take [`E''''`, `E2'`, `rf'`] >> ASM_REWRITE_TAC [] ) \\
       ASM_REWRITE_TAC [] \\
-      Q.PAT_X_ASSUM `relabel rf' u' = tau` (REWRITE_TAC o wrap o SYM) \\
+      qpat_x_assum `relabel rf' u' = tau` (REWRITE_TAC o wrap o SYM) \\
       MATCH_MP_TAC RELABELING >> ASM_REWRITE_TAC [],
       (* goal 4 (of 4) *)
       ASSUME_TAC (REWRITE_RULE [ASSUME ``E''' = relab E2 rf'``]
 			       (ASSUME ``TRANS E''' tau E2'``)) \\
       IMP_RES_TAC TRANS_RELAB \\
-      Q.PAT_X_ASSUM `tau = relabel rf' u'` (ASSUME_TAC o SYM) \\
+      qpat_x_assum `tau = relabel rf' u'` (ASSUME_TAC o SYM) \\
       IMP_RES_TAC Relab_tau \\
       ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = tau``]
 			       (ASSUME ``TRANS E2 u' E''''``)) \\
@@ -868,7 +866,7 @@ val contracts_SUBST_RELAB = store_thm (
       >- ( ASM_REWRITE_TAC [] \\
 	   MATCH_MP_TAC WEAK_EQUIV_SUBST_RELAB >> ASM_REWRITE_TAC [] ) \\
       ASM_REWRITE_TAC [] \\
-      Q.PAT_X_ASSUM `relabel rf' u' = tau` (REWRITE_TAC o wrap o SYM) \\
+      qpat_x_assum `relabel rf' u' = tau` (REWRITE_TAC o wrap o SYM) \\
       IMP_RES_TAC EPS_RELAB_rf >> ASM_REWRITE_TAC [] ]);
 
 val contracts_SUBST_GCONTEXT = store_thm (
@@ -927,8 +925,8 @@ val contracts_AND_TRACE1 = store_thm (
   ``!E E'. E contracts E' ==>
 	!xs E1. TRACE E xs E1 ==> ?xs' E2. TRACE E' xs' E2 /\ E1 contracts E2``,
     NTAC 2 (rpt GEN_TAC >> DISCH_TAC)
- >> irule contracts_AND_TRACE1_lemma
- >> take [`E`, `xs`] >> ASM_REWRITE_TAC []);
+ >> MP_TAC (Q.SPECL [`E`, `xs`, `E1`] contracts_AND_TRACE1_lemma)
+ >> RW_TAC std_ss []);
 
 val contracts_AND_TRACE2_lemma = Q.prove (
    `!E xs E1. TRACE E xs E1 ==>
@@ -969,8 +967,8 @@ val contracts_AND_TRACE2 = store_thm (
 	!xs E1. TRACE E xs E1 ==>
 	    ?xs' E2. TRACE E' xs' E2 /\ E1 contracts E2 /\ (LENGTH xs' <= LENGTH xs)``,
     NTAC 2 (rpt GEN_TAC >> DISCH_TAC)
- >> irule contracts_AND_TRACE2_lemma
- >> Q.EXISTS_TAC `E` >> ASM_REWRITE_TAC []);
+ >> MP_TAC (Q.SPECL [`E`, `xs`, `E1`] contracts_AND_TRACE2_lemma)
+ >> RW_TAC std_ss []);
 
 val contracts_AND_TRACE_tau_lemma = Q.prove (
    `!E xs E1. TRACE E xs E1 ==> NO_LABEL xs ==>
@@ -982,7 +980,7 @@ val contracts_AND_TRACE_tau_lemma = Q.prove (
  >- ( take [`[]`, `E'`] >> ASM_REWRITE_TAC [] \\
       REWRITE_TAC [TRACE_REFL, LENGTH] >> RW_TAC arith_ss [] )
  >> IMP_RES_TAC NO_LABEL_cases
- >> Q.PAT_X_ASSUM `NO_LABEL xs ==> X`
+ >> qpat_x_assum `NO_LABEL xs ==> X`
 	(ASSUME_TAC o (fn thm => MATCH_MP thm (ASSUME ``NO_LABEL (xs :'b Action list)``)))
  >> Cases_on `h` >> FULL_SIMP_TAC std_ss [Action_distinct_label, LENGTH]
  >> IMP_RES_TAC contracts_TRANS_tau >> RES_TAC (* 2 sub-goals here *)
@@ -1006,9 +1004,8 @@ val contracts_AND_TRACE_tau = store_thm (
 	    ?xs' E2. TRACE E' xs' E2 /\ E1 contracts E2 /\
 		(LENGTH xs' <= LENGTH xs) /\ NO_LABEL xs'``,
     NTAC 2 (rpt GEN_TAC >> STRIP_TAC)
- >> irule contracts_AND_TRACE_tau_lemma
- >- ASM_REWRITE_TAC []
- >> Q.EXISTS_TAC `E` >> ASM_REWRITE_TAC []);
+ >> MP_TAC (Q.SPECL [`E`, `xs`, `E1`] contracts_AND_TRACE_tau_lemma)
+ >> RW_TAC std_ss []);
 
 val contracts_AND_TRACE_label_lemma = Q.prove (
    `!E xs E1. TRACE E xs E1 ==> !l. UNIQUE_LABEL (label l) xs ==>
@@ -1052,9 +1049,8 @@ val contracts_AND_TRACE_label = store_thm (
 	    ?xs' E2. TRACE E' xs' E2 /\ E1 contracts E2 /\
 		(LENGTH xs' <= LENGTH xs) /\ UNIQUE_LABEL (label l) xs'``,
     NTAC 2 (rpt GEN_TAC >> STRIP_TAC)
- >> irule contracts_AND_TRACE_label_lemma
- >- ASM_REWRITE_TAC []
- >> Q.EXISTS_TAC `E` >> ASM_REWRITE_TAC []);
+ >> MP_TAC (Q.SPECL [`E`, `xs`, `E1`] contracts_AND_TRACE_label_lemma)
+ >> RW_TAC std_ss []);
 
 (******************************************************************************)
 (*                                                                            *)
@@ -1062,6 +1058,7 @@ val contracts_AND_TRACE_label = store_thm (
 (*                                                                            *)
 (******************************************************************************)
 
+(*
 val BISIM_UPTO_contracts_and_C = new_definition (
    "BISIM_UPTO_contracts_and_C",
   ``BISIM_UPTO_contracts_and_C (Wbsm: ('a, 'b) simulation) =
@@ -1078,6 +1075,7 @@ val BISIM_UPTO_contracts_and_C = new_definition (
 	      ?E2. EPS E' E2 /\ (WEAK_EQUIV O (GCC Wbsm) O $contracts) E1 E2) /\
 	(!E2. TRANS E' tau E2 ==>
 	      ?E1. EPS E  E1 /\ ($contracts O (GCC Wbsm) O WEAK_EQUIV) E1 E2)``);
+ *)
 
 (******************************************************************************)
 (*                                                                            *)
@@ -1093,10 +1091,15 @@ val OBS_contracts = new_definition ("OBS_contracts",
 	 (!E2. TRANS E' u E2 ==>
 	       ?E1. WEAK_TRANS E u E1 /\ WEAK_EQUIV E1 E2))``);
 
-val _ = Unicode.unicode_version { u = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D9C,
-				  tmnm = "OBS_contracts" };
-val _ = TeX_notation { hol = UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D9C,
-                       TeX = ("\\HOLTokenObsContracts{}", 1) };
+val _ = add_rule { block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)),
+                   fixity = Infix (NONASSOC, 450),
+                   paren_style = OnlyIfNecessary,
+                   pp_elements = [HardSpace 1, TOK (UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D9C),
+				  BreakSpace (1,0)],
+                   term_name = "OBS_contracts" };
+
+val _ = TeX_notation { hol = (UTF8.chr 0x2AB0 ^ UTF8.chr 0x1D9C),
+		       TeX = ("\\HOLTokenObsContracts", 1) };
 
 (* This one is difficult because `standard technique` doesn't work *)
 val OBS_contracts_BY_CONTRACTION = store_thm (
@@ -1608,9 +1611,10 @@ val OBS_contracts_AND_TRACE_tau = store_thm (
 		     (LENGTH xs' <= LENGTH xs) /\ NO_LABEL xs'``,
     rpt STRIP_TAC
  >> IMP_RES_TAC TRACE_cases1
- >> Cases_on `xs` >> fs [NULL] (* 2 sub-goals here *)
- >- ( Q.EXISTS_TAC `E'` >> REWRITE_TAC [TRACE_rule0] \\
-      IMP_RES_TAC OBS_contracts_IMP_contracts )
+ >> Cases_on `xs` (* 2 sub-goals here *)
+ >- ( take [`[]`, `E'`] >> REWRITE_TAC [TRACE_rule0] \\
+      fs [NULL] >> IMP_RES_TAC OBS_contracts_IMP_contracts )
+ >> fs [NULL]
  >> IMP_RES_TAC NO_LABEL_cases >> fs []
  >> IMP_RES_TAC OBS_contracts_TRANS_LEFT
  >> MP_TAC (Q.SPECL [`t`, `E1`]
@@ -1631,9 +1635,9 @@ val OBS_contracts_AND_TRACE_label = store_thm (
 		(LENGTH xs' <= LENGTH xs) /\ UNIQUE_LABEL (label l) xs'``,
     rpt STRIP_TAC
  >> IMP_RES_TAC TRACE_cases1
- >> Cases_on `xs` >> fs [NULL] (* 2 sub-goals here *)
- >- ( Q.EXISTS_TAC `E'` >> REWRITE_TAC [TRACE_rule0] \\
-      IMP_RES_TAC OBS_contracts_IMP_contracts )
+ >> Cases_on `xs` (* 2 sub-goals here *)
+ >- ( take [`[]`, `E'`] >> REWRITE_TAC [TRACE_rule0] \\
+      fs [NULL] >> IMP_RES_TAC OBS_contracts_IMP_contracts )
  >> Cases_on `h` (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       fs [UNIQUE_LABEL_cases1] \\

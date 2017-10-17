@@ -29,12 +29,14 @@ val OBS_CONGR = new_definition ("OBS_CONGR",
 	 (!E2. TRANS E' u E2 ==>
 	       ?E1. WEAK_TRANS E  u E1 /\ WEAK_EQUIV E1 E2))``);
 
-val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
-			    tok = "~~c", term_name = "OBS_CONGR" };
+val _ = add_rule { block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)),
+                   fixity = Infix (NONASSOC, 450),
+                   paren_style = OnlyIfNecessary,
+                   pp_elements = [HardSpace 1, TOK (UTF8.chr 0x2248 ^ UTF8.chr 0x1D9C),
+				  BreakSpace (1,0)],
+                   term_name = "OBS_CONGR" }
 
-val _ = Unicode.unicode_version { u = UTF8.chr 0x2248 ^ UTF8.chr 0x1D9C,
-				  tmnm = "OBS_CONGR" };
-val _ = TeX_notation { hol = "~~c",
+val _ = TeX_notation { hol = UTF8.chr 0x2248 ^ UTF8.chr 0x1D9C,
 		       TeX = ("\\HOLTokenObsCongr", 1) };
 
 val OBS_CONGR_TRANS_LEFT = store_thm (

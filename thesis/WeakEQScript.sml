@@ -136,12 +136,11 @@ val WEAK_TRANS = new_definition ("WEAK_TRANS",
 val _ =
     add_rule { term_name = "WEAK_TRANS", fixity = Infix (NONASSOC, 450),
 	pp_elements = [ BreakSpace(1,0), TOK "==", HardSpace 0, TM, HardSpace 0,
-			TOK "=->", BreakSpace(1,0) ],
+			TOK "==>", BreakSpace(1,0) ],
 	paren_style = OnlyIfNecessary,
 	block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)) };
 
 val _ = TeX_notation { hol = "==",  TeX = ("\\HOLTokenWeakTransBegin", 1) };
-val _ = TeX_notation { hol = "=->", TeX = ("\\HOLTokenWeakTransEnd", 1) };
 
 (* A transition is a particular weak transition. *)
 val TRANS_IMP_WEAK_TRANS = store_thm (
@@ -409,14 +408,14 @@ val WEAK_BISIM = store_thm ("WEAK_BISIM",
  >> REWRITE_TAC [WEAK_BISIM_def]
  >> rpt STRIP_TAC (* 4 sub-goals here *)
  >| [ (* goal 1 (of 4) *)
-      Q.PAT_X_ASSUM `WEAK_SIM Wbsm`
+      qpat_x_assum `WEAK_SIM Wbsm`
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_SIM_def])) \\
       RES_TAC \\
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
       (* goal 2 (of 4) *)
       Q.ABBREV_TAC `Wbsm' = inv Wbsm` \\
       `Wbsm' E' E` by PROVE_TAC [inv_DEF] \\
-      Q.PAT_X_ASSUM `WEAK_SIM Wbsm'`
+      qpat_x_assum `WEAK_SIM Wbsm'`
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_SIM_def])) \\
       RES_TAC \\
       Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [] \\
@@ -425,14 +424,14 @@ val WEAK_BISIM = store_thm ("WEAK_BISIM",
       POP_ASSUM (MP_TAC o BETA_RULE o (REWRITE_RULE [inv_DEF])) \\
       REWRITE_TAC [],
       (* goal 3 (of 4) *)
-      Q.PAT_X_ASSUM `WEAK_SIM Wbsm`
+      qpat_x_assum `WEAK_SIM Wbsm`
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_SIM_def])) \\
       RES_TAC \\
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
       (* goal 4 (of 4) *)
       Q.ABBREV_TAC `Wbsm' = inv Wbsm` \\
       `Wbsm' E' E` by PROVE_TAC [inv_DEF] \\
-      Q.PAT_X_ASSUM `WEAK_SIM Wbsm'`
+      qpat_x_assum `WEAK_SIM Wbsm'`
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_SIM_def])) \\
       RES_TAC \\
       Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [] \\
@@ -518,7 +517,7 @@ val EPS_TRANS_AUX = store_thm (
 
 (* Symmetric auxiliary result for EPS. *)
 val INVERSE_REL = store_thm (
-   "INVERSE_REL", ``!(R: 'a -> 'b -> bool) x y. (inv R) x y = R y x``,
+   "INVERSE_REL", ``!(R: 'a -> 'a -> bool) x y. (inv R) x y = R y x``,
     rpt STRIP_TAC >> REWRITE_TAC [inv_DEF]);
 
 val EPS_TRANS_AUX_SYM = store_thm (
@@ -682,14 +681,15 @@ val (WEAK_EQUIV_rules, WEAK_EQUIV_coind, WEAK_EQUIV_cases) = Hol_coreln `
        (!E2. TRANS E' tau E2 ==> (?E1. EPS E  E1 /\ WEAK_EQUIV E1 E2))
       ==> WEAK_EQUIV E E')`;
 
-val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
-			    tok = "~=", term_name = "WEAK_EQUIV" };
+val _ = add_rule { block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)),
+                   fixity = Infix (NONASSOC, 450),
+                   paren_style = OnlyIfNecessary,
+                   pp_elements = [HardSpace 1, TOK (UTF8.chr 0x2248), BreakSpace (1,0)],
+                   term_name = "WEAK_EQUIV" }
 
-val _ = Unicode.unicode_version { u = UTF8.chr 0x2248, tmnm = "WEAK_EQUIV"};
+(* Use the settings in ordinalTheory:
 val _ = TeX_notation { hol = UTF8.chr 0x2248,
-		       TeX = ("\\ensuremath{\\approx}", 1) }
-val _ = TeX_notation { hol = "~=",
-		       TeX = ("\\ensuremath{\\approx}", 1) }
+		       TeX = ("\\HOLTokenWeakEQ", 1) } *)
 
 (* "Weak bisimilarity is a weak bisimulation" *)
 val WEAK_EQUIV_IS_WEAK_BISIM = store_thm (
@@ -1104,7 +1104,7 @@ val WEAK_EQUIV_PRESD_BY_GUARDED_SUM = store_thm (
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 3.1 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
-        Q.PAT_X_ASSUM `tau = a1` (ASSUME_TAC o SYM) \\
+        qpat_x_assum `tau = a1` (ASSUME_TAC o SYM) \\
         FULL_SIMP_TAC std_ss [] \\
         Q.EXISTS_TAC `E1'` >> ASM_REWRITE_TAC [] \\
         MATCH_MP_TAC ONE_TAU \\
@@ -1112,7 +1112,7 @@ val WEAK_EQUIV_PRESD_BY_GUARDED_SUM = store_thm (
         REWRITE_TAC [PREFIX],
         (* goal 3.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
-        Q.PAT_X_ASSUM `tau = a2` (ASSUME_TAC o SYM) \\
+        qpat_x_assum `tau = a2` (ASSUME_TAC o SYM) \\
         FULL_SIMP_TAC std_ss [] \\
         Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [] \\
         MATCH_MP_TAC ONE_TAU \\
@@ -1122,7 +1122,7 @@ val WEAK_EQUIV_PRESD_BY_GUARDED_SUM = store_thm (
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 4.1 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
-        Q.PAT_X_ASSUM `tau = a1` (ASSUME_TAC o SYM) \\
+        qpat_x_assum `tau = a1` (ASSUME_TAC o SYM) \\
         FULL_SIMP_TAC std_ss [] \\
         Q.EXISTS_TAC `E1` >> ASM_REWRITE_TAC [] \\
         MATCH_MP_TAC ONE_TAU \\
@@ -1130,7 +1130,7 @@ val WEAK_EQUIV_PRESD_BY_GUARDED_SUM = store_thm (
         REWRITE_TAC [PREFIX],
         (* goal 3.2 (of 2) *)
         IMP_RES_TAC TRANS_PREFIX \\
-        Q.PAT_X_ASSUM `tau = a2` (ASSUME_TAC o SYM) \\
+        qpat_x_assum `tau = a2` (ASSUME_TAC o SYM) \\
         FULL_SIMP_TAC std_ss [] \\
         Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [] \\
         MATCH_MP_TAC ONE_TAU \\

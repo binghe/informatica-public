@@ -5,7 +5,7 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open pred_setTheory set_relationTheory pairTheory relationTheory;
+open pred_setTheory pairTheory relationTheory;
 open CCSLib CCSTheory;
 
 val _ = new_theory "StrongEQ";
@@ -40,14 +40,14 @@ val STRONG_BISIM = store_thm ("STRONG_BISIM",
  >> REWRITE_TAC [STRONG_BISIM_def]
  >> rpt STRIP_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
-      Q.PAT_X_ASSUM `STRONG_SIM Bsm`
+      qpat_x_assum `STRONG_SIM Bsm`
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [STRONG_SIM_def])) \\
       RES_TAC \\
       Q.EXISTS_TAC `E2` >> ASM_REWRITE_TAC [],
       (* goal 2 (of 2) *)
       Q.ABBREV_TAC `Bsm' = inv Bsm` \\
       `Bsm' E' E` by PROVE_TAC [inv_DEF] \\
-      Q.PAT_X_ASSUM `STRONG_SIM Bsm'`
+      qpat_x_assum `STRONG_SIM Bsm'`
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [STRONG_SIM_def])) \\
       RES_TAC \\
       Q.EXISTS_TAC `E2'` >> ASM_REWRITE_TAC [] \\
@@ -173,12 +173,14 @@ val (STRONG_EQUIV_rules, STRONG_EQUIV_coind, STRONG_EQUIV_cases) = Hol_coreln `
 	 (!E2. TRANS E' u E2 ==>
 	       (?E1. TRANS E u E1 /\ STRONG_EQUIV E1 E2))) ==> STRONG_EQUIV E E')`;
 
-val _ = set_mapped_fixity { fixity = Infix (NONASSOC, 450),
-			    tok = "~~", term_name = "STRONG_EQUIV" };
+val _ = add_rule { block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)),
+                   fixity = Infix (NONASSOC, 450),
+                   paren_style = OnlyIfNecessary,
+                   pp_elements = [HardSpace 1, TOK (UTF8.chr 0x223C), BreakSpace (1,0)],
+                   term_name = "STRONG_EQUIV" }
 
-val _ = Unicode.unicode_version { u = UTF8.chr 0x223C, tmnm = "STRONG_EQUIV"};
-val _ = TeX_notation { hol = "~~",
-		       TeX = ("\\ensuremath{\\sim}", 1) }
+val _ = TeX_notation { hol = UTF8.chr 0x223C,
+		       TeX = ("\\HOLTokenObsCongr", 1) };
 
 val STRONG_EQUIV_IS_STRONG_BISIM = store_thm (
    "STRONG_EQUIV_IS_STRONG_BISIM",
@@ -621,47 +623,6 @@ val STRONG_EQUIV_SUBST_RELAB = store_thm (
 	  (* goal 2.2.2 (of 2) *)
 	  take [`E1'`, `E''''`, `rf'`] \\
 	  ASM_REWRITE_TAC [] ] ] ]);
-
-(******************************************************************************)
-(*									      *)
-(*         Additional theorems of STRONG_EQUIV (based on set_relation)	      *)
-(*									      *)
-(******************************************************************************)
-
-val BIGUNION_BISIM_def = Define (* NEW *) `
-    BIGUNION_BISIM = reln_to_rel (BIGUNION { rel_to_reln R | STRONG_BISIM R })`;
-
-(* STRONG_EQUIV is the union of all STRONG_BISIMs *)
-val STRONG_EQUIV_IS_BIGUNION_BISIM = store_thm ((* NEW *)
-   "STRONG_EQUIV_IS_BIGUNION_BISIM",
-  ``!E E'. STRONG_EQUIV E E' = BIGUNION_BISIM E E'``,
-    REWRITE_TAC [BIGUNION_BISIM_def,
-		 reln_to_rel_IS_CURRY, rel_to_reln_IS_UNCURRY]
- >> REPEAT GEN_TAC
- >> REWRITE_TAC [CURRY_DEF]
- >> ONCE_REWRITE_RHS_TAC [GSYM SPECIFICATION]
- >> REWRITE_TAC [IN_BIGUNION]
- >> REWRITE_TAC [GSPECIFICATION]
- >> BETA_TAC
- >> REWRITE_TAC [PAIR_EQ]
- >> REWRITE_TAC [SPECIFICATION]
- >> REWRITE_TAC [STRONG_EQUIV]
- >> EQ_TAC (* 2 sub-goals here *)
- >| [ (* goal 1 (of 2) *)
-      REPEAT STRIP_TAC \\
-      EXISTS_TAC ``UNCURRY (Bsm :('a, 'b) simulation)`` \\
-      REWRITE_TAC [UNCURRY] \\
-      CONJ_TAC >| (* 2 sub-goals here *)
-      [ ASM_REWRITE_TAC [],
-	EXISTS_TAC ``(Bsm :('a, 'b) simulation)`` \\
-	ASM_REWRITE_TAC [] ],
-      (* goal 2 (of 2) *)
-      REPEAT STRIP_TAC \\
-      EXISTS_TAC ``x :('a, 'b) simulation`` \\
-      CONJ_TAC >| (* 2 sub-goals here *)
-      [ PAT_X_ASSUM ``(s :('a, 'b) CCS # ('a, 'b) CCS -> bool) (E, E')`` MP_TAC \\
-	ASM_REWRITE_TAC [UNCURRY],
-	ASM_REWRITE_TAC [] ] ]);
 
 val _ = export_theory ();
 val _ = html_theory "StrongEQ";

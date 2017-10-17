@@ -5,8 +5,7 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open pred_setTheory relationTheory optionTheory ordinalTheory;
-open GraphTheory CCSLib;
+open pred_setTheory relationTheory optionTheory CCSLib;
 
 val _ = new_theory "CCS";
 val _ = temp_loose_equality ();
@@ -51,12 +50,12 @@ val Label_11 = TypeBase.one_one_of ``:'b Label``;
 
 (* NEW: define the set of actions as the OPTION of Label *)
 val _ = type_abbrev ("Action", ``:'b Label option``);
-val _ = overload_on ("tau",    ``NONE :'b Action``);
-val _ = TeX_notation { hol = "tau",
-		       TeX = ("\\ensuremath{\\tau}", 1) };
 
+val _ = overload_on ("tau",    ``NONE :'b Action``);
 val _ = overload_on ("label",  ``SOME :'b Label -> 'b Action``);
+
 val _ = Unicode.unicode_version { u = UnicodeChars.tau, tmnm = "tau"};
+val _ = TeX_notation { hol = "tau", TeX = ("\\ensuremath{\\tau}", 1) };
 
 (* The compact representation for (visible) input and output actions, suggested by Michael Norrish *)
 val _ = overload_on ("In", ``\a. label (name a)``);
@@ -280,9 +279,6 @@ val APPLY_RELAB_THM = save_thm ("APPLY_RELAB_THM",
 (*                                                                            *)
 (******************************************************************************)
 
-(* there's a bijection between num and string established in string_numTheory *)
-val _ = type_abbrev ("LTS", ``:('a ordinal, 'b Action) graph``);
-
 (* Define the type of (pure) CCS agent expressions. *)
 val _ = Datatype `CCS = nil
 		      | var 'a
@@ -291,13 +287,7 @@ val _ = Datatype `CCS = nil
 		      | par CCS CCS
 		      | restr (('b Label) set) CCS
 		      | relab CCS ('b Relabeling)
-		      | rec 'a CCS
-		      | lts ('a ordinal) (('a, 'b) LTS)`;
-
-(* LTS accessors *)
-val _ = overload_on ("states", ``vertices :('a, 'b) LTS -> 'a ordinal set``);
-val _ = overload_on ("TS",
-      ``labeled_directed_edges :('a, 'b) LTS -> 'a ordinal # 'b Action # 'a ordinal -> bool``);
+		      | rec 'a CCS `;
 
 (* compact representation for single-action restriction *)
 val _ = overload_on ("nu", ``\(n :'b) P. restr {name n} P``);
@@ -397,9 +387,7 @@ val (TRANS_rules, TRANS_ind, TRANS_cases) = Hol_reln `
     (!E u E' rf.    TRANS E u E'
 		==> TRANS (relab E rf) (relabel rf u) (relab E' rf)) /\	(* RELABELING *)
     (!E u X E1.     TRANS (CCS_Subst E (rec X E) X) u E1
-		==> TRANS (rec X E) u E1) /\				(* REC *)
-    (!E u E' G.     (E, u, E') IN (TS G)
-		==> TRANS (lts E G) u (lts E' G)) `;			(* LTS *)
+		==> TRANS (rec X E) u E1) `;				(* REC *)
 
 val _ =
     add_rule { term_name = "TRANS", fixity = Infix (NONASSOC, 450),
@@ -412,10 +400,10 @@ val _ = TeX_notation { hol = "--",  TeX = ("\\HOLTokenTransBegin", 1) };
 val _ = TeX_notation { hol = "-->", TeX = ("\\HOLTokenTransEnd", 1) };
 
 (* The rules for the transition relation TRANS as individual theorems. *)
-val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELING, REC, LTS] =
+val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELING, REC] =
     map save_thm
         (combine (["PREFIX", "SUM1", "SUM2", "PAR1", "PAR2", "PAR3", "RESTR",
-		   "RELABELING", "REC", "LTS"],
+		   "RELABELING", "REC"],
                   CONJUNCTS TRANS_rules));
 
 (* The process nil has no transitions.
@@ -491,8 +479,7 @@ val TRANS_SUM_EQ = store_thm ("TRANS_SUM_EQ",
  >> EQ_TAC (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
       DISCH_TAC \\
-      IMP_RES_TAC SUM_cases \\
-      art [],
+      IMP_RES_TAC SUM_cases >> art [],
       (* goal 2 (of 2) *)
       STRIP_TAC >| (* 2 sub-goals here *)
       [ MATCH_MP_TAC SUM1 >> art [],
@@ -548,8 +535,7 @@ val TRANS_ASSOC_EQ = store_thm ("TRANS_ASSOC_EQ",
         [ MATCH_MP_TAC SUM1 >> MATCH_MP_TAC SUM1,
 	  MATCH_MP_TAC SUM1 >> MATCH_MP_TAC SUM2,
 	  MATCH_MP_TAC SUM2,
-	  MATCH_MP_TAC SUM2 ] \\
-	art [] ] ]);
+	  MATCH_MP_TAC SUM2 ] >> art [] ] ]);
 
 val TRANS_ASSOC_RL = save_thm (
    "TRANS_ASSOC_RL", EQ_IMP_RL TRANS_ASSOC_EQ);
@@ -612,8 +598,7 @@ val TRANS_PAR_EQ = store_thm ("TRANS_PAR_EQ",
 	(* goal 1.3 *)
 	DISJ2_TAC \\
 	DISJ2_TAC \\
-	take [`E1`, `E2`, `l`] \\
-	art [] ],
+	take [`E1`, `E2`, `l`] >> art [] ],
       (* case 2 (RL) *)
       STRIP_TAC (* 3 sub-goals here, but they share the first and last steps *)
    >> art []

@@ -22,7 +22,7 @@ val _ = temp_loose_equality ();
 (*                                                                            *)
 (******************************************************************************)
 
-val Reach_defn = ``(\E E'. ?u. TRANS E u E')``
+val Reach_defn = ``\E E'. ?u. TRANS E u E'``;
 val Reach_def = Define `Reach = RTC ^Reach_defn`;
 
 val Reach_one = store_thm ((* NEW *)
@@ -31,8 +31,7 @@ val Reach_one = store_thm ((* NEW *)
  >> REPEAT STRIP_TAC
  >> MATCH_MP_TAC RTC_SINGLE
  >> BETA_TAC
- >> Q.EXISTS_TAC `u`
- >> ASM_REWRITE_TAC []);
+ >> Q.EXISTS_TAC `u` >> art []);
 
 val Reach_self = store_thm ((* NEW *)
    "Reach_self", ``!E. Reach E E``,
@@ -214,20 +213,7 @@ val constants_def = Define `
    (constants (restr L p)	  = constants p) /\
    (constants (relab p rf)	  = constants p) /\
    (constants (var x)		  = []) /\
-   (constants (rec x p)		  = [x]) /\		(* here! *)
-   (constants (lts r ts)	  = [])`;
-
-(* `pure CCS` has noLTS embeded, it's not used anywhere so far *)
-val pure_CCS_def = Define `
-   (pure_CCS (nil :('a, 'b) CCS)  = T) /\
-   (pure_CCS (prefix u p)	  = pure_CCS p) /\
-   (pure_CCS (sum p q)		  = pure_CCS p /\ pure_CCS q) /\
-   (pure_CCS (par p q)		  = pure_CCS p /\ pure_CCS q) /\
-   (pure_CCS (restr L p)	  = pure_CCS p) /\
-   (pure_CCS (relab p rf)	  = pure_CCS p) /\
-   (pure_CCS (var x)		  = T) /\
-   (pure_CCS (rec x p)		  = T) /\
-   (pure_CCS (lts r ts)		  = F)`;		(* here! *)
+   (constants (rec x p)		  = [x]) `;		(* here! *)
 
 (* (FN :('a, 'b) CCS -> 'a list -> 'b Label set) *)
 val FN_definition = `
@@ -239,9 +225,8 @@ val FN_definition = `
    (FN (restr L p) J	      = (FN p J) DIFF (L UNION (IMAGE COMPL_LAB L))) /\
    (FN (relab p rf) J	      = IMAGE (REP_Relabeling rf) (FN p J)) /\
    (FN (var X) J	      = EMPTY) /\
-   (FN (lts r ts) J	      = EMPTY) /\ (* LTS has no contribution in names *)
    (FN (rec X p) J	      = if (MEM X J) then FN (CCS_Subst p (rec X p) X) (DELETE_ELEMENT X J)
-					     else EMPTY)`;
+					     else EMPTY) `;
 
 (* (BN :('a, 'b) CCS -> 'a list -> 'b Label set) *)
 val BN_definition = `
@@ -252,9 +237,8 @@ val BN_definition = `
    (BN (restr L p) J	      = (BN p J) UNION L) /\	(* here! *)
    (BN (relab p rf) J	      = BN p J) /\
    (BN (var X) J	      = EMPTY) /\
-   (BN (lts r ts) J	      = EMPTY) /\ (* LTS has no contribution in names *)
    (BN (rec X p) J	      = if (MEM X J) then FN (CCS_Subst p (rec X p) X) (DELETE_ELEMENT X J)
-					     else EMPTY)`;
+					     else EMPTY) `;
 
 (* This is how we get the correct tactics (FN_tac):
  - val FN_defn = Hol_defn "FN" FN_definition;
@@ -267,7 +251,6 @@ local
 	REWRITE_TAC [size_def, CCS_size_def] >> simp [];
 in
     val FN_def = TotalDefn.tDefine "FN" FN_definition tactic;
-    val FN_ind = DB.fetch "-" "FN_ind"; (* but what's this? *)
     val BN_def = TotalDefn.tDefine "BN" BN_definition tactic;
 end;
 
@@ -327,7 +310,7 @@ val STEP_SUC = save_thm (
 
 (* |- ∀n x y. x --SUC n--> y ⇔ ∃z. x --n--> z ∧ ∃u. z --u--> y *)
 val STEP_SUC_LEFT = save_thm (
-   "STEP_SUC_LEFT", trans (Q.GENL [`R`, `n`, `x`, `y`] NRC_SUC_RECURSE_LEFT));
+   "STEP_SUC_LEFT", trans (Q_GENL [`R`, `n`, `x`, `y`] NRC_SUC_RECURSE_LEFT));
 
 (* |- ∀m n x z. x --m + n--> z ⇒ ∃y. x --m--> y ∧ y --n--> z *)
 val STEP_ADD_E = save_thm (
@@ -335,7 +318,7 @@ val STEP_ADD_E = save_thm (
 
 (* |- ∀m n x z. x --m + n--> z ⇔ ∃y. x --m--> y ∧ y --n--> z *)
 val STEP_ADD_EQN = save_thm (
-   "STEP_ADD_EQN", trans (Q.GENL [`R`, `m`, `n`, `x`, `z`] NRC_ADD_EQN));
+   "STEP_ADD_EQN", trans (Q_GENL [`R`, `m`, `n`, `x`, `z`] NRC_ADD_EQN));
 
 (* |- ∀m n x y z. x --m--> y ∧ y --n--> z ⇒ x --m + n--> z *)
 val STEP_ADD_I = save_thm (
@@ -731,7 +714,7 @@ val EPS_AND_TRACE = store_thm (
       RW_TAC std_ss [EPS_REFL],
       (* goal 2 (of 2) *)
       rpt STRIP_TAC \\
-      Q.PAT_X_ASSUM `TRACE E (h::xs) E'`
+      qpat_x_assum `TRACE E (h::xs) E'`
 	(ASSUME_TAC o (ONCE_REWRITE_RULE [TRACE_cases1])) \\
       FULL_SIMP_TAC list_ss [] \\
       RES_TAC \\
@@ -827,27 +810,27 @@ val WEAK_TRANS_AND_TRACE = store_thm (
  >| [ (* goal 1 (of 2) *)
       REWRITE_TAC [WEAK_TRANS] \\
       Q.EXISTS_TAC `E` >> REWRITE_TAC [EPS_REFL] \\
-      Q.PAT_X_ASSUM `TRACE E us E'` (ASSUME_TAC o (ONCE_REWRITE_RULE [TRACE_cases1])) \\
+      qpat_x_assum `TRACE E us E'` (ASSUME_TAC o (ONCE_REWRITE_RULE [TRACE_cases1])) \\
       REV_FULL_SIMP_TAC list_ss [] \\
       Know `HD us = tau`
       >- ( Cases_on `HD us` >- REWRITE_TAC [] \\
-	   Q.PAT_X_ASSUM `!l. ~MEM (label l) us` (ASSUME_TAC o (Q.SPEC `x`)) \\
-	   Q.PAT_X_ASSUM `HD us = label x` ((FULL_SIMP_TAC list_ss) o wrap o SYM) \\
+	   qpat_x_assum `!l. ~MEM (label l) us` (ASSUME_TAC o (Q.SPEC `x`)) \\
+	   qpat_x_assum `HD us = label x` ((FULL_SIMP_TAC list_ss) o wrap o SYM) \\
 	   PROVE_TAC [CONS, MEM] ) \\
       DISCH_TAC >> FULL_SIMP_TAC list_ss [] \\
       Q.EXISTS_TAC `u` >> ASM_REWRITE_TAC [] \\
       REWRITE_TAC [EPS_AND_TRACE, NO_LABEL_def] \\
       Q.EXISTS_TAC `TL us` >> ASM_REWRITE_TAC [] \\
       CCONTR_TAC >> FULL_SIMP_TAC bool_ss [] \\
-      Q.PAT_X_ASSUM `!l. ~MEM (label l) us` (MP_TAC o (Q.SPEC `l`)) \\
+      qpat_x_assum `!l. ~MEM (label l) us` (MP_TAC o (Q.SPEC `l`)) \\
       Cases_on `us` >- FULL_SIMP_TAC list_ss [] \\
       REWRITE_TAC [MEM] \\
       FULL_SIMP_TAC list_ss [],
       (* goal 2 (of 2) *)
       REWRITE_TAC [WEAK_TRANS] \\
       IMP_RES_TAC UNIQUE_LABEL_def \\
-      Q.PAT_X_ASSUM `L1 ++ [label L] ++ L2 = us` ((FULL_SIMP_TAC std_ss) o wrap o SYM) \\
-      Q.PAT_X_ASSUM `TRACE E (L1 ++ [label L] ++ L2) E'`
+      qpat_x_assum `L1 ++ [label L] ++ L2 = us` ((FULL_SIMP_TAC std_ss) o wrap o SYM) \\
+      qpat_x_assum `TRACE E (L1 ++ [label L] ++ L2) E'`
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [TRACE_APPEND_cases])) \\
       take [`u'`, `u`] \\
       IMP_RES_TAC TRACE_ONE >> ASM_REWRITE_TAC [] \\

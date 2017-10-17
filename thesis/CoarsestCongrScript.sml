@@ -7,9 +7,8 @@ open HolKernel Parse boolLib bossLib;
 
 open pred_setTheory relationTheory pairTheory sumTheory listTheory;
 open prim_recTheory arithmeticTheory combinTheory;
-open cardinalTheory ordinalTheory;
 
-open CCSLib CCSTheory GraphTheory;
+open CCSLib CCSTheory;
 open StrongEQTheory StrongEQLib StrongLawsTheory;
 open WeakEQTheory WeakEQLib WeakLawsTheory;
 open ObsCongrTheory ObsCongrLib ObsCongrLawsTheory ObsCongrConv;
@@ -110,7 +109,7 @@ val HENNESSY_LEMMA_LR = store_thm ((* NEW *)
     rpt STRIP_TAC
  >> Cases_on `?E. TRANS p tau E /\ WEAK_EQUIV E q` (* 2 sub-goals here *)
  >| [ (* goal 1 (of 2) *)
-      DISJ2_TAC >> DISJ1_TAC \\ (* CHOOSE ``p ~~c tau..q`` *)
+      DISJ2_TAC >> DISJ1_TAC \\ (* CHOOSE ``OBS_CONGR p tau..q`` *)
       REWRITE_TAC [OBS_CONGR] >> rpt STRIP_TAC >| (* 2 sub-goals here *)
       [ (* goal 1.1 (of 2) *)
         Cases_on `u` \\ (* 2 sub-goals here, sharing initial tacticals *)
@@ -132,7 +131,7 @@ val HENNESSY_LEMMA_LR = store_thm ((* NEW *)
       (* goal 2 (of 2) *)
       Cases_on `?E. TRANS q tau E /\ WEAK_EQUIV p E` >| (* 2 sub-goals here *)
       [ (* goal 2.1 (of 2) *)
-        NTAC 2 DISJ2_TAC \\ (* CHOOSE ``tau..p ~~c q`` *)
+        NTAC 2 DISJ2_TAC \\ (* CHOOSE ``OBS_CONGR tau..p q`` *)
         REWRITE_TAC [OBS_CONGR] >> rpt STRIP_TAC >| (* 2 sub-goals here *)
         [ (* goal 2.1.1 (of 2) *)
           IMP_RES_TAC TRANS_PREFIX >> ONCE_ASM_REWRITE_TAC [] \\
@@ -153,7 +152,7 @@ val HENNESSY_LEMMA_LR = store_thm ((* NEW *)
             (* goal 2.1.2.2 (of 2) *)
             IMP_RES_TAC TAU_PREFIX_WEAK_TRANS ] ],
         (* goal 2.2 (of 2) *)
-        DISJ1_TAC \\ (* CHOOSE ``p ~~c q``, then use Deng Lemma *)
+        DISJ1_TAC \\ (* CHOOSE ``OBS_CONGR p q``, then use Deng Lemma *)
         IMP_RES_TAC DENG_LEMMA \\ (* 2 sub-goals here, same tactical *)
         RES_TAC ] ]);
 
@@ -698,6 +697,9 @@ val KLOP_ONE_ONE = store_thm ((* NEW *)
    b) there's no `y` equivalent with n in klops, but we know there is x
 
  *)
+
+val IN_APP = Q.prove (`!x P. (x IN P) = P x`,
+    SIMP_TAC bool_ss [IN_DEF]);
 
 (* The pure Math part in the proof of KLOP_LEMMA_FINITE *)
 val INFINITE_EXISTS_LEMMA = store_thm ((* NEW *)

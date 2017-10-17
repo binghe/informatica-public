@@ -42,7 +42,7 @@ val STRONG_UNIQUE_SOLUTIONS_LEMMA = store_thm (
  >> COUNT_TAC (rpt STRIP_TAC) (* 6 sub-goals here *)
  >| [ (* goal 1 (of 6) *)
       POP_ASSUM (STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [TRANS_cases])) \\
-      Q.EXISTS_TAC `\t. P'` >> BETA_TAC >> art [CONTEXT2] >| (* 11 sub-goals here *)
+      Q.EXISTS_TAC `\t. P'` >> BETA_TAC >> art [CONTEXT2] >| (* 10 or 11 sub-goals here *)
       [ REWRITE_TAC [PREFIX],
         MATCH_MP_TAC SUM1 >> art [],
         MATCH_MP_TAC SUM2 >> art [],
@@ -52,8 +52,8 @@ val STRONG_UNIQUE_SOLUTIONS_LEMMA = store_thm (
         MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> fs [],
         MATCH_MP_TAC RESTR >> Q.EXISTS_TAC `l` >> fs [],
         MATCH_MP_TAC RELABELING >> art [],
-        MATCH_MP_TAC REC >> art [],
-	MATCH_MP_TAC LTS >> art [] ],
+        MATCH_MP_TAC REC >> art []
+     (*	MATCH_MP_TAC LTS >> art [] *) ],
       (* goal 2 (of 6) *)
       IMP_RES_TAC TRANS_PREFIX >> art [] \\
       Q.EXISTS_TAC `e` >> art [PREFIX],
@@ -164,13 +164,13 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
  >> Q.SPEC_TAC (`G`, `G`)
  >> COUNT_TAC (Induct_on `CONTEXT` >> BETA_TAC >> rpt STRIP_TAC) (* 14 sub-goals here *)
  >| [ (* goal 1 (of 14) *)
-      Q.PAT_X_ASSUM `STRONG_EQUIV P (E P)`
+      qpat_x_assum `STRONG_EQUIV P (E P)`
 	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [PROPERTY_STAR])) \\
       RES_TAC \\
       IMP_RES_TAC STRONG_UNIQUE_SOLUTIONS_LEMMA \\ (* lemma used here *)
       FULL_SIMP_TAC std_ss [] \\
       POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
-      Q.PAT_X_ASSUM `STRONG_EQUIV Q (E Q)`
+      qpat_x_assum `STRONG_EQUIV Q (E Q)`
 	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [PROPERTY_STAR])) \\
       RES_TAC \\
       Q.EXISTS_TAC `E1'` >> art [] \\
@@ -181,13 +181,13 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
       BETA_TAC >> DISJ2_TAC \\
       Q.EXISTS_TAC `E'` >> art [],
       (* goal 2 (of 14) *)
-      Q.PAT_X_ASSUM `STRONG_EQUIV Q (E Q)`
+      qpat_x_assum `STRONG_EQUIV Q (E Q)`
 	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [PROPERTY_STAR])) \\
       RES_TAC \\
       IMP_RES_TAC STRONG_UNIQUE_SOLUTIONS_LEMMA \\ (* lemma used here *)
       FULL_SIMP_TAC std_ss [] \\
       POP_ASSUM (ASSUME_TAC o (Q.SPEC `P`)) \\
-      Q.PAT_X_ASSUM `STRONG_EQUIV P (E P)`
+      qpat_x_assum `STRONG_EQUIV P (E P)`
 	(STRIP_ASSUME_TAC o (ONCE_REWRITE_RULE [PROPERTY_STAR])) \\
       RES_TAC \\
       Q.EXISTS_TAC `E1` >> art [] \\
@@ -255,7 +255,7 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
       (* goal 9 (of 14) *)
       IMP_RES_TAC TRANS_PAR >> FULL_SIMP_TAC std_ss [] >| (* 3 sub-goals here *)
       [ (* goal 9.1 (of 3) *)
-        Q.PAT_X_ASSUM `E1 = X` K_TAC \\
+        qpat_x_assum `E1 = X` K_TAC \\
         RES_TAC \\
         Q.EXISTS_TAC `E2 || G' Q` \\
         CONJ_TAC >- ( MATCH_MP_TAC PAR1 >> art [] ) \\
@@ -286,7 +286,7 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
           Q.EXISTS_TAC `\t. G'' t || G' t` >> BETA_TAC >> REWRITE_TAC [] \\
           MATCH_MP_TAC CONTEXT5 >> art [] ],
         (* goal 9.2 (of 3) *)
-        Q.PAT_X_ASSUM `E1 = X` K_TAC \\
+        qpat_x_assum `E1 = X` K_TAC \\
         RES_TAC \\
         Q.EXISTS_TAC `G Q || E2` \\
         CONJ_TAC >- ( MATCH_MP_TAC PAR2 >> art [] ) \\
@@ -317,13 +317,13 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
           Q.EXISTS_TAC `\t. G t || G'' t` >> BETA_TAC >> REWRITE_TAC [] \\
           MATCH_MP_TAC CONTEXT5 >> art [] ],
         (* goal 9.3 (of 3) *)
-        Q.PAT_X_ASSUM `E1 = X` K_TAC \\
-        Q.PAT_X_ASSUM `u = tau` K_TAC \\
+        qpat_x_assum `E1 = X` K_TAC \\
+        qpat_x_assum `u = tau` K_TAC \\
         RES_TAC \\
         Q.EXISTS_TAC `E2'' || E2'` \\
         CONJ_TAC >- ( MATCH_MP_TAC PAR3 >> Q.EXISTS_TAC `l` >> art [] ) \\
-        Q.PAT_X_ASSUM `X E2 E2'` MP_TAC \\
-        Q.PAT_X_ASSUM `X E1' E2''` MP_TAC \\
+        qpat_x_assum `X E2 E2'` MP_TAC \\
+        qpat_x_assum `X E1' E2''` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC \\
         RW_TAC std_ss [] >| (* 4 sub-goals here *)
         [ (* goal 9.3.1 (of 4) *)
@@ -373,7 +373,7 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
       (* goal 10 (of 14) *)
       IMP_RES_TAC TRANS_PAR >> FULL_SIMP_TAC std_ss [] >| (* 3 sub-goals here *)
       [ (* goal 10.1 (of 3) *)
-        Q.PAT_X_ASSUM `E2 = X` K_TAC >> RES_TAC \\
+        qpat_x_assum `E2 = X` K_TAC >> RES_TAC \\
         Q.EXISTS_TAC `E1' || G' P` \\
         CONJ_TAC >- ( MATCH_MP_TAC PAR1 >> art [] ) \\
         POP_ASSUM MP_TAC \\
@@ -403,7 +403,7 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
           Q.EXISTS_TAC `\t. G'' t || G' t` >> BETA_TAC >> REWRITE_TAC [] \\
           MATCH_MP_TAC CONTEXT5 >> art [] ],
         (* goal 10.2 (of 3) *)
-        Q.PAT_X_ASSUM `E2 = X` K_TAC >> RES_TAC \\
+        qpat_x_assum `E2 = X` K_TAC >> RES_TAC \\
         Q.EXISTS_TAC `G P || E1'` \\
         CONJ_TAC >- ( MATCH_MP_TAC PAR2 >> art [] ) \\
         POP_ASSUM MP_TAC \\
@@ -433,12 +433,12 @@ val STRONG_UNIQUE_SOLUTIONS = store_thm (
           Q.EXISTS_TAC `\t. G t || G'' t` >> BETA_TAC >> REWRITE_TAC [] \\
           MATCH_MP_TAC CONTEXT5 >> art [] ],
         (* goal 10.3 (of 3) *)
-        Q.PAT_X_ASSUM `E2 = X` K_TAC \\
-        Q.PAT_X_ASSUM `u = tau` K_TAC >> RES_TAC \\
+        qpat_x_assum `E2 = X` K_TAC \\
+        qpat_x_assum `u = tau` K_TAC >> RES_TAC \\
         Q.EXISTS_TAC `E1'' || E1'` \\
         CONJ_TAC >- ( MATCH_MP_TAC PAR3 >> Q.EXISTS_TAC `l` >> art [] ) \\
-        Q.PAT_X_ASSUM `X E1'' E1` MP_TAC \\
-        Q.PAT_X_ASSUM `X E1' E2'` MP_TAC \\
+        qpat_x_assum `X E1'' E1` MP_TAC \\
+        qpat_x_assum `X E1' E2'` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC \\
         RW_TAC std_ss [] >| (* 4 sub-goals here *)
         [ (* goal 10.3.1 (of 4) *)
@@ -760,7 +760,7 @@ val WEAK_UNIQUE_SOLUTIONS_LEMMA_EPS = store_thm (
       Q.UNABBREV_TAC `GP` >> art [EPS_REFL] )
  >> RES_TAC
  >> Q.UNABBREV_TAC `GP`
- >> Q.PAT_X_ASSUM `!P''. Abbrev (G P = G P'') ==> X` K_TAC
+ >> qpat_x_assum `!P''. Abbrev (G P = G P'') ==> X` K_TAC
  >> FULL_SIMP_TAC std_ss []
  >> IMP_RES_TAC (Q.SPEC `H` WEAK_UNIQUE_SOLUTIONS_LEMMA) (* lemma used here *)
  >> FULL_SIMP_TAC std_ss []
@@ -838,7 +838,7 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
 				by PROVE_TAC [WEAK_EQUIV_TRANS_label] \\
       `?E3. WEAK_TRANS ((H o E) P) (label l) E3 /\ WEAK_EQUIV E2 E3`
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label] \\
-      Q.PAT_X_ASSUM `WEAK_TRANS ((H o E) P) (label l) E3`
+      qpat_x_assum `WEAK_TRANS ((H o E) P) (label l) E3`
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS])) \\
       IMP_RES_TAC (Q.SPEC `H o E` WEAK_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
       NTAC 4 (POP_ASSUM K_TAC) \\
@@ -857,9 +857,9 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
       `?Q4. WEAK_TRANS Q' (label l) Q4 /\ WEAK_EQUIV Q4 Q3`
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label'] \\
       Q.EXISTS_TAC `Q4` >> art [] \\
-      Q.PAT_X_ASSUM `X E3 Q''` MP_TAC \\
+      qpat_x_assum `X E3 Q''` MP_TAC \\
       REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
-      Q.PAT_X_ASSUM `R y' y` MP_TAC \\
+      qpat_x_assum `R y' y` MP_TAC \\
       Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
       `WEAK_EQUIV y Q4` by PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM] \\
       Q.EXISTS_TAC `H'''` >> art [] \\
@@ -893,7 +893,7 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
 				by PROVE_TAC [WEAK_EQUIV_TRANS_label] \\
       `?E3. WEAK_TRANS ((H o E) Q) (label l) E3 /\ WEAK_EQUIV E1 E3`
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label] \\
-      Q.PAT_X_ASSUM `WEAK_TRANS ((H o E) Q) (label l) E3`
+      qpat_x_assum `WEAK_TRANS ((H o E) Q) (label l) E3`
 	(STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS])) \\
       IMP_RES_TAC (Q.SPEC `H o E` WEAK_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
       NTAC 4 (POP_ASSUM K_TAC) \\
@@ -905,7 +905,7 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
       `EPS (H'' Q) E3` by PROVE_TAC [] \\
       MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H''`] GSEQ_EPS_lemma) \\
       RW_TAC std_ss [] \\
-      Q.PAT_X_ASSUM `!P'. EPS (H'' P) P' ==> X` K_TAC \\
+      qpat_x_assum `!P'. EPS (H'' P) P' ==> X` K_TAC \\
       RES_TAC >> NTAC 2 (POP_ASSUM K_TAC) \\
       `WEAK_TRANS ((H o E) P) (label l) P''` by PROVE_TAC [WEAK_TRANS] \\
       `?P3. WEAK_TRANS (H P) (label l) P3 /\ WEAK_EQUIV P3 P''`
@@ -913,9 +913,9 @@ val WEAK_UNIQUE_SOLUTIONS = store_thm (
       `?P4. WEAK_TRANS P' (label l) P4 /\ WEAK_EQUIV P4 P3`
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label'] \\
       Q.EXISTS_TAC `P4` >> art [] \\
-      Q.PAT_X_ASSUM `X P'' E3` MP_TAC \\
+      qpat_x_assum `X P'' E3` MP_TAC \\
       REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
-      Q.PAT_X_ASSUM `R y' y` MP_TAC \\
+      qpat_x_assum `R y' y` MP_TAC \\
       Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
       Q.EXISTS_TAC `H'''` >> art [] \\
       PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM],
@@ -1030,7 +1030,7 @@ val OBS_UNIQUE_SOLUTIONS_LEMMA_EPS = store_thm (
       Q.UNABBREV_TAC `GP` >> art [EPS_REFL] )
  >> RES_TAC
  >> Q.UNABBREV_TAC `GP`
- >> Q.PAT_X_ASSUM `!P''. Abbrev (G P = G P'') ==> X` K_TAC
+ >> qpat_x_assum `!P''. Abbrev (G P = G P'') ==> X` K_TAC
  >> FULL_SIMP_TAC std_ss []
  >> IMP_RES_TAC (Q.SPEC `H` OBS_UNIQUE_SOLUTIONS_LEMMA) (* lemma used here *)
  >> FULL_SIMP_TAC std_ss []
@@ -1109,7 +1109,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
 				by PROVE_TAC [WEAK_EQUIV_TRANS_label] \\
         `?E3. WEAK_TRANS ((H o E) P) (label l) E3 /\ WEAK_EQUIV E2 E3`
 				by PROVE_TAC [OBS_CONGR_WEAK_TRANS] \\
-        Q.PAT_X_ASSUM `WEAK_TRANS ((H o E) P) (label l) E3`
+        qpat_x_assum `WEAK_TRANS ((H o E) P) (label l) E3`
 	  (STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS])) \\
         IMP_RES_TAC (Q.SPEC `H o E` OBS_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
         NTAC 4 (POP_ASSUM K_TAC) \\
@@ -1128,9 +1128,9 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         `?Q4. WEAK_TRANS Q' (label l) Q4 /\ WEAK_EQUIV Q4 Q3`
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label'] \\
         Q.EXISTS_TAC `Q4` >> art [] \\
-        Q.PAT_X_ASSUM `X E3 Q''` MP_TAC \\
+        qpat_x_assum `X E3 Q''` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
-        Q.PAT_X_ASSUM `R y' y` MP_TAC \\
+        qpat_x_assum `R y' y` MP_TAC \\
         Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
         `WEAK_EQUIV y Q4` by PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM] \\
         Q.EXISTS_TAC `H'''` >> art [] \\
@@ -1164,7 +1164,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
 				by PROVE_TAC [WEAK_EQUIV_TRANS_label] \\
         `?E3. WEAK_TRANS ((H o E) Q) (label l) E3 /\ WEAK_EQUIV E1 E3`
 				by PROVE_TAC [OBS_CONGR_WEAK_TRANS] \\
-        Q.PAT_X_ASSUM `WEAK_TRANS ((H o E) Q) (label l) E3`
+        qpat_x_assum `WEAK_TRANS ((H o E) Q) (label l) E3`
 	  (STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS])) \\
         IMP_RES_TAC (Q.SPEC `H o E` OBS_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
         NTAC 4 (POP_ASSUM K_TAC) \\
@@ -1176,7 +1176,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         `EPS (H'' Q) E3` by PROVE_TAC [] \\
         MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H''`] SEQ_EPS_lemma) \\
         RW_TAC std_ss [] \\
-        Q.PAT_X_ASSUM `!P'. EPS (H'' P) P' ==> X` K_TAC \\
+        qpat_x_assum `!P'. EPS (H'' P) P' ==> X` K_TAC \\
         RES_TAC >> NTAC 2 (POP_ASSUM K_TAC) \\
         `WEAK_TRANS ((H o E) P) (label l) P''` by PROVE_TAC [WEAK_TRANS] \\
         `?P3. WEAK_TRANS (H P) (label l) P3 /\ WEAK_EQUIV P3 P''`
@@ -1184,9 +1184,9 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         `?P4. WEAK_TRANS P' (label l) P4 /\ WEAK_EQUIV P4 P3`
 				by PROVE_TAC [WEAK_EQUIV_WEAK_TRANS_label'] \\
         Q.EXISTS_TAC `P4` >> art [] \\
-        Q.PAT_X_ASSUM `X P'' E3` MP_TAC \\
+        qpat_x_assum `X P'' E3` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
-        Q.PAT_X_ASSUM `R y' y` MP_TAC \\
+        qpat_x_assum `R y' y` MP_TAC \\
         Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
         Q.EXISTS_TAC `H'''` >> art [] \\
         PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM],
@@ -1244,7 +1244,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
       [ (* goal 2.1 (of 2) *)
         `?E2. WEAK_TRANS (E P) u E2 /\ WEAK_EQUIV E1 E2`
 				by PROVE_TAC [OBS_CONGR_TRANS_LEFT] \\
-        Q.PAT_X_ASSUM `WEAK_TRANS (E P) u E2`
+        qpat_x_assum `WEAK_TRANS (E P) u E2`
 	  (STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS])) \\
         IMP_RES_TAC (Q.SPEC `E` OBS_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
         NTAC 4 (POP_ASSUM K_TAC) \\
@@ -1261,9 +1261,9 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         `?Q''. WEAK_TRANS Q u Q'' /\ WEAK_EQUIV Q'' Q'`
 				by PROVE_TAC [OBS_CONGR_WEAK_TRANS'] \\
         Q.EXISTS_TAC `Q''` >> art [] \\
-        Q.PAT_X_ASSUM `X E2 Q'` MP_TAC \\
+        qpat_x_assum `X E2 Q'` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
-        Q.PAT_X_ASSUM `R y' y` MP_TAC \\
+        qpat_x_assum `R y' y` MP_TAC \\
         Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
         Q.EXISTS_TAC `H''` >> art [] \\
         PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM],
@@ -1286,7 +1286,7 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         (* goal 2.2 (of 2) *)
         `?E1. WEAK_TRANS (E Q) u E1 /\ WEAK_EQUIV E2 E1`
 				by PROVE_TAC [OBS_CONGR_TRANS_LEFT] \\
-        Q.PAT_X_ASSUM `WEAK_TRANS (E Q) u E1`
+        qpat_x_assum `WEAK_TRANS (E Q) u E1`
 	  (STRIP_ASSUME_TAC o (REWRITE_RULE [WEAK_TRANS])) \\
         IMP_RES_TAC (Q.SPEC `E` OBS_UNIQUE_SOLUTIONS_LEMMA_EPS) \\
         NTAC 4 (POP_ASSUM K_TAC) \\
@@ -1298,15 +1298,15 @@ val OBS_UNIQUE_SOLUTIONS = store_thm (
         `EPS (H' Q) E1` by PROVE_TAC [] \\
         MP_TAC (Q.SPECL [`E`, `P`, `Q`, `R`, `H'`] SEQ_EPS_lemma) \\
         RW_TAC std_ss [] \\
-        Q.PAT_X_ASSUM `!P'. EPS (H' P) P' ==> X` K_TAC \\
+        qpat_x_assum `!P'. EPS (H' P) P' ==> X` K_TAC \\
         RES_TAC >> NTAC 2 (POP_ASSUM K_TAC) \\
         `WEAK_TRANS (E P) u P'` by PROVE_TAC [WEAK_TRANS] \\
         `?P''. WEAK_TRANS P u P'' /\ WEAK_EQUIV P'' P'`
 				by PROVE_TAC [OBS_CONGR_WEAK_TRANS'] \\
         Q.EXISTS_TAC `P''` >> art [] \\
-        Q.PAT_X_ASSUM `X P' E1` MP_TAC \\
+        qpat_x_assum `X P' E1` MP_TAC \\
         REWRITE_TAC [O_DEF] >> BETA_TAC >> rpt STRIP_TAC \\
-        Q.PAT_X_ASSUM `R y' y` MP_TAC \\
+        qpat_x_assum `R y' y` MP_TAC \\
         Q.UNABBREV_TAC `R` >> BETA_TAC >> rpt STRIP_TAC \\
         Q.EXISTS_TAC `H''` >> art [] \\
         PROVE_TAC [WEAK_EQUIV_TRANS, WEAK_EQUIV_SYM] ] ]); 
@@ -1350,8 +1350,8 @@ val unfolding_lemma1 = store_thm (
  >> IMP_RES_TAC contracts_TRANS);
 
 (* This can be merged to HOL's arithmeticTheory *)
-val FUNPOW_SUC_alt = store_thm (
-   "FUNPOW_SUC_alt", ``!f n. FUNPOW f (SUC n) = (FUNPOW f n) o f``,
+val FUNPOW_SUC_alt = Q.prove (
+   `!f n. FUNPOW f (SUC n) = (FUNPOW f n) o f`,
     REPEAT GEN_TAC
  >> REWRITE_TAC [FUN_EQ_THM, o_DEF] >> BETA_TAC
  >> GEN_TAC
@@ -1359,8 +1359,7 @@ val FUNPOW_SUC_alt = store_thm (
  >> FULL_SIMP_TAC arith_ss [FUNPOW_1, ADD1]);
 
 (* |- !f n x. FUNPOW f (SUC n) x = FUNPOW f n (f x) *)
-val FUNPOW_SUC_alt' = save_thm (
-   "FUNPOW_SUC_alt'", BETA_RULE (REWRITE_RULE [FUN_EQ_THM, o_DEF] FUNPOW_SUC_alt));
+val FUNPOW_SUC_alt' = BETA_RULE (REWRITE_RULE [FUN_EQ_THM, o_DEF] FUNPOW_SUC_alt);
 
 (* A single transition from WGS E[P] will not touch the variable P *)
 val unfolding_lemma2 = store_thm (
@@ -1441,7 +1440,7 @@ val unfolding_lemma3 = store_thm (
  >> IMP_RES_TAC GCONTEXT_WGS_combin
  >> Know `C (E P) = (C o E) P` >- SIMP_TAC std_ss [o_DEF]
  >> DISCH_TAC
- >> Q.PAT_X_ASSUM `TRANS (C (E P)) x P'` MP_TAC
+ >> qpat_x_assum `TRANS (C (E P)) x P'` MP_TAC
  >> art [] >> DISCH_TAC
  >> IMP_RES_TAC unfolding_lemma2
  >> POP_ASSUM K_TAC
@@ -1467,7 +1466,7 @@ val unfolding_lemma4 = store_thm (
       DISCH_TAC \\
       FULL_SIMP_TAC std_ss [TRACE_NIL] )
  >> rpt STRIP_TAC
- >> Q.PAT_X_ASSUM `TRACE X xs P'` MP_TAC
+ >> qpat_x_assum `TRACE X xs P'` MP_TAC
  >> Know `(C o (FUNPOW E (SUC n))) P = (C o (FUNPOW E n)) (E P)`
  >- ( REWRITE_TAC [o_DEF, FUNPOW_SUC_alt'] >> BETA_TAC >> RW_TAC std_ss [] )
  >> Rewr >> DISCH_TAC
@@ -1475,7 +1474,7 @@ val unfolding_lemma4 = store_thm (
  >> Cases_on `xs`
  >- ( REV_FULL_SIMP_TAC std_ss [NULL] \\
       `LENGTH (epsilon :'b Action list) <= n` by FULL_SIMP_TAC arith_ss [LENGTH] \\
-      Q.PAT_X_ASSUM `!xs P' P. X ==> X'`
+      qpat_x_assum `!xs P' P. X ==> X'`
 	(MP_TAC o (Q.SPECL [`[] :'b Action list`, `P'`, `(E :('a, 'b) context) P`])) \\
       RW_TAC std_ss [] >> art [] \\
       Q.EXISTS_TAC `C' o E` \\
@@ -1488,7 +1487,7 @@ val unfolding_lemma4 = store_thm (
  >> `LENGTH (FRONT (h::t)) <= n` by PROVE_TAC [LENGTH_FRONT_CONS]
  >> Q.ABBREV_TAC `xs = FRONT (h::t)`
  >> Q.ABBREV_TAC `x = LAST (h::t)`
- >> Q.PAT_X_ASSUM `!xs P'' P'''. X ==> X'`
+ >> qpat_x_assum `!xs P'' P'''. X ==> X'`
 	(MP_TAC o (Q.SPECL [`xs`, `u`, `(E :('a, 'b) context) P`]))
  >> RW_TAC std_ss []
  >> IMP_RES_TAC (Q.SPECL [`C'`, `E`] unfolding_lemma3)
@@ -1543,7 +1542,7 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA = store_thm (
       NTAC 4 (POP_ASSUM K_TAC) \\
       Q.ABBREV_TAC `n = LENGTH us` \\
       Q.UNABBREV_TAC `C''` \\
-      Q.PAT_X_ASSUM `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
+      qpat_x_assum `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
       Know `?C'. GCONTEXT C' /\ (E2 = C' P) /\ !Q. TRACE ((C o FUNPOW E n) Q) xs' (C' Q)`
       >- ( MATCH_MP_TAC unfolding_lemma4 >> art [] ) \\
       STRIP_TAC >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
@@ -1566,7 +1565,7 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA = store_thm (
       NTAC 4 (POP_ASSUM K_TAC) \\
       Q.ABBREV_TAC `n = LENGTH us` \\
       Q.UNABBREV_TAC `C''` \\
-      Q.PAT_X_ASSUM `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
+      qpat_x_assum `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
       Know `?C'. GCONTEXT C' /\ (E2 = C' P) /\ !Q. TRACE ((C o FUNPOW E n) Q) xs' (C' Q)`
       >- ( MATCH_MP_TAC unfolding_lemma4 >> art [] ) \\
       STRIP_TAC >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
@@ -1598,46 +1597,46 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS = store_thm (
  >> REWRITE_TAC [WEAK_BISIM]
  >> BETA_TAC >> rpt STRIP_TAC (* 4 sub-goals here *)
  >| [ (* goal 1 (of 4) *)
-      Q.PAT_X_ASSUM `WEAK_EQUIV E' (C P)`
+      qpat_x_assum `WEAK_EQUIV E' (C P)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `E1`]) o (MATCH_MP WEAK_EQUIV_TRANS_label)) \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `TRANS E' (label l) E1 ==> X` K_TAC \\
+      qpat_x_assum `TRANS E' (label l) E1 ==> X` K_TAC \\
       ASSUME_TAC (Q.SPECL [`P`, `Q`] UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA) \\
       `!l R. WEAK_TRANS (C P) (label l) R ==>
            ?C'. GCONTEXT C' /\ R contracts (C' P) /\
 		(WEAK_EQUIV O (\x y. WEAK_TRANS x (label l) y)) (C Q) (C' Q)`
 	by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WGS E /\ P contracts (E P) /\ Q contracts (E Q)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WGS E /\ P contracts (E P) /\ Q contracts (E Q)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E'' (C Q)`
+      qpat_x_assum `WEAK_EQUIV E'' (C Q)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `y`]) o (MATCH_MP WEAK_EQUIV_WEAK_TRANS_label')) \\
-      Q.PAT_X_ASSUM `!l R. WEAK_TRANS (C P) (label l) R ==> X` K_TAC \\
+      qpat_x_assum `!l R. WEAK_TRANS (C P) (label l) R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `WEAK_TRANS (C Q) (label l) y ==> X` K_TAC \\
+      qpat_x_assum `WEAK_TRANS (C Q) (label l) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1'` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2 (C' P)` by PROVE_TAC [contracts_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS],
       (* goal 2 (of 4) *)
-      Q.PAT_X_ASSUM `WEAK_EQUIV E'' (C Q)`
+      qpat_x_assum `WEAK_EQUIV E'' (C Q)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `E2`]) o (MATCH_MP WEAK_EQUIV_TRANS_label)) \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `TRANS E'' (label l) E2 ==> X` K_TAC \\
+      qpat_x_assum `TRANS E'' (label l) E2 ==> X` K_TAC \\
       ASSUME_TAC (Q.SPECL [`Q`, `P`] UNIQUE_SOLUTIONS_OF_CONTRACTIONS_LEMMA) \\
       `!l R. WEAK_TRANS (C Q) (label l) R ==>
            ?C'. GCONTEXT C' /\ R contracts (C' Q) /\
 		(WEAK_EQUIV O (\x y. WEAK_TRANS x (label l) y)) (C P) (C' P)`
 	by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WGS E /\ Q contracts (E Q) /\ P contracts (E P)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WGS E /\ Q contracts (E Q) /\ P contracts (E P)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E' (C P)`
+      qpat_x_assum `WEAK_EQUIV E' (C P)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `y`]) o (MATCH_MP WEAK_EQUIV_WEAK_TRANS_label')) \\
-      Q.PAT_X_ASSUM `!l R. WEAK_TRANS (C Q) (label l) R ==> X` K_TAC \\
+      qpat_x_assum `!l R. WEAK_TRANS (C Q) (label l) R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `WEAK_TRANS (C P) (label l) y ==> X` K_TAC \\
+      qpat_x_assum `WEAK_TRANS (C P) (label l) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
@@ -1653,14 +1652,14 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS = store_thm (
       `!R. WEAK_TRANS (C P) tau R ==>
            ?C'. GCONTEXT C' /\ R contracts (C' P) /\
 		(WEAK_EQUIV O EPS) (C Q) (C' Q)` by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WGS E /\ P contracts (E P) /\ Q contracts (E Q)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WGS E /\ P contracts (E P) /\ Q contracts (E Q)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E'' (C Q)`
+      qpat_x_assum `WEAK_EQUIV E'' (C Q)`
 	(ASSUME_TAC o (Q.SPEC `y`) o (MATCH_MP WEAK_EQUIV_EPS')) \\
-      Q.PAT_X_ASSUM `!R. WEAK_TRANS (C P) tau R ==> X` K_TAC \\
+      qpat_x_assum `!R. WEAK_TRANS (C P) tau R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `EPS (C Q) y ==> X` K_TAC \\
+      qpat_x_assum `EPS (C Q) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1'` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
@@ -1676,14 +1675,14 @@ val UNIQUE_SOLUTIONS_OF_CONTRACTIONS = store_thm (
       `!R. WEAK_TRANS (C Q) tau R ==>
            ?C'. GCONTEXT C' /\ R contracts (C' Q) /\
 		(WEAK_EQUIV O EPS) (C P) (C' P)` by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WGS E /\ Q contracts (E Q) /\ P contracts (E P)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WGS E /\ Q contracts (E Q) /\ P contracts (E P)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E' (C P)`
+      qpat_x_assum `WEAK_EQUIV E' (C P)`
 	(ASSUME_TAC o (Q.SPEC `y`) o (MATCH_MP WEAK_EQUIV_EPS')) \\
-      Q.PAT_X_ASSUM `!R. WEAK_TRANS (C Q) tau R ==> X` K_TAC \\
+      qpat_x_assum `!R. WEAK_TRANS (C Q) tau R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `EPS (C P) y ==> X` K_TAC \\
+      qpat_x_assum `EPS (C P) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
@@ -1753,7 +1752,7 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA = store_thm (
       NTAC 4 (POP_ASSUM K_TAC) \\
       Q.ABBREV_TAC `n = LENGTH us` \\
       Q.UNABBREV_TAC `C''` \\
-      Q.PAT_X_ASSUM `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
+      qpat_x_assum `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
       Know `?C'. GCONTEXT C' /\ (E2 = C' P) /\ !Q. TRACE ((C o FUNPOW E n) Q) xs' (C' Q)`
       >- ( MATCH_MP_TAC unfolding_lemma4 >> art [] ) \\
       STRIP_TAC >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
@@ -1777,7 +1776,7 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA = store_thm (
       NTAC 4 (POP_ASSUM K_TAC) \\
       Q.ABBREV_TAC `n = LENGTH us` \\
       Q.UNABBREV_TAC `C''` \\
-      Q.PAT_X_ASSUM `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
+      qpat_x_assum `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
       Know `?C'. GCONTEXT C' /\ (E2 = C' P) /\ !Q. TRACE ((C o FUNPOW E n) Q) xs' (C' Q)`
       >- ( MATCH_MP_TAC unfolding_lemma4 >> art [] ) \\
       STRIP_TAC >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
@@ -1808,46 +1807,46 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
  >> REWRITE_TAC [WEAK_BISIM]
  >> BETA_TAC >> rpt STRIP_TAC (* 4 sub-goals here *)
  >| [ (* goal 1 (of 4) *)
-      Q.PAT_X_ASSUM `WEAK_EQUIV E' (C P)`
+      qpat_x_assum `WEAK_EQUIV E' (C P)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `E1`]) o (MATCH_MP WEAK_EQUIV_TRANS_label)) \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `TRANS E' (label l) E1 ==> X` K_TAC \\
+      qpat_x_assum `TRANS E' (label l) E1 ==> X` K_TAC \\
       ASSUME_TAC (Q.SPECL [`P`, `Q`] UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA) \\
       `!l R. WEAK_TRANS (C P) (label l) R ==>
            ?C'. GCONTEXT C' /\ R expands (C' P) /\
 		(WEAK_EQUIV O (\x y. WEAK_TRANS x (label l) y)) (C Q) (C' Q)`
 	by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WGS E /\ P expands (E P) /\ Q expands (E Q)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WGS E /\ P expands (E P) /\ Q expands (E Q)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E'' (C Q)`
+      qpat_x_assum `WEAK_EQUIV E'' (C Q)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `y`]) o (MATCH_MP WEAK_EQUIV_WEAK_TRANS_label')) \\
-      Q.PAT_X_ASSUM `!l R. WEAK_TRANS (C P) (label l) R ==> X` K_TAC \\
+      qpat_x_assum `!l R. WEAK_TRANS (C P) (label l) R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `WEAK_TRANS (C Q) (label l) y ==> X` K_TAC \\
+      qpat_x_assum `WEAK_TRANS (C Q) (label l) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1'` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2 (C' P)` by PROVE_TAC [expands_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS],
       (* goal 2 (of 4) *)
-      Q.PAT_X_ASSUM `WEAK_EQUIV E'' (C Q)`
+      qpat_x_assum `WEAK_EQUIV E'' (C Q)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `E2`]) o (MATCH_MP WEAK_EQUIV_TRANS_label)) \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `TRANS E'' (label l) E2 ==> X` K_TAC \\
+      qpat_x_assum `TRANS E'' (label l) E2 ==> X` K_TAC \\
       ASSUME_TAC (Q.SPECL [`Q`, `P`] UNIQUE_SOLUTIONS_OF_EXPANSIONS_LEMMA) \\
       `!l R. WEAK_TRANS (C Q) (label l) R ==>
            ?C'. GCONTEXT C' /\ R expands (C' Q) /\
 		(WEAK_EQUIV O (\x y. WEAK_TRANS x (label l) y)) (C P) (C' P)`
 	by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WGS E /\ Q expands (E Q) /\ P expands (E P)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WGS E /\ Q expands (E Q) /\ P expands (E P)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E' (C P)`
+      qpat_x_assum `WEAK_EQUIV E' (C P)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `y`]) o (MATCH_MP WEAK_EQUIV_WEAK_TRANS_label')) \\
-      Q.PAT_X_ASSUM `!l R. WEAK_TRANS (C Q) (label l) R ==> X` K_TAC \\
+      qpat_x_assum `!l R. WEAK_TRANS (C Q) (label l) R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `WEAK_TRANS (C P) (label l) y ==> X` K_TAC \\
+      qpat_x_assum `WEAK_TRANS (C P) (label l) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
@@ -1863,14 +1862,14 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
       `!R. WEAK_TRANS (C P) tau R ==>
            ?C'. GCONTEXT C' /\ R expands (C' P) /\
 		(WEAK_EQUIV O EPS) (C Q) (C' Q)` by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WGS E /\ P expands (E P) /\ Q expands (E Q)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WGS E /\ P expands (E P) /\ Q expands (E Q)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E'' (C Q)`
+      qpat_x_assum `WEAK_EQUIV E'' (C Q)`
 	(ASSUME_TAC o (Q.SPEC `y`) o (MATCH_MP WEAK_EQUIV_EPS')) \\
-      Q.PAT_X_ASSUM `!R. WEAK_TRANS (C P) tau R ==> X` K_TAC \\
+      qpat_x_assum `!R. WEAK_TRANS (C P) tau R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `EPS (C Q) y ==> X` K_TAC \\
+      qpat_x_assum `EPS (C Q) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1'` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
@@ -1886,14 +1885,14 @@ val UNIQUE_SOLUTIONS_OF_EXPANSIONS = store_thm (
       `!R. WEAK_TRANS (C Q) tau R ==>
            ?C'. GCONTEXT C' /\ R expands (C' Q) /\
 		(WEAK_EQUIV O EPS) (C P) (C' P)` by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WGS E /\ Q expands (E Q) /\ P expands (E P)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WGS E /\ Q expands (E Q) /\ P expands (E P)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E' (C P)`
+      qpat_x_assum `WEAK_EQUIV E' (C P)`
 	(ASSUME_TAC o (Q.SPEC `y`) o (MATCH_MP WEAK_EQUIV_EPS')) \\
-      Q.PAT_X_ASSUM `!R. WEAK_TRANS (C Q) tau R ==> X` K_TAC \\
+      qpat_x_assum `!R. WEAK_TRANS (C Q) tau R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `EPS (C P) y ==> X` K_TAC \\
+      qpat_x_assum `EPS (C P) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
@@ -1993,10 +1992,10 @@ val OBS_unfolding_lemma2 = store_thm (
       (* goal 4 (of 4) *)
       IMP_RES_TAC TRANS_SUM >| (* 2 sub-goals here *)
       [ (* goal 4.1 (of 2) *)
-	Q.PAT_X_ASSUM `!P u P'. TRANS (E P) u P' ==> X` MP_TAC \\
-	Q.PAT_X_ASSUM `TRANS (sum (E P) (E' P)) u P'` MP_TAC \\
+	qpat_x_assum `!P u P'. TRANS (E P) u P' ==> X` MP_TAC \\
+	qpat_x_assum `TRANS (sum (E P) (E' P)) u P'` MP_TAC \\
 	POP_ASSUM MP_TAC \\
-	Q.PAT_X_ASSUM `WG E` MP_TAC \\
+	qpat_x_assum `WG E` MP_TAC \\
 	Q.SPEC_TAC (`E`, `E`) \\
 	HO_MATCH_MP_TAC WG_strongind \\
 	BETA_TAC >> REWRITE_TAC [ETA_AX] >> rpt STRIP_TAC (* 6 sub-goals here *)
@@ -2006,10 +2005,10 @@ val OBS_unfolding_lemma2 = store_thm (
 	RES_TAC >> Q.EXISTS_TAC `C'` >> art [] \\
 	GEN_TAC >> MATCH_MP_TAC SUM1 >> art [],
 	(* goal 4.2 (of 2) *)
-	Q.PAT_X_ASSUM `!P u P'. TRANS (E' P) u P' ==> X` MP_TAC \\
-	Q.PAT_X_ASSUM `TRANS (sum (E P) (E' P)) u P'` MP_TAC \\
+	qpat_x_assum `!P u P'. TRANS (E' P) u P' ==> X` MP_TAC \\
+	qpat_x_assum `TRANS (sum (E P) (E' P)) u P'` MP_TAC \\
 	POP_ASSUM MP_TAC \\
-	Q.PAT_X_ASSUM `WG E'` MP_TAC \\
+	qpat_x_assum `WG E'` MP_TAC \\
 	Q.SPEC_TAC (`E'`, `E'`) \\
 	HO_MATCH_MP_TAC WG_strongind \\
 	BETA_TAC >> REWRITE_TAC [ETA_AX] >> rpt STRIP_TAC (* 6 sub-goals here *)
@@ -2029,7 +2028,7 @@ val OBS_unfolding_lemma3 = store_thm (
  >> IMP_RES_TAC CONTEXT_WG_combin
  >> Know `C (E P) = (C o E) P` >- SIMP_TAC std_ss [o_DEF]
  >> DISCH_TAC
- >> Q.PAT_X_ASSUM `TRANS (C (E P)) x P'` MP_TAC
+ >> qpat_x_assum `TRANS (C (E P)) x P'` MP_TAC
  >> art [] >> DISCH_TAC
  >> IMP_RES_TAC OBS_unfolding_lemma2
  >> POP_ASSUM K_TAC
@@ -2054,7 +2053,7 @@ val OBS_unfolding_lemma4 = store_thm (
       DISCH_TAC \\
       FULL_SIMP_TAC std_ss [TRACE_NIL] )
  >> rpt STRIP_TAC
- >> Q.PAT_X_ASSUM `TRACE X xs P'` MP_TAC
+ >> qpat_x_assum `TRACE X xs P'` MP_TAC
  >> Know `(C o (FUNPOW E (SUC n))) P = (C o (FUNPOW E n)) (E P)`
  >- ( REWRITE_TAC [o_DEF, FUNPOW_SUC_alt'] >> BETA_TAC >> RW_TAC std_ss [] )
  >> Rewr >> DISCH_TAC
@@ -2062,7 +2061,7 @@ val OBS_unfolding_lemma4 = store_thm (
  >> Cases_on `xs`
  >- ( REV_FULL_SIMP_TAC std_ss [NULL] \\
       `LENGTH (epsilon :'b Action list) <= n` by FULL_SIMP_TAC arith_ss [LENGTH] \\
-      Q.PAT_X_ASSUM `!xs P' P. X ==> X'`
+      qpat_x_assum `!xs P' P. X ==> X'`
 	(MP_TAC o (Q.SPECL [`[] :'b Action list`, `P'`, `(E :('a, 'b) context) P`])) \\
       RW_TAC std_ss [] >> art [] \\
       Q.EXISTS_TAC `C' o E` \\
@@ -2075,7 +2074,7 @@ val OBS_unfolding_lemma4 = store_thm (
  >> `LENGTH (FRONT (h::t)) <= n` by PROVE_TAC [LENGTH_FRONT_CONS]
  >> Q.ABBREV_TAC `xs = FRONT (h::t)`
  >> Q.ABBREV_TAC `x = LAST (h::t)`
- >> Q.PAT_X_ASSUM `!xs P'' P'''. X ==> X'`
+ >> qpat_x_assum `!xs P'' P'''. X ==> X'`
 	(MP_TAC o (Q.SPECL [`xs`, `u`, `(E :('a, 'b) context) P`]))
  >> RW_TAC std_ss []
  >> IMP_RES_TAC (Q.SPECL [`C'`, `E`] OBS_unfolding_lemma3)
@@ -2130,7 +2129,7 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS_LEMMA = store_thm (
       NTAC 4 (POP_ASSUM K_TAC) \\
       Q.ABBREV_TAC `n = LENGTH us` \\
       Q.UNABBREV_TAC `C''` \\
-      Q.PAT_X_ASSUM `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
+      qpat_x_assum `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
       Know `?C'. CONTEXT C' /\ (E2 = C' P) /\ !Q. TRACE ((C o FUNPOW E n) Q) xs' (C' Q)`
       >- ( MATCH_MP_TAC OBS_unfolding_lemma4 >> art [] ) \\
       STRIP_TAC >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
@@ -2153,7 +2152,7 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS_LEMMA = store_thm (
       NTAC 4 (POP_ASSUM K_TAC) \\
       Q.ABBREV_TAC `n = LENGTH us` \\
       Q.UNABBREV_TAC `C''` \\
-      Q.PAT_X_ASSUM `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
+      qpat_x_assum `TRACE X xs' E2` (ASSUME_TAC o BETA_RULE) \\
       Know `?C'. CONTEXT C' /\ (E2 = C' P) /\ !Q. TRACE ((C o FUNPOW E n) Q) xs' (C' Q)`
       >- ( MATCH_MP_TAC OBS_unfolding_lemma4 >> art [] ) \\
       STRIP_TAC >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `Q`)) \\
@@ -2181,46 +2180,46 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS = store_thm (
  >> REWRITE_TAC [WEAK_BISIM]
  >> BETA_TAC >> rpt STRIP_TAC (* 4 sub-goals here *)
  >| [ (* goal 1 (of 4) *)
-      Q.PAT_X_ASSUM `WEAK_EQUIV E' (C P)`
+      qpat_x_assum `WEAK_EQUIV E' (C P)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `E1`]) o (MATCH_MP WEAK_EQUIV_TRANS_label)) \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `TRANS E' (label l) E1 ==> X` K_TAC \\
+      qpat_x_assum `TRANS E' (label l) E1 ==> X` K_TAC \\
       ASSUME_TAC (Q.SPECL [`P`, `Q`] UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS_LEMMA) \\
       `!l R. WEAK_TRANS (C P) (label l) R ==>
            ?C'. CONTEXT C' /\ R contracts (C' P) /\
 		(WEAK_EQUIV O (\x y. WEAK_TRANS x (label l) y)) (C Q) (C' Q)`
 	by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WG E /\ OBS_contracts P (E P) /\ OBS_contracts Q (E Q)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WG E /\ OBS_contracts P (E P) /\ OBS_contracts Q (E Q)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E'' (C Q)`
+      qpat_x_assum `WEAK_EQUIV E'' (C Q)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `y`]) o (MATCH_MP WEAK_EQUIV_WEAK_TRANS_label')) \\
-      Q.PAT_X_ASSUM `!l R. WEAK_TRANS (C P) (label l) R ==> X` K_TAC \\
+      qpat_x_assum `!l R. WEAK_TRANS (C P) (label l) R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `WEAK_TRANS (C Q) (label l) y ==> X` K_TAC \\
+      qpat_x_assum `WEAK_TRANS (C Q) (label l) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1'` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
       `WEAK_EQUIV E2 (C' P)` by PROVE_TAC [contracts_IMP_WEAK_EQUIV] \\
       PROVE_TAC [WEAK_EQUIV_TRANS],
       (* goal 2 (of 4) *)
-      Q.PAT_X_ASSUM `WEAK_EQUIV E'' (C Q)`
+      qpat_x_assum `WEAK_EQUIV E'' (C Q)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `E2`]) o (MATCH_MP WEAK_EQUIV_TRANS_label)) \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `TRANS E'' (label l) E2 ==> X` K_TAC \\
+      qpat_x_assum `TRANS E'' (label l) E2 ==> X` K_TAC \\
       ASSUME_TAC (Q.SPECL [`Q`, `P`] UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS_LEMMA) \\
       `!l R. WEAK_TRANS (C Q) (label l) R ==>
            ?C'. CONTEXT C' /\ R contracts (C' Q) /\
 		(WEAK_EQUIV O (\x y. WEAK_TRANS x (label l) y)) (C P) (C' P)`
 	by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WG E /\ OBS_contracts Q (E Q) /\ OBS_contracts P (E P)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WG E /\ OBS_contracts Q (E Q) /\ OBS_contracts P (E P)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E' (C P)`
+      qpat_x_assum `WEAK_EQUIV E' (C P)`
 	(ASSUME_TAC o (Q.SPECL [`l`, `y`]) o (MATCH_MP WEAK_EQUIV_WEAK_TRANS_label')) \\
-      Q.PAT_X_ASSUM `!l R. WEAK_TRANS (C Q) (label l) R ==> X` K_TAC \\
+      qpat_x_assum `!l R. WEAK_TRANS (C Q) (label l) R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `WEAK_TRANS (C P) (label l) y ==> X` K_TAC \\
+      qpat_x_assum `WEAK_TRANS (C P) (label l) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
@@ -2236,14 +2235,14 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS = store_thm (
       `!R. WEAK_TRANS (C P) tau R ==>
            ?C'. CONTEXT C' /\ R contracts (C' P) /\
 		(WEAK_EQUIV O EPS) (C Q) (C' Q)` by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WG E /\ OBS_contracts P (E P) /\ OBS_contracts Q (E Q)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WG E /\ OBS_contracts P (E P) /\ OBS_contracts Q (E Q)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E'' (C Q)`
+      qpat_x_assum `WEAK_EQUIV E'' (C Q)`
 	(ASSUME_TAC o (Q.SPEC `y`) o (MATCH_MP WEAK_EQUIV_EPS')) \\
-      Q.PAT_X_ASSUM `!R. WEAK_TRANS (C P) tau R ==> X` K_TAC \\
+      qpat_x_assum `!R. WEAK_TRANS (C P) tau R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `EPS (C Q) y ==> X` K_TAC \\
+      qpat_x_assum `EPS (C Q) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1'` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1' (C' Q)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\
@@ -2259,14 +2258,14 @@ val UNIQUE_SOLUTIONS_OF_OBS_CONTRACTIONS = store_thm (
       `!R. WEAK_TRANS (C Q) tau R ==>
            ?C'. CONTEXT C' /\ R contracts (C' Q) /\
 		(WEAK_EQUIV O EPS) (C P) (C' P)` by METIS_TAC [] \\
-      Q.PAT_X_ASSUM `(?E. WG E /\ OBS_contracts Q (E Q) /\ OBS_contracts P (E P)) ==> X` K_TAC \\
+      qpat_x_assum `(?E. WG E /\ OBS_contracts Q (E Q) /\ OBS_contracts P (E P)) ==> X` K_TAC \\
       RES_TAC \\
       POP_ASSUM MP_TAC >> REWRITE_TAC [O_DEF] >> BETA_TAC >> STRIP_TAC \\
-      Q.PAT_X_ASSUM `WEAK_EQUIV E' (C P)`
+      qpat_x_assum `WEAK_EQUIV E' (C P)`
 	(ASSUME_TAC o (Q.SPEC `y`) o (MATCH_MP WEAK_EQUIV_EPS')) \\
-      Q.PAT_X_ASSUM `!R. WEAK_TRANS (C Q) tau R ==> X` K_TAC \\
+      qpat_x_assum `!R. WEAK_TRANS (C Q) tau R ==> X` K_TAC \\
       RES_TAC \\
-      Q.PAT_X_ASSUM `EPS (C P) y ==> X` K_TAC \\
+      qpat_x_assum `EPS (C P) y ==> X` K_TAC \\
       Q.EXISTS_TAC `E1` >> art [] \\
       Q.EXISTS_TAC `C'` >> art [] \\
       `WEAK_EQUIV E1 (C' P)` by PROVE_TAC [WEAK_EQUIV_TRANS] >> art [] \\

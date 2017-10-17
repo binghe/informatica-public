@@ -72,9 +72,8 @@ val EXPANSION_ALT = store_thm (
 
 (* The identity relation is a EXPANSION. *)
 val IDENTITY_EXPANSION = store_thm (
-   "IDENTITY_EXPANSION", ``EXPANSION (\x y. x = y)``,
+   "IDENTITY_EXPANSION", ``EXPANSION Id``,
     PURE_ONCE_REWRITE_TAC [EXPANSION_ALT]
- >> BETA_TAC
  >> rpt STRIP_TAC >> rfs []
  >> IMP_RES_TAC TRANS_IMP_WEAK_TRANS);
 
@@ -83,7 +82,7 @@ val EXPANSION_EPS = store_thm (
   ``!(Exp: ('a, 'b) simulation). EXPANSION Exp ==>
      !E E'. Exp E E' ==> !E1. EPS E E1 ==> ?E2. EPS E' E2 /\ Exp E1 E2``,
     REPEAT STRIP_TAC
- >> Q.PAT_X_ASSUM `Exp E E'` MP_TAC
+ >> qpat_x_assum `Exp E E'` MP_TAC
  >> POP_ASSUM MP_TAC
  >> Q.SPEC_TAC (`E1`, `E1`)
  >> Q.SPEC_TAC (`E`, `E`)
@@ -106,7 +105,7 @@ val EXPANSION_EPS' = store_thm (
   ``!(Exp: ('a, 'b) simulation). EXPANSION Exp ==>
      !E E'. Exp E E' ==> !E2. EPS E' E2 ==> ?E1. EPS E E1 /\ Exp E1 E2``,
     REPEAT STRIP_TAC
- >> Q.PAT_X_ASSUM `Exp E E'` MP_TAC
+ >> qpat_x_assum `Exp E E'` MP_TAC
  >> POP_ASSUM MP_TAC
  >> Q.SPEC_TAC (`E2`, `E2`)
  >> Q.SPEC_TAC (`E'`, `E'`)
@@ -355,8 +354,7 @@ val expands_reflexive = store_thm (
     REWRITE_TAC [reflexive_def]
  >> GEN_TAC
  >> PURE_ONCE_REWRITE_TAC [expands_thm]
- >> EXISTS_TAC ``\x y :('a, 'b) CCS. x = y``
- >> BETA_TAC
+ >> Q.EXISTS_TAC `Id`
  >> REWRITE_TAC [IDENTITY_EXPANSION]);
 
 (* the version for easier use *)
@@ -765,7 +763,7 @@ val expands_SUBST_RELAB = store_thm (
       ASSUME_TAC (REWRITE_RULE [ASSUME ``E'' = relab E1 rf'``]
 			       (ASSUME ``TRANS E'' (label l) E1'``)) \\
       IMP_RES_TAC TRANS_RELAB \\
-      Q.PAT_X_ASSUM `label l = relabel rf' u'` (ASSUME_TAC o SYM) \\
+      qpat_x_assum `label l = relabel rf' u'` (ASSUME_TAC o SYM) \\
       IMP_RES_TAC Relab_label \\
       ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = label l'``]
 			       (ASSUME ``TRANS E1 u' E''''``)) \\
@@ -774,13 +772,13 @@ val expands_SUBST_RELAB = store_thm (
       Rev CONJ_TAC
       >- ( take [`E''''`, `E2'`, `rf'`] >> ASM_REWRITE_TAC [] ) \\
       ASM_REWRITE_TAC [] \\
-      Q.PAT_X_ASSUM `relabel rf' u' = label l` (REWRITE_TAC o wrap o SYM) \\
+      qpat_x_assum `relabel rf' u' = label l` (REWRITE_TAC o wrap o SYM) \\
       MATCH_MP_TAC RELABELING >> ASM_REWRITE_TAC [],
       (* goal 2 (of 4) *)
       ASSUME_TAC (REWRITE_RULE [ASSUME ``E''' = relab E2 rf'``]
 			       (ASSUME ``TRANS E''' (label l) E2'``)) \\
       IMP_RES_TAC TRANS_RELAB \\
-      Q.PAT_X_ASSUM `label l = relabel rf' u'` (ASSUME_TAC o SYM) \\
+      qpat_x_assum `label l = relabel rf' u'` (ASSUME_TAC o SYM) \\
       IMP_RES_TAC Relab_label \\
       ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = label l'``]
 			       (ASSUME ``TRANS E2 u' E''''``)) \\
@@ -794,7 +792,7 @@ val expands_SUBST_RELAB = store_thm (
       ASSUME_TAC (REWRITE_RULE [ASSUME ``E'' = relab E1 rf'``]
 			       (ASSUME ``TRANS E'' tau E1'``)) \\
       IMP_RES_TAC TRANS_RELAB \\
-      Q.PAT_X_ASSUM `tau = relabel rf' u'` (ASSUME_TAC o SYM) \\
+      qpat_x_assum `tau = relabel rf' u'` (ASSUME_TAC o SYM) \\
       IMP_RES_TAC Relab_tau \\
       ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = tau``]
 			       (ASSUME ``TRANS E1 u' E''''``)) \\ 
@@ -805,13 +803,13 @@ val expands_SUBST_RELAB = store_thm (
       Rev CONJ_TAC
       >- ( take [`E''''`, `E2'`, `rf'`] >> ASM_REWRITE_TAC [] ) \\
       ASM_REWRITE_TAC [] \\
-      Q.PAT_X_ASSUM `relabel rf' u' = tau` (REWRITE_TAC o wrap o SYM) \\
+      qpat_x_assum `relabel rf' u' = tau` (REWRITE_TAC o wrap o SYM) \\
       MATCH_MP_TAC RELABELING >> ASM_REWRITE_TAC [],
       (* goal 4 (of 4) *)
       ASSUME_TAC (REWRITE_RULE [ASSUME ``E''' = relab E2 rf'``]
 			       (ASSUME ``TRANS E''' tau E2'``)) \\
       IMP_RES_TAC TRANS_RELAB \\
-      Q.PAT_X_ASSUM `tau = relabel rf' u'` (ASSUME_TAC o SYM) \\
+      qpat_x_assum `tau = relabel rf' u'` (ASSUME_TAC o SYM) \\
       IMP_RES_TAC Relab_tau \\
       ASSUME_TAC (REWRITE_RULE [ASSUME ``(u' :'b Action) = tau``]
 			       (ASSUME ``TRANS E2 u' E''''``)) \\
@@ -820,7 +818,7 @@ val expands_SUBST_RELAB = store_thm (
       Rev CONJ_TAC
       >- ( take [`E1'`, `E''''`, `rf'`] >> ASM_REWRITE_TAC [] ) \\
       ASM_REWRITE_TAC [] \\
-      Q.PAT_X_ASSUM `relabel rf' u' = tau` (REWRITE_TAC o wrap o SYM) \\
+      qpat_x_assum `relabel rf' u' = tau` (REWRITE_TAC o wrap o SYM) \\
       REWRITE_TAC [WEAK_TRANS] \\
       STRIP_ASSUME_TAC
 	(REWRITE_RULE [WEAK_TRANS] (ASSUME ``WEAK_TRANS E1 tau E1'``)) \\
@@ -868,7 +866,7 @@ val expands_AND_TRACE_tau_lemma = Q.prove (
  >- ( take [`[]`, `E'`] >> ASM_REWRITE_TAC [] \\
       REWRITE_TAC [TRACE_REFL, LENGTH] >> RW_TAC arith_ss [] )
  >> IMP_RES_TAC NO_LABEL_cases
- >> Q.PAT_X_ASSUM `NO_LABEL xs ==> X`
+ >> qpat_x_assum `NO_LABEL xs ==> X`
 	(ASSUME_TAC o (fn thm => MATCH_MP thm (ASSUME ``NO_LABEL (xs :'b Action list)``)))
  >> Cases_on `h` >> FULL_SIMP_TAC std_ss [Action_distinct_label, LENGTH]
  >> IMP_RES_TAC expands_TRANS_tau >> RES_TAC (* 2 sub-goals here *)
@@ -892,9 +890,8 @@ val expands_AND_TRACE_tau = store_thm (
 	    ?xs' E2. TRACE E' xs' E2 /\ E1 expands E2 /\
 		(LENGTH xs' <= LENGTH xs) /\ NO_LABEL xs'``,
     NTAC 2 (rpt GEN_TAC >> STRIP_TAC)
- >> irule expands_AND_TRACE_tau_lemma
- >- ASM_REWRITE_TAC []
- >> Q.EXISTS_TAC `E` >> ASM_REWRITE_TAC []);
+ >> MP_TAC (Q.SPECL [`E`, `xs`, `E1`] expands_AND_TRACE_tau_lemma)
+ >> RW_TAC std_ss []);
 
 val expands_AND_TRACE_label_lemma = Q.prove (
    `!E xs E1. TRACE E xs E1 ==> !l. UNIQUE_LABEL (label l) xs ==>
@@ -938,9 +935,8 @@ val expands_AND_TRACE_label = store_thm (
 	    ?xs' E2. TRACE E' xs' E2 /\ E1 expands E2 /\
 		(LENGTH xs' <= LENGTH xs) /\ UNIQUE_LABEL (label l) xs'``,
     NTAC 2 (rpt GEN_TAC >> STRIP_TAC)
- >> irule expands_AND_TRACE_label_lemma
- >- ASM_REWRITE_TAC []
- >> Q.EXISTS_TAC `E` >> ASM_REWRITE_TAC []);
+ >> MP_TAC (Q.SPECL [`E`, `xs`, `E1`] expands_AND_TRACE_label_lemma)
+ >> RW_TAC std_ss []);
 
 (******************************************************************************)
 (*                                                                            *)
@@ -948,6 +944,7 @@ val expands_AND_TRACE_label = store_thm (
 (*                                                                            *)
 (******************************************************************************)
 
+(*
 val BISIM_UPTO_expands_and_C = new_definition (
    "BISIM_UPTO_expands_and_C",
   ``BISIM_UPTO_expands_and_C (Wbsm: ('a, 'b) simulation) =
@@ -964,6 +961,7 @@ val BISIM_UPTO_expands_and_C = new_definition (
 	      ?E2. EPS E' E2 /\ (WEAK_EQUIV O (GCC Wbsm) O $expands) E1 E2) /\
 	(!E2. TRANS E' tau E2 ==>
 	      ?E1. EPS E  E1 /\ ($expands O (GCC Wbsm) O WEAK_EQUIV) E1 E2)``);
+ *)
 
 (* Bibliography:
  *
