@@ -21,10 +21,12 @@ $(HOLHEAP): $(OBJS) $(dprot $(HOLDIR)/bin/hol.state0)
 	$(protect $(HOLDIR)/bin/buildheap) -o $@ $(OBJNAMES)
 endif
 
-all: $(TARGETS) munge.exe
+all: $(TARGETS) munge.exe selftest.exe
+
+selftest.exe: selftest.uo CCSConv.uo
+	$(HOLMOSMLC) -o $@ $<
 
 MUNGER = $(HOLDIR)/bin/mkmunge.exe
-
 munge.exe: CCSTheory.sig StrongEQTheory.sig StrongLawsTheory.sig \
 	   WeakEQTheory.sig WeakLawsTheory.sig ObsCongrTheory.sig ObsCongrLawsTheory.sig \
 	   CongruenceTheory.sig TraceTheory.sig CoarsestCongrTheory.sig \

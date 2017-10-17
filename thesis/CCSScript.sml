@@ -267,7 +267,7 @@ val RELAB_def = Define `
      (RELAB labl' = RELAB labl) ⇔ (Apply_Relab labl' = Apply_Relab labl)
  *)
 val APPLY_RELAB_THM = save_thm ("APPLY_RELAB_THM",
-    GEN_ALL
+    Q_GENL [`labl'`, `labl`]
       (REWRITE_RULE [GSYM RELAB_def]
 	(MATCH_MP (MATCH_MP ABS_Relabeling_one_one
 			    (Q.SPEC `labl` IS_RELABELING))
@@ -746,7 +746,8 @@ val RESTR_LABEL_NO_TRANS = store_thm ("RESTR_LABEL_NO_TRANS",
 	      (ASSUME ``(COMPL (l :'b Label)) IN L``)) ] ]);
 
 val RELAB_cases_EQ = save_thm ("RELAB_cases_EQ",
-    GEN_ALL (REWRITE_RULE [CCS_distinct', CCS_11] (SPEC ``relab E rf`` TRANS_cases)));
+    Q_GENL [`E`, `rf`]
+	   (REWRITE_RULE [CCS_distinct', CCS_11] (SPEC ``relab E rf`` TRANS_cases)));
 
 val RELAB_cases = save_thm ("RELAB_cases", EQ_IMP_LR RELAB_cases_EQ);
 
@@ -769,7 +770,7 @@ val TRANS_RELAB_EQ = store_thm ("TRANS_RELAB_EQ",
 val TRANS_RELAB = save_thm ("TRANS_RELAB", EQ_IMP_LR TRANS_RELAB_EQ);
 
 val TRANS_RELAB_labl = save_thm ("TRANS_RELAB_labl",
-    GEN_ALL (Q.SPECL [`E`, `RELAB labl`] TRANS_RELAB));
+    Q_GENL [`E`, `labl`] (Q.SPECL [`E`, `RELAB labl`] TRANS_RELAB));
 
 val RELAB_NIL_NO_TRANS = store_thm ("RELAB_NIL_NO_TRANS",
   ``!(rf :'b Relabeling) u E. ~(TRANS (relab nil rf) u E)``,

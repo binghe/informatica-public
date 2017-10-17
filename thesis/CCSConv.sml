@@ -554,87 +554,8 @@ end; (* local *)
 (*		       Test cases for CCS_TRANS_CONV			      *)
 (*									      *)
 (******************************************************************************)
-(*
 
- 1. (ν a) (a.0 | `a.0)
-   CCS_TRANS_CONV ``(restr {name "a"}) (label (name "a")..nil || label (coname "a")..nil)``
-
-   |- ∀u E.
-     ν {name "a"} (label (name "a")..nil || label (coname "a")..nil) --u->
-     E ⇔ (u = τ) ∧ (E = ν {name "a"} (nil || nil))
-
- 2. a.0 | `a.0
-   CCS_TRANS_CONV
-	 ``par (prefix (label (name "a")) nil)
-	       (prefix (label (coname "a")) nil)``
-
-   |- ∀u E.
-     label (name "a")..nil || label (coname "a")..nil --u-> E ⇔
-     ((u = label (name "a")) ∧ (E = nil || label (coname "a")..nil) ∨
-      (u = label (coname "a")) ∧ (E = label (name "a")..nil || nil)) ∨
-     (u = τ) ∧ (E = nil || nil)
-
- 3. nil | nil
-   CCS_TRANS_CONV ``par nil nil``
-
-   |- ∀u E. nil || nil --u-> E ⇔ F
-
- 4. (ν a) (nil | nil)
-   CCS_TRANS_CONV ``restr { name "a" } (par nil nil)``
-
-   |- ∀u E. ν {name "a"} (nil || nil) --u-> E ⇔ F:
-
- 5. a.b.0 + b.a.0
-   CCS_TRANS_CONV ``label (name "a")..label (name "b")..nil +
-		    label (name "b")..label (name "a")..nil``
-
-   |- ∀u E''.
-     label (name "a")..label (name "b")..nil +
-     label (name "b")..label (name "a")..nil
-     --u->
-     E'' ⇔
-     (u = label (name "a")) ∧ (E'' = label (name "b")..nil) ∨
-     (u = label (name "b")) ∧ (E'' = label (name "a")..nil)
-
- 6. (nu a)(a.0|`a.0) | a.0
-   CCS_TRANS_CONV ``(restr {name "a"} (label (name "a")..nil || label (coname "a")..nil)) ||
-		    (label (name "a")..nil)``
-
-   |- ∀u E.
-     ν {name "a"} (label (name "a")..nil || label (coname "a")..nil) ||
-     label (name "a")..nil
-     --u->
-     E ⇔
-     (u = τ) ∧
-     (E = ν {name "a"} (nil || nil) || label (name "a")..nil) ∨
-     (u = label (name "a")) ∧
-     (E =
-      ν {name "a"} (label (name "a")..nil || label (coname "a")..nil) ||
-      nil)
-
- 7. CCS_TRANS_CONV
-	``rec "VM" (In "coin"..(In "ask-esp"..rec "VM1" (Out "esp-coffee"..var "VM") +
-				In "ask-am"..rec "VM2" (Out "am-coffee"..var "VM")))``
-
-   |- ∀u E.
-     rec "VM1"
-       (Out "esp-coffee"
-	..
-	rec "VM"
-	  (In "coin"
-	   ..
-	   (In "ask-esp"..rec "VM1" (Out "esp-coffee"..var "VM") +
-	    In "ask-am"..rec "VM2" (Out "am-coffee"..var "VM"))))
-     --u->
-     E ⇔
-     (u = Out "esp-coffee") ∧
-     (E =
-      rec "VM"
-	(In "coin"
-	 ..
-	 (In "ask-esp"..rec "VM1" (Out "esp-coffee"..var "VM") +
-	  In "ask-am"..rec "VM2" (Out "am-coffee"..var "VM"))))
- *)
+(* moved to selftest.sml *)
 
 end (* struct *)
 
