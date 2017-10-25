@@ -136,11 +136,12 @@ val WEAK_TRANS = new_definition ("WEAK_TRANS",
 val _ =
     add_rule { term_name = "WEAK_TRANS", fixity = Infix (NONASSOC, 450),
 	pp_elements = [ BreakSpace(1,0), TOK "==", HardSpace 0, TM, HardSpace 0,
-			TOK "==>", BreakSpace(1,0) ],
+			TOK "=>", BreakSpace(1,0) ],
 	paren_style = OnlyIfNecessary,
 	block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)) };
 
-val _ = TeX_notation { hol = "==",  TeX = ("\\HOLTokenWeakTransBegin", 1) };
+val _ = TeX_notation { hol = "==", TeX = ("\\HOLTokenWeakTransBegin", 1) };
+val _ = TeX_notation { hol = "=>", TeX = ("\\HOLTokenWeakTransEnd", 1) };
 
 (* A transition is a particular weak transition. *)
 val TRANS_IMP_WEAK_TRANS = store_thm (
@@ -687,9 +688,8 @@ val _ = add_rule { block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)),
                    pp_elements = [HardSpace 1, TOK (UTF8.chr 0x2248), BreakSpace (1,0)],
                    term_name = "WEAK_EQUIV" }
 
-(* Use the settings in ordinalTheory:
 val _ = TeX_notation { hol = UTF8.chr 0x2248,
-		       TeX = ("\\HOLTokenWeakEQ", 1) } *)
+		       TeX = ("\\HOLTokenWeakEQ", 1) }
 
 (* "Weak bisimilarity is a weak bisimulation" *)
 val WEAK_EQUIV_IS_WEAK_BISIM = store_thm (
@@ -843,8 +843,10 @@ val WEAK_EQUIV_SUBST_PREFIX = store_thm (
       MATCH_MP_TAC ONE_TAU >> ASM_REWRITE_TAC [PREFIX] ]);
 
 (* Definition of stable agent (tau-derivative do not exist). *)
+val _ = hide "STABLE"; (* conflicted with sortingTheory *)
+
 val STABLE = new_definition ("STABLE",
-  ``STABLE E = (!u E'. TRANS E u E' ==> ~(u = tau))``);
+  ``STABLE (E :('a, 'b) CCS) = (!u E'. TRANS E u E' ==> ~(u = tau))``);
 
 val STABLE_NO_TRANS_TAU = store_thm (
    "STABLE_NO_TRANS_TAU", ``!E. STABLE E ==> !E'. ~(TRANS E tau E')``,

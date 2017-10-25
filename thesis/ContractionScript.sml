@@ -1695,6 +1695,61 @@ val OBS_contracts_EPS' = store_thm (
  >> IMP_RES_TAC WEAK_TRANS_IMP_EPS
  >> IMP_RES_TAC EPS_TRANS);
 
+(******************************************************************************)
+(*                                                                            *)
+(*      Is OBS_contracts coarsest precongruence contained in `contracts`?     *)
+(*                                                                            *)
+(******************************************************************************)
+
+val C_contracts = new_definition (
+   "C_contracts", ``C_contracts = CC $contracts``);
+
+val C_contracts_thm = save_thm (
+   "C_contracts_thm", REWRITE_RULE [CC_def] C_contracts);
+
+val C_contracts_precongruence = store_thm (
+   "C_contracts_precongruence", ``precongruence $C_contracts``,
+    REWRITE_TAC [C_contracts, CC_precongruence]);
+
+val OBS_contracts_IMP_C_contracts = store_thm (
+   "OBS_contracts_IMP_C_contracts", ``!p q. OBS_contracts p q ==> C_contracts p q``,
+    REWRITE_TAC [C_contracts, GSYM RSUBSET]
+ >> ASSUME_TAC OBS_contracts_precongruence
+ >> `OBS_contracts RSUBSET $contracts`
+	by PROVE_TAC [OBS_contracts_IMP_contracts, GSYM RSUBSET]
+ >> MATCH_MP_TAC CC_is_coarsest' >> art []);
+
+val SUM_contracts = new_definition ("SUM_contracts",
+  ``SUM_contracts = (\p q. !r. (sum p r) contracts (sum q r))``);
+
+val C_contracts_IMP_SUM_contracts = store_thm (
+   "C_contracts_IMP_SUM_contracts",
+  ``!p q. C_contracts p q ==> SUM_contracts p q``,
+    REWRITE_TAC [C_contracts, SUM_contracts, CC_def]
+ >> BETA_TAC >> rpt STRIP_TAC
+ >> POP_ASSUM MP_TAC
+ >> Know `CONTEXT (\(t :('a, 'b) CCS). t) /\ CONTEXT (\t. r)`
+ >- REWRITE_TAC [CONTEXT1, CONTEXT2]
+ >> DISCH_TAC
+ >> POP_ASSUM (ASSUME_TAC o (MATCH_MP CONTEXT4))
+ >> DISCH_TAC >> RES_TAC
+ >> POP_ASSUM (MP_TAC o BETA_RULE) >> Rewr);
+
+val OBS_contracts_IMP_SUM_contracts = store_thm (
+   "OBS_contracts_IMP_SUM_contracts", 
+  ``!p q. OBS_contracts p q ==> SUM_contracts p q``,
+    rpt STRIP_TAC
+ >> MATCH_MP_TAC C_contracts_IMP_SUM_contracts
+ >> IMP_RES_TAC OBS_contracts_IMP_C_contracts);
+
+(* OBS_contracts ==> C_contracts (coarsest) ==> SUM_contracts ==++
+        /\                                          ||
+        ||                                          ||
+        ++==========================================++
+val SUM_contracts_IMP_OBS_contracts =
+  ``!p q. SUM_contracts p q ==> OBS_contracts p q``
+ *)
+
 (* Bibliography:
  *
  * [1] Sangiorgi, D.: Equations, contractions, and unique solutions. ACM SIGPLAN Notices. (2015).

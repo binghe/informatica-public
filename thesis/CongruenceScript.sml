@@ -374,42 +374,6 @@ val CC_is_coarsest' = store_thm (
 
 (******************************************************************************)
 (*                                                                            *)
-(*                  CCS Expressions (CONTEXT with constants)                  *)
-(*                                                                            *)
-(******************************************************************************)
-
-val (EXPR_rules, EXPR_ind, EXPR_cases) = Hol_reln `
-    (                      EXPR (\t. t)) /\		    (* EXPR1 *)
-    (!p.                   EXPR (\t. p)) /\		    (* EXPR2 *)
-    (!a e.   EXPR e    ==> EXPR (\t. prefix a (e t))) /\    (* EXPR3 *)
-    (!e1 e2. EXPR e1 /\ EXPR e2
-		       ==> EXPR (\t. sum (e1 t) (e2 t))) /\ (* EXPR4 *)
-    (!e1 e2. EXPR e1 /\ EXPR e2
-		       ==> EXPR (\t. par (e1 t) (e2 t))) /\ (* EXPR5 *)
-    (!L e.   EXPR e    ==> EXPR (\t. restr L (e t))) /\	    (* EXPR6 *)
-    (!rf e.  EXPR e    ==> EXPR (\t. relab (e t) rf)) /\    (* EXPR7 *)
-    (!X e.   EXPR e /\ EXPR (\t. CCS_Subst (e t) (rec X (e t)) X)
-		       ==> EXPR (\t. rec X (e t))) `;	    (* EXPR8: need to check *)
-
-val [EXPR1, EXPR2, EXPR3, EXPR4, EXPR5, EXPR6, EXPR7, EXPR8] =
-    map save_thm
-        (combine (["EXPR1", "EXPR2", "EXPR3", "EXPR4",
-		   "EXPR5", "EXPR6", "EXPR7", "EXPR8"], CONJUNCTS EXPR_rules));
-
-val CONTEXT_IS_EXPR = store_thm (
-   "CONTEXT_IS_EXPR", ``!e. CONTEXT e ==> EXPR e``,
-    Induct_on `CONTEXT`
- >> rpt STRIP_TAC (* 7 sub-goals here *)
- >| [ REWRITE_TAC [EXPR1],
-      REWRITE_TAC [EXPR2],
-      MATCH_MP_TAC EXPR3 >> art [],
-      MATCH_MP_TAC EXPR4 >> art [],
-      MATCH_MP_TAC EXPR5 >> art [],
-      MATCH_MP_TAC EXPR6 >> art [],
-      MATCH_MP_TAC EXPR7 >> art [] ]);
-
-(******************************************************************************)
-(*                                                                            *)
 (*                     Weakly guarded (WG) expressions                        *)
 (*                                                                            *)
 (******************************************************************************)
@@ -446,12 +410,6 @@ val WG_IS_CONTEXT = store_thm (
       MATCH_MP_TAC CONTEXT6 >> art [],
       MATCH_MP_TAC CONTEXT7 >> art [] ]);
 
-val WG_IS_EXPR = store_thm (
-   "WG_IS_EXPR", ``!e. WG e ==> EXPR e``,
-    rpt STRIP_TAC
- >> IMP_RES_TAC WG_IS_CONTEXT
- >> IMP_RES_TAC CONTEXT_IS_EXPR);
-
 val CONTEXT_WG_combin = store_thm (
    "CONTEXT_WG_combin", ``!c e. CONTEXT c /\ WG e ==> WG (c o e)``,
     rpt STRIP_TAC
@@ -482,6 +440,14 @@ val CONTEXT_WG_combin = store_thm (
       (* goal 6 (of 6) *)
       MP_TAC (Q.SPECL [`rf`, `(\x. (c :('a, 'b) context) (e x))`] WG7) \\
       BETA_TAC >> RW_TAC std_ss [] ]);
+
+(* Weak guardness for general CCS expressions *)
+val weakly_guarded1_def = Define `
+    weakly_guarded1 E =
+	!X. X IN (FV E) ==> !e. CONTEXT e /\ (e (var X) = E) ==> WG e`;
+
+val weakly_guarded_def = Define `
+    weakly_guarded Es = EVERY weakly_guarded1 Es`;
 
 (******************************************************************************)
 (*                                                                            *)

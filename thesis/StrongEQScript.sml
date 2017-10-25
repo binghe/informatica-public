@@ -5,7 +5,7 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open pred_setTheory pairTheory relationTheory;
+open pred_setTheory pairTheory relationTheory listTheory;
 open CCSLib CCSTheory;
 
 val _ = new_theory "StrongEQ";
@@ -19,6 +19,10 @@ val _ = temp_loose_equality ();
 
 (* Type abbreviations *)
 val _ = type_abbrev ("simulation", ``:('a, 'b) CCS -> ('a, 'b) CCS -> bool``);
+
+(* Use LIST_REL to build list_simulation from simulation, e.g. `LIST_REL STRONG_EQUIV` *)
+val _ = type_abbrev ("list_simulation",
+		    ``:('a, 'b) CCS list -> ('a, 'b) CCS list -> bool``);
 
 val STRONG_SIM_def = Define
    `STRONG_SIM (R :('a, 'b) simulation) =

@@ -14,7 +14,6 @@ open relationTheory CCSLib CCSTheory;
 open StrongEQTheory StrongEQLib StrongLawsTheory;
 open WeakEQTheory WeakEQLib WeakLawsTheory;
 open ObsCongrTheory ObsCongrLib ObsCongrLawsTheory;
-open CongruenceTheory;
 
 val _ = new_theory "BisimulationUpto";
 val _ = temp_loose_equality ();
@@ -597,8 +596,8 @@ val WEAK_BISIM_UPTO_THM = store_thm (
 
 (* NOTE: the (original) definition in Milner's 1989 book [1] is wrong, this is the
          corrected Definition 5.8 in the ERRATA (1990) of [1]. *)
-val WEAK_BISIM_UPTO2 = new_definition ("WEAK_BISIM_UPTO2",
-  ``WEAK_BISIM_UPTO2 (Wbsm: ('a, 'b) simulation) =
+val WEAK_BISIM_UPTO_ALT = new_definition ("WEAK_BISIM_UPTO_ALT",
+  ``WEAK_BISIM_UPTO_ALT (Wbsm: ('a, 'b) simulation) =
     !E E'. Wbsm E E' ==>
 	(!l.
 	  (!E1. WEAK_TRANS E  (label l) E1 ==>
@@ -611,41 +610,41 @@ val WEAK_BISIM_UPTO2 = new_definition ("WEAK_BISIM_UPTO2",
 	      ?E1. EPS E  E1 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2)``);
 
 (* Extracted above definition into smaller pieces for easier uses *)
-val WEAK_BISIM_UPTO2_WEAK_TRANS_label = store_thm (
-   "WEAK_BISIM_UPTO2_WEAK_TRANS_label",
-  ``!Wbsm. WEAK_BISIM_UPTO2 Wbsm ==>
+val WEAK_BISIM_UPTO_ALT_WEAK_TRANS_label = store_thm (
+   "WEAK_BISIM_UPTO_ALT_WEAK_TRANS_label",
+  ``!Wbsm. WEAK_BISIM_UPTO_ALT Wbsm ==>
 	!E E'. Wbsm E E' ==>
 	       !l E1. WEAK_TRANS E (label l) E1 ==>
 		      ?E2. WEAK_TRANS E' (label l) E2 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2``,
-    PROVE_TAC [WEAK_BISIM_UPTO2]);
+    PROVE_TAC [WEAK_BISIM_UPTO_ALT]);
 
-val WEAK_BISIM_UPTO2_WEAK_TRANS_label' = store_thm (
-   "WEAK_BISIM_UPTO2_WEAK_TRANS_label'",
-  ``!Wbsm. WEAK_BISIM_UPTO2 Wbsm ==>
+val WEAK_BISIM_UPTO_ALT_WEAK_TRANS_label' = store_thm (
+   "WEAK_BISIM_UPTO_ALT_WEAK_TRANS_label'",
+  ``!Wbsm. WEAK_BISIM_UPTO_ALT Wbsm ==>
 	!E E'. Wbsm E E' ==>
 	       !l E2. WEAK_TRANS E' (label l) E2 ==>
 		      ?E1. WEAK_TRANS E  (label l) E1 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2``,
-    PROVE_TAC [WEAK_BISIM_UPTO2]);
+    PROVE_TAC [WEAK_BISIM_UPTO_ALT]);
 
-val WEAK_BISIM_UPTO2_WEAK_TRANS_tau = store_thm (
-   "WEAK_BISIM_UPTO2_WEAK_TRANS_tau",
-  ``!Wbsm. WEAK_BISIM_UPTO2 Wbsm ==>
+val WEAK_BISIM_UPTO_ALT_WEAK_TRANS_tau = store_thm (
+   "WEAK_BISIM_UPTO_ALT_WEAK_TRANS_tau",
+  ``!Wbsm. WEAK_BISIM_UPTO_ALT Wbsm ==>
 	!E E'. Wbsm E E' ==>
 	       !E1. WEAK_TRANS E tau E1 ==>
 		    ?E2. EPS E' E2 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2``,
-    PROVE_TAC [WEAK_BISIM_UPTO2]);
+    PROVE_TAC [WEAK_BISIM_UPTO_ALT]);
 
-val WEAK_BISIM_UPTO2_WEAK_TRANS_tau' = store_thm (
-   "WEAK_BISIM_UPTO2_WEAK_TRANS_tau'",
-  ``!Wbsm. WEAK_BISIM_UPTO2 Wbsm ==>
+val WEAK_BISIM_UPTO_ALT_WEAK_TRANS_tau' = store_thm (
+   "WEAK_BISIM_UPTO_ALT_WEAK_TRANS_tau'",
+  ``!Wbsm. WEAK_BISIM_UPTO_ALT Wbsm ==>
 	!E E'. Wbsm E E' ==>
 	       !E2. WEAK_TRANS E' tau E2 ==>
 		    ?E1. EPS E  E1 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2``,
-    PROVE_TAC [WEAK_BISIM_UPTO2]);
+    PROVE_TAC [WEAK_BISIM_UPTO_ALT]);
 
-val WEAK_BISIM_UPTO2_EPS = store_thm ((* NEW *)
-   "WEAK_BISIM_UPTO2_EPS",
-  ``!Wbsm. WEAK_BISIM_UPTO2 Wbsm ==>
+val WEAK_BISIM_UPTO_ALT_EPS = store_thm ((* NEW *)
+   "WEAK_BISIM_UPTO_ALT_EPS",
+  ``!Wbsm. WEAK_BISIM_UPTO_ALT Wbsm ==>
 	!E E'. Wbsm E E' ==>
 	       !E1. EPS E E1 ==> ?E2. EPS E' E2 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2``,
     rpt STRIP_TAC
@@ -656,11 +655,11 @@ val WEAK_BISIM_UPTO2_EPS = store_thm ((* NEW *)
       Q.EXISTS_TAC `E'` >> REWRITE_TAC [WEAK_EQUIV_REFL] \\
       Q.EXISTS_TAC `E` >> art [WEAK_EQUIV_REFL],
       (* goal 2 (of 2) *)
-      PROVE_TAC [WEAK_BISIM_UPTO2] ]);
+      PROVE_TAC [WEAK_BISIM_UPTO_ALT] ]);
 
-val WEAK_BISIM_UPTO2_EPS' = store_thm ((* NEW *)
-   "WEAK_BISIM_UPTO2_EPS'",
-  ``!Wbsm. WEAK_BISIM_UPTO2 Wbsm ==>
+val WEAK_BISIM_UPTO_ALT_EPS' = store_thm ((* NEW *)
+   "WEAK_BISIM_UPTO_ALT_EPS'",
+  ``!Wbsm. WEAK_BISIM_UPTO_ALT Wbsm ==>
 	!E E'. Wbsm E E' ==>
 	       !E2. EPS E' E2 ==> ?E1. EPS E E1 /\ (WEAK_EQUIV O Wbsm O WEAK_EQUIV) E1 E2``,
     rpt STRIP_TAC
@@ -672,20 +671,20 @@ val WEAK_BISIM_UPTO2_EPS' = store_thm ((* NEW *)
       Q.EXISTS_TAC `E` >> REWRITE_TAC [WEAK_EQUIV_REFL] \\
       PROVE_TAC [],
       (* goal 2 (of 2) *)
-      PROVE_TAC [WEAK_BISIM_UPTO2] ]);
+      PROVE_TAC [WEAK_BISIM_UPTO_ALT] ]);
 
 (* If S is a bisimulation up to WEAK_EQUIV, then (WEAK_EQUIV O S O WEAK_EQUIV) is
    a weak bisimultion. *)
-val WEAK_BISIM_UPTO2_LEMMA = store_thm (
-   "WEAK_BISIM_UPTO2_LEMMA",
-  ``!Wbsm. WEAK_BISIM_UPTO2 Wbsm ==> WEAK_BISIM (WEAK_EQUIV O Wbsm O WEAK_EQUIV)``,
+val WEAK_BISIM_UPTO_ALT_LEMMA = store_thm (
+   "WEAK_BISIM_UPTO_ALT_LEMMA",
+  ``!Wbsm. WEAK_BISIM_UPTO_ALT Wbsm ==> WEAK_BISIM (WEAK_EQUIV O Wbsm O WEAK_EQUIV)``,
     GEN_TAC
  >> REWRITE_TAC [WEAK_BISIM, O_DEF]
  >> rpt STRIP_TAC (* 4 sub-goals here *)
  >| [ (* goal 1 (of 4) *)
       IMP_RES_TAC (MATCH_MP WEAK_EQUIV_TRANS_label (ASSUME ``WEAK_EQUIV E y'``)) \\
-      IMP_RES_TAC (MATCH_MP WEAK_BISIM_UPTO2_WEAK_TRANS_label
-			    (ASSUME ``WEAK_BISIM_UPTO2 Wbsm``)) \\
+      IMP_RES_TAC (MATCH_MP WEAK_BISIM_UPTO_ALT_WEAK_TRANS_label
+			    (ASSUME ``WEAK_BISIM_UPTO_ALT Wbsm``)) \\
       IMP_RES_TAC (MATCH_MP WEAK_EQUIV_WEAK_TRANS_label
 			    (ASSUME ``WEAK_EQUIV y E'``)) \\
       Q.EXISTS_TAC `E2''` >> art [] \\
@@ -703,8 +702,8 @@ val WEAK_BISIM_UPTO2_LEMMA = store_thm (
       Q.EXISTS_TAC `y'''` >> art [],
       (* goal 2 (of 4) *)
       IMP_RES_TAC (MATCH_MP WEAK_EQUIV_TRANS_label' (ASSUME ``WEAK_EQUIV y E'``)) \\
-      IMP_RES_TAC (MATCH_MP WEAK_BISIM_UPTO2_WEAK_TRANS_label'
-			    (ASSUME ``WEAK_BISIM_UPTO2 Wbsm``)) \\
+      IMP_RES_TAC (MATCH_MP WEAK_BISIM_UPTO_ALT_WEAK_TRANS_label'
+			    (ASSUME ``WEAK_BISIM_UPTO_ALT Wbsm``)) \\
       IMP_RES_TAC (MATCH_MP WEAK_EQUIV_WEAK_TRANS_label'
 			    (ASSUME ``WEAK_EQUIV E y'``)) \\
       Q.EXISTS_TAC `E1''` >> art [] \\
@@ -722,7 +721,7 @@ val WEAK_BISIM_UPTO2_LEMMA = store_thm (
       Q.EXISTS_TAC `y'''` >> art [],
       (* goal 3 (of 4) *)
       IMP_RES_TAC (MATCH_MP WEAK_EQUIV_TRANS_tau (ASSUME ``WEAK_EQUIV E y'``)) \\
-      IMP_RES_TAC (MATCH_MP WEAK_BISIM_UPTO2_EPS (ASSUME ``WEAK_BISIM_UPTO2 Wbsm``)) \\
+      IMP_RES_TAC (MATCH_MP WEAK_BISIM_UPTO_ALT_EPS (ASSUME ``WEAK_BISIM_UPTO_ALT Wbsm``)) \\
       IMP_RES_TAC (MATCH_MP WEAK_EQUIV_EPS (ASSUME ``WEAK_EQUIV y E'``)) \\
       Q.EXISTS_TAC `E2''` >> art [] \\
       qpat_x_assum `X E2 E2'` (STRIP_ASSUME_TAC o (REWRITE_RULE [O_DEF])) \\
@@ -739,7 +738,7 @@ val WEAK_BISIM_UPTO2_LEMMA = store_thm (
       Q.EXISTS_TAC `y'''` >> art [],
       (* goal 4 (of 4) *)
       IMP_RES_TAC (MATCH_MP WEAK_EQUIV_TRANS_tau' (ASSUME ``WEAK_EQUIV y E'``)) \\
-      IMP_RES_TAC (MATCH_MP WEAK_BISIM_UPTO2_EPS' (ASSUME ``WEAK_BISIM_UPTO2 Wbsm``)) \\
+      IMP_RES_TAC (MATCH_MP WEAK_BISIM_UPTO_ALT_EPS' (ASSUME ``WEAK_BISIM_UPTO_ALT Wbsm``)) \\
       IMP_RES_TAC (MATCH_MP WEAK_EQUIV_EPS' (ASSUME ``WEAK_EQUIV E y'``)) \\
       Q.EXISTS_TAC `E1''` >> art [] \\
       qpat_x_assum `X E1' E1` (STRIP_ASSUME_TAC o (REWRITE_RULE [O_DEF])) \\
@@ -757,11 +756,11 @@ val WEAK_BISIM_UPTO2_LEMMA = store_thm (
 
 (* To prove (WEAK_EQUIV P Q), we only have to find a weak bisimulation up to WEAK_EQUIV
    which contains (P, Q) *)
-val WEAK_BISIM_UPTO2_THM = store_thm (
-   "WEAK_BISIM_UPTO2_THM",
-  ``!Wbsm. WEAK_BISIM_UPTO2 Wbsm ==> Wbsm RSUBSET WEAK_EQUIV``,
+val WEAK_BISIM_UPTO_ALT_THM = store_thm (
+   "WEAK_BISIM_UPTO_ALT_THM",
+  ``!Wbsm. WEAK_BISIM_UPTO_ALT Wbsm ==> Wbsm RSUBSET WEAK_EQUIV``,
     rpt STRIP_TAC
- >> IMP_RES_TAC WEAK_BISIM_UPTO2_LEMMA
+ >> IMP_RES_TAC WEAK_BISIM_UPTO_ALT_LEMMA
  >> IMP_RES_TAC WEAK_BISIM_SUBSET_WEAK_EQUIV
  >> Suff `Wbsm RSUBSET (WEAK_EQUIV O Wbsm O WEAK_EQUIV)`
  >- ( DISCH_TAC \\

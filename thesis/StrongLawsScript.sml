@@ -1445,27 +1445,24 @@ val [ALL_SYNC_BASE, ALL_SYNC_INDUCT] =
 (* LESS_SUC_LESS_EQ':
  |- !m n. m < (SUC n) = m <= n
  *)
-val LESS_SUC_LESS_EQ' = store_thm (
-   "LESS_SUC_LESS_EQ'", ``!m n. m < SUC n = m <= n``,
+val LESS_SUC_LESS_EQ' = Q.prove (
+   `!m n. m < SUC n = m <= n`,
     REWRITE_TAC [LESS_EQ, LESS_EQ_MONO]);
 
 (* |- ∀n m. m < SUC n ⇒ m ≤ n
  *)
-val LESS_SUC_LESS_EQ = save_thm (
-   "LESS_SUC_LESS_EQ", EQ_IMP_LR LESS_SUC_LESS_EQ');
+val LESS_SUC_LESS_EQ = EQ_IMP_LR LESS_SUC_LESS_EQ';
 
 (* LESS_EQ_ZERO_EQ:
  |- !n. n <= 0 ==> (n = 0)
  *)
-val LESS_EQ_ZERO_EQ = save_thm (
-   "LESS_EQ_ZERO_EQ", EQ_IMP_LR LESS_EQ_0);
+val LESS_EQ_ZERO_EQ = EQ_IMP_LR LESS_EQ_0;
 
 (* LESS_EQ_LESS_EQ_SUC:
  |- !m n. m <= n ==> m <= (SUC n)
  *)
-val LESS_EQ_LESS_EQ_SUC = store_thm (
-   "LESS_EQ_LESS_EQ_SUC",
-  ``!m n. m <= n ==> (m <= (SUC n))``,
+val LESS_EQ_LESS_EQ_SUC = Q.prove (
+   `!m n. m <= n ==> m <= (SUC n)`,
     REPEAT STRIP_TAC
  >> IMP_RES_TAC LESS_EQ_IMP_LESS_SUC
  >> IMP_RES_TAC LESS_IMP_LESS_OR_EQ);

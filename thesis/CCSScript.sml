@@ -5,7 +5,8 @@
 
 open HolKernel Parse boolLib bossLib;
 
-open pred_setTheory relationTheory optionTheory CCSLib;
+open pred_setTheory relationTheory optionTheory listTheory finite_mapTheory;
+open CCSLib;
 
 val _ = new_theory "CCS";
 val _ = temp_loose_equality ();
@@ -51,8 +52,8 @@ val Label_11 = TypeBase.one_one_of ``:'b Label``;
 (* NEW: define the set of actions as the OPTION of Label *)
 val _ = type_abbrev ("Action", ``:'b Label option``);
 
-val _ = overload_on ("tau",    ``NONE :'b Action``);
-val _ = overload_on ("label",  ``SOME :'b Label -> 'b Action``);
+val _ = overload_on ("tau",   ``NONE :'b Action``);
+val _ = overload_on ("label", ``SOME :'b Label -> 'b Action``);
 
 val _ = Unicode.unicode_version { u = UnicodeChars.tau, tmnm = "tau"};
 val _ = TeX_notation { hol = "tau", TeX = ("\\ensuremath{\\tau}", 1) };
@@ -315,6 +316,9 @@ val CCS_cases = TypeBase.nchotomy_of ``:('a, 'b) CCS``;
 (* Prove that the constructors of the type CCS are distinct. *)
 val CCS_distinct = TypeBase.distinct_of ``:('a, 'b) CCS``;
 
+(* size definition *)
+val (CCS_size_tm, CCS_size_def) = TypeBase.size_of ``:('a, 'b) CCS``;
+
 local
     val thm = CONJUNCTS CCS_distinct;
     val CCS_distinct_LIST = thm @ (map GSYM thm);
@@ -391,13 +395,13 @@ val (TRANS_rules, TRANS_ind, TRANS_cases) = Hol_reln `
 
 val _ =
     add_rule { term_name = "TRANS", fixity = Infix (NONASSOC, 450),
-	pp_elements = [ BreakSpace(1,0), TOK "--", HardSpace 0, TM, HardSpace 0, TOK "-->",
+	pp_elements = [ BreakSpace(1,0), TOK "--", HardSpace 0, TM, HardSpace 0, TOK "->",
 			BreakSpace(1,0) ],
 	paren_style = OnlyIfNecessary,
 	block_style = (AroundEachPhrase, (PP.CONSISTENT, 0)) };
 
-val _ = TeX_notation { hol = "--",  TeX = ("\\HOLTokenTransBegin", 1) };
-val _ = TeX_notation { hol = "-->", TeX = ("\\HOLTokenTransEnd", 1) };
+val _ = TeX_notation { hol = "--", TeX = ("\\HOLTokenTransBegin", 1) };
+val _ = TeX_notation { hol = "->", TeX = ("\\HOLTokenTransEnd", 1) };
 
 (* The rules for the transition relation TRANS as individual theorems. *)
 val [PREFIX, SUM1, SUM2, PAR1, PAR2, PAR3, RESTR, RELABELING, REC] =
@@ -799,7 +803,198 @@ val TRANS_REC_EQ = store_thm ("TRANS_REC_EQ",
 
 val TRANS_REC = save_thm ("TRANS_REC", EQ_IMP_LR TRANS_REC_EQ);
 
+(******************************************************************************)
+(*                                                                            *)
+(*                     Variables and Names (Labels) in CCS                    *)
+(*                                                                            *)
+(******************************************************************************)
+
+(* ('a, 'b) CCS -> 'a set (set of free variables) *)
+val FV_def = Define `
+   (FV (nil :('a, 'b) CCS)    = (EMPTY :'a set)) /\
+   (FV (prefix u p)	      = FV p) /\
+   (FV (sum p q)	      = (FV p) UNION (FV q)) /\
+   (FV (par p q)	      = (FV p) UNION (FV q)) /\
+   (FV (restr L p)	      = FV p) /\
+   (FV (relab p rf)	      = FV p) /\
+   (FV (var X)		      = {X}) /\
+   (FV (rec X p)	      = (FV p) DIFF {X}) `;
+
+(* ('a, 'b) CCS -> 'a set (set of bound variables) *)
+val BV_def = Define `
+   (BV (nil :('a, 'b) CCS)    = (EMPTY :'a set)) /\
+   (BV (prefix u p)	      = BV p) /\
+   (BV (sum p q)	      = (BV p) UNION (BV q)) /\
+   (BV (par p q)	      = (BV p) UNION (BV q)) /\
+   (BV (restr L p)	      = BV p) /\
+   (BV (relab p rf)	      = BV p) /\
+   (BV (var X)		      = EMPTY) /\
+   (BV (rec X p)	      = X INSERT (BV p)) `;
+
+val IS_PROC_def = Define `
+    IS_PROC E = (FV E = EMPTY)`;
+
+val ALL_PROC_def = Define `
+    ALL_PROC Es = EVERY IS_PROC Es`;
+
+(* The use of finite_mapTheory (to get rid of substitution orders) is
+   suggested by Konrad Slind. *)
+val CCS_Subst1_def = Define `
+   (CCS_Subst1 nil	   (fm :'a |-> ('a, 'b) CCS) = nil) /\
+   (CCS_Subst1 (prefix u E) fm = prefix u (CCS_Subst1 E fm)) /\
+   (CCS_Subst1 (sum E1 E2)  fm = sum (CCS_Subst1 E1 fm)
+				     (CCS_Subst1 E2 fm)) /\
+   (CCS_Subst1 (par E1 E2)  fm = par (CCS_Subst1 E1 fm)
+				     (CCS_Subst1 E2 fm)) /\
+   (CCS_Subst1 (restr L E)  fm = restr L (CCS_Subst1 E fm)) /\
+   (CCS_Subst1 (relab E rf) fm = relab   (CCS_Subst1 E fm) rf) /\
+   (CCS_Subst1 (var Y)      fm = if (Y IN FDOM fm) then (FAPPLY fm Y)
+				 else (var Y)) /\
+   (CCS_Subst1 (rec Y E)    fm = if (Y IN FDOM fm) then (rec Y E)
+				 else (rec Y (CCS_Subst1 E fm)))`;
+
+(* :('a, 'b) CCS list -> ('a |-> ('a, 'b) CCS) -> ('a, 'b) CCS list *)
+val CCS_Subst2_def = Define `
+    CCS_Subst2 Es fm = MAP (\e. CCS_Subst1 e fm) Es`;
+
+val DELETE_ELEMENT_def = Define `
+   (DELETE_ELEMENT e [] = []) /\
+   (DELETE_ELEMENT e (x :: l) =
+    if (e = x) then DELETE_ELEMENT e l else x :: DELETE_ELEMENT e l)`;
+
+val NOT_IN_DELETE_ELEMENT = store_thm (
+   "NOT_IN_DELETE_ELEMENT", 
+  ``!e L. ~MEM e (DELETE_ELEMENT e L)``,
+    GEN_TAC >> Induct_on `L`
+ >- REWRITE_TAC [DELETE_ELEMENT_def, MEM]
+ >> GEN_TAC >> REWRITE_TAC [DELETE_ELEMENT_def]
+ >> Cases_on `e = h` >> fs []);
+
+val DELETE_ELEMENT_FILTER = store_thm (
+   "DELETE_ELEMENT_FILTER", 
+  ``!e L. DELETE_ELEMENT e L = FILTER ((<>) e) L``,
+    GEN_TAC >> Induct_on `L`
+ >- REWRITE_TAC [DELETE_ELEMENT_def, FILTER]
+ >> GEN_TAC >> REWRITE_TAC [DELETE_ELEMENT_def, FILTER]
+ >> Cases_on `e = h` >> fs []);
+
+val LENGTH_DELETE_ELEMENT_LEQ = store_thm (
+   "LENGTH_DELETE_ELEMENT_LEQ",
+  ``!e L. LENGTH (DELETE_ELEMENT e L) <= LENGTH L``,
+    rpt GEN_TAC
+ >> REWRITE_TAC [DELETE_ELEMENT_FILTER]
+ >> MP_TAC (Q.SPECL [`\y. e <> y`, `\y. T`] LENGTH_FILTER_LEQ_MONO)
+ >> BETA_TAC >> simp []
+ >> STRIP_TAC
+ >> POP_ASSUM (ASSUME_TAC o (Q.SPEC `L`))
+ >> Know `FILTER (\y. T) L = L`
+ >- ( KILL_TAC \\
+      Induct_on `L` >- REWRITE_TAC [FILTER] \\
+      GEN_TAC >> REWRITE_TAC [FILTER] >> simp [] )
+ >> DISCH_TAC >> fs []);
+
+val LENGTH_DELETE_ELEMENT_LE = store_thm (
+   "LENGTH_DELETE_ELEMENT_LE",
+  ``!e L. MEM e L ==> LENGTH (DELETE_ELEMENT e L) < LENGTH L``,
+    rpt GEN_TAC >> Induct_on `L`
+ >- REWRITE_TAC [MEM]
+ >> GEN_TAC >> REWRITE_TAC [MEM, DELETE_ELEMENT_def]
+ >> Cases_on `e = h` >> fs []
+ >> MP_TAC (Q.SPECL [`h`, `L`] LENGTH_DELETE_ELEMENT_LEQ)
+ >> KILL_TAC >> RW_TAC arith_ss []);
+
+val EVERY_DELETE_ELEMENT = store_thm (
+   "EVERY_DELETE_ELEMENT",
+  ``!e L P. P e /\ EVERY P (DELETE_ELEMENT e L) ==> EVERY P L``,
+    GEN_TAC >> Induct_on `L`
+ >- RW_TAC std_ss [DELETE_ELEMENT_def]
+ >> rpt GEN_TAC >> REWRITE_TAC [DELETE_ELEMENT_def]
+ >> Cases_on `e = h` >> fs []);
+
+val DELETE_ELEMENT_APPEND = store_thm (
+   "DELETE_ELEMENT_APPEND",
+  ``!a L L'. DELETE_ELEMENT a (L ++ L') = DELETE_ELEMENT a L ++ DELETE_ELEMENT a L'``,
+    REWRITE_TAC [DELETE_ELEMENT_FILTER]
+ >> REWRITE_TAC [GSYM FILTER_APPEND_DISTRIB]);
+
+(* not used so far, learnt from Robert Beers *)
+val ALL_IDENTICAL_def = Define `
+    ALL_IDENTICAL t = ?x. !y. MEM y t ==> (y = x)`;
+
+(*
+You might define the sublist relation: (from Michael Norrish)
+Sublist [] l = T
+  Sublist _ [] = F
+  Sublist (h1::t1) (h2::t2) = if h1 = h2 then Sublist t1 t2 else Sublist (h1::t1) t2
+
+And show that
+
+  Sublist (DELETE_ELEMENT e l) l
+*)
+
+(* (size :(α, β) CCS -> num) *)
+val size_def = Define `
+    size (p :('a, 'b) CCS) = ^CCS_size_tm (\x. 0) (\x. 0) p`;
+
+(* (FN :('a, 'b) CCS -> 'a list -> 'b Label set) *)
+val FN_definition = `
+   (FN (nil :('a, 'b) CCS) J  = (EMPTY :'b Label set)) /\
+   (FN (prefix (label l) p) J = l INSERT (FN p J)) /\	(* here! *)
+   (FN (prefix tau p) J	      = FN p J) /\
+   (FN (sum p q) J	      = (FN p J) UNION (FN q J)) /\
+   (FN (par p q) J	      = (FN p J) UNION (FN q J)) /\
+   (FN (restr L p) J	      = (FN p J) DIFF (L UNION (IMAGE COMPL_LAB L))) /\
+   (FN (relab p rf) J	      = IMAGE (REP_Relabeling rf) (FN p J)) /\
+   (FN (var X) J	      = EMPTY) /\
+   (FN (rec X p) J	      = if (MEM X J) then
+				    FN (CCS_Subst p (rec X p) X) (DELETE_ELEMENT X J)
+				else EMPTY)`;
+
+(* (BN :('a, 'b) CCS -> 'a list -> 'b Label set) *)
+val BN_definition = `
+   (BN (nil :('a, 'b) CCS) J  = (EMPTY :'b Label set)) /\
+   (BN (prefix u p) J	      = BN p J) /\
+   (BN (sum p q) J	      = (BN p J) UNION (BN q J)) /\
+   (BN (par p q) J	      = (BN p J) UNION (BN q J)) /\
+   (BN (restr L p) J	      = (BN p J) UNION L) /\	(* here! *)
+   (BN (relab p rf) J	      = BN p J) /\
+   (BN (var X) J	      = EMPTY) /\
+   (BN (rec X p) J	      = if (MEM X J) then
+				    FN (CCS_Subst p (rec X p) X) (DELETE_ELEMENT X J)
+				else EMPTY)`;
+
+(* This is how we get the correct tactics (FN_tac):
+ - val FN_defn = Hol_defn "FN" FN_definition;
+ - Defn.tgoal FN_defn;
+ *)
+local
+    val tactic = (* the use of `($< LEX $<)` is learnt from Ramana Kumar *)
+	WF_REL_TAC `inv_image ($< LEX $<) (\x. (LENGTH (SND x), size (FST x)))` \\
+	rpt STRIP_TAC >- ( IMP_RES_TAC LENGTH_DELETE_ELEMENT_LE >> art [] ) \\
+	REWRITE_TAC [size_def, CCS_size_def] >> simp [];
+in
+    val FN_def = TotalDefn.tDefine "FN" FN_definition tactic;
+    val BN_def = TotalDefn.tDefine "BN" BN_definition tactic;
+end;
+
+(* (free_names :('a, 'b) CCS -> 'b Label set) collects all visible labels in the prefix *)
+val free_names_def = Define ` (* also called "sorts" by Robin Milner *)
+    free_names p = FN p (SET_TO_LIST (BV p))`;
+
+(* (bound_names :('a, 'b) CCS -> 'b Label set) collects all visible labels in the restr *)
+val bound_names_def = Define `
+    bound_names p = BN p (SET_TO_LIST (BV p))`;
+
+val FN_UNIV1 = store_thm ("FN_UNIV1",
+  ``!p. free_names p <> (UNIV :'b Label set) ==> ?a. a NOTIN free_names p``,
+    PROVE_TAC [EQ_UNIV]);
+
+val FN_UNIV2 = store_thm ("FN_UNIV2",
+  ``!p q. free_names p UNION free_names q <> (UNIV :'b Label set) ==>
+	  ?a. a NOTIN free_names p /\ a NOTIN free_names q``,
+    PROVE_TAC [EQ_UNIV, IN_UNION]);
+
 val _ = export_theory ();
 val _ = html_theory "CCS";
 
-(* last updated: Oct 9, 2017 *)
+(* last updated: Oct 24, 2017 *)
