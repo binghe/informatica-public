@@ -10,8 +10,8 @@ EXTRA_CLEANS = heap munge.exe selftest.exe \
 
 ifdef POLY
 HOLHEAP = heap
-OBJNAMES = pairTheory sumTheory pred_setTheory finite_mapTheory listTheory llistTheory \
-	arithmeticTheory prim_recTheory optionTheory realTheory testutils
+OBJNAMES = pairTheory sumTheory pred_setTheory finite_mapTheory listTheory \
+	arithmeticTheory prim_recTheory optionTheory testutils
 OBJS = $(patsubst %,$(dprot $(SIGOBJ)/%.uo),$(OBJNAMES))
 
 all: $(HOLHEAP)
