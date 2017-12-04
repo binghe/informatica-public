@@ -10,8 +10,7 @@ EXTRA_CLEANS = heap munge.exe selftest.exe \
 
 ifdef POLY
 HOLHEAP = heap
-OBJNAMES = pairTheory sumTheory pred_setTheory finite_mapTheory listTheory \
-	arithmeticTheory prim_recTheory optionTheory testutils
+OBJNAMES = finite_mapTheory llistTheory
 OBJS = $(patsubst %,$(dprot $(SIGOBJ)/%.uo),$(OBJNAMES))
 
 all: $(HOLHEAP)
@@ -25,18 +24,15 @@ all: $(TARGETS) munge.exe selftest.exe
 selftest.exe: selftest.uo CCSConv.uo
 	$(HOLMOSMLC) -o $@ $<
 
-MUNGER = $(HOLDIR)/bin/mkmunge.exe
-munge.exe: CCSTheory.sig StrongEQTheory.sig StrongLawsTheory.sig \
-	   WeakEQTheory.sig WeakLawsTheory.sig ObsCongrTheory.sig ObsCongrLawsTheory.sig \
-	   CongruenceTheory.sig TraceTheory.sig CoarsestCongrTheory.sig \
-	   BisimulationUptoTheory.sig ExpansionTheory.sig ContractionTheory.sig \
-	   UniqueSolutionsTheory.sig
-	$(protect $(MUNGER)) -o $@ CCSTheory StrongEQTheory StrongLawsTheory \
-	   WeakEQTheory WeakLawsTheory ObsCongrTheory ObsCongrLawsTheory \
-	   BisimulationUptoTheory \
-	   CongruenceTheory CoarsestCongrTheory \
-	   TraceTheory ExpansionTheory ContractionTheory \
-	   UniqueSolutionsTheory
+MUNGE_DEPS = CCSTheory StrongEQTheory StrongLawsTheory \
+	     WeakEQTheory WeakLawsTheory ObsCongrTheory ObsCongrLawsTheory \
+	     BisimulationUptoTheory \
+	     CongruenceTheory CoarsestCongrTheory \
+	     TraceTheory ExpansionTheory ContractionTheory \
+	     UniqueSolutionsTheory ExampleTheory
+
+munge.exe: $(patsubst %,%.uo,$(MUNGE_DEPS))
+	$(HOLDIR)/bin/mkmunge.exe $(MUNGE_DEPS)
 
 output: munge.exe
 	echo '\HOLtm{R1 RUNION R2}' | ./munge.exe
