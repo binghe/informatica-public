@@ -15,4 +15,4 @@ List of publications \(public code\):
 -   lambek: Formalized Lambek Calculus in HOL4 \(CLP exam project\)
 -   NetLogo: Percolation threshold calculator for graphs in NetLogo \(**Complex Systems** exam project\)
 -   CP-VRP: Constraint programming \(bike sharing system\) in AIMMS \(Exam project for **Artificial Intelligence \(module 2\)**\)
-
+-	thesis: A Formalization of Unique Solutions of Equations in Process Algebra \(MSc degree thesis\)
