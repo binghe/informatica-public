@@ -17,4 +17,4 @@ List of public work \(public code\):
 -   NetLogo: Percolation threshold calculator for graphs in NetLogo \(**Complex Systems** exam project\)
 -   CP-VRP: Constraint programming \(bike sharing system\) in AIMMS \(Exam project for **Artificial Intelligence \(module 2\)**\)
 -	legalruleml: Consistency checking of legal norms using LegalRuleML \(Exam project of **Complementi di Basi di Dati**\)
--	thesis: A Formalization of Unique Solutions of Equations in Process Algebra \(MSc degree thesis\)
+-	thesis: A Formalization of Unique Solutions of Equations in Process Algebra \(MSc degree thesis [http://amslaurea.unibo.it/14798/]\)
